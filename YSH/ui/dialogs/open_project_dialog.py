@@ -1,0 +1,131 @@
+"""TTK dialog for selecting and opening an existing project."""
+
+from __future__ import annotations
+
+import tkinter as tk
+from collections.abc import Callable
+from datetime import datetime
+from tkinter import messagebox, ttk
+from uuid import UUID
+
+from core.project import Project
+from services.project_service import ProjectNotFoundError, ProjectService
+
+
+class OpenProjectDialog:
+    """Lists persisted projects and returns a user-selected project to a caller."""
+
+    def __init__(
+        self,
+        parent: tk.Misc,
+        project_service: ProjectService,
+        on_open: Callable[[Project], None],
+    ) -> None:
+        """Create and display a modal project-selection dialog."""
+        self._project_service = project_service
+        self._on_open = on_open
+        self._dialog = tk.Toplevel(parent)
+        self._dialog.title("Open Project")
+        self._dialog.transient(parent)
+        self._dialog.minsize(760, 360)
+        self._dialog.protocol("WM_DELETE_WINDOW", self._cancel)
+        self._create_widgets()
+        self._load_projects()
+        self._dialog.grab_set()
+        self._dialog.bind("<Return>", self._open_selected)
+        self._dialog.bind("<Escape>", self._cancel)
+
+    def _create_widgets(self) -> None:
+        content = ttk.Frame(self._dialog, padding=16)
+        content.grid(row=0, column=0, sticky="nsew")
+        content.columnconfigure(0, weight=1)
+        content.rowconfigure(1, weight=1)
+        self._dialog.columnconfigure(0, weight=1)
+        self._dialog.rowconfigure(0, weight=1)
+
+        self._empty_message = ttk.Label(content, text="")
+        self._empty_message.grid(row=0, column=0, sticky="w", pady=(0, 8))
+
+        self._projects_tree = ttk.Treeview(
+            content,
+            columns=("name", "description", "created_at", "modified_at"),
+            show="headings",
+            selectmode="browse",
+        )
+        for column, label, width in (
+            ("name", "Project Name", 200),
+            ("description", "Description", 280),
+            ("created_at", "Created At", 140),
+            ("modified_at", "Modified At", 140),
+        ):
+            self._projects_tree.heading(column, text=label)
+            self._projects_tree.column(column, width=width, anchor="w")
+        self._projects_tree.grid(row=1, column=0, sticky="nsew")
+        self._projects_tree.bind("<<TreeviewSelect>>", self._update_open_button)
+        self._projects_tree.bind("<Double-1>", self._open_selected)
+
+        actions = ttk.Frame(content)
+        actions.grid(row=2, column=0, sticky="e", pady=(14, 0))
+        ttk.Button(actions, text="Cancel", command=self._cancel).pack(side="left")
+        self._open_button = ttk.Button(
+            actions,
+            text="Open",
+            command=self._open_selected,
+            state="disabled",
+        )
+        self._open_button.pack(side="left", padx=(8, 0))
+
+    def _load_projects(self) -> None:
+        for item_id in self._projects_tree.get_children():
+            self._projects_tree.delete(item_id)
+        self._open_button.configure(state="disabled")
+        projects = sorted(
+            self._project_service.get_all_projects(),
+            key=lambda project: project.modified_at,
+            reverse=True,
+        )
+        if not projects:
+            self._empty_message.configure(text="No projects are available.")
+            return
+        self._empty_message.configure(text="Select a project to open.")
+        for project in projects:
+            self._projects_tree.insert(
+                "",
+                "end",
+                iid=str(project.id),
+                values=(
+                    project.display_name,
+                    project.description,
+                    self._format_datetime(project.created_at),
+                    self._format_datetime(project.modified_at),
+                ),
+            )
+
+    def _update_open_button(self, event: tk.Event[tk.Misc] | None = None) -> None:
+        del event
+        state = "normal" if self._projects_tree.selection() else "disabled"
+        self._open_button.configure(state=state)
+
+    def _open_selected(self, event: tk.Event[tk.Misc] | None = None) -> str:
+        del event
+        selected_items = self._projects_tree.selection()
+        if not selected_items:
+            return "break"
+        try:
+            project = self._project_service.get_project(UUID(selected_items[0]))
+        except (ProjectNotFoundError, ValueError) as error:
+            messagebox.showerror("Open Project", str(error), parent=self._dialog)
+            self._load_projects()
+            return "break"
+        self._on_open(project)
+        self._dialog.destroy()
+        return "break"
+
+    def _cancel(self, event: tk.Event[tk.Misc] | None = None) -> str:
+        del event
+        self._dialog.destroy()
+        return "break"
+
+    @staticmethod
+    def _format_datetime(value: datetime) -> str:
+        return value.astimezone().strftime("%Y-%m-%d %H:%M")
