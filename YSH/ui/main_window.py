@@ -19,6 +19,12 @@ from services.project_service import (
     ProjectService,
     ProjectValidationError,
 )
+from services.material_service import MaterialService
+from services.pipe_size_service import PipeSizeService
+from services.engineering_constant_service import EngineeringConstantService
+from ui.dialogs.material_library_dialog import MaterialLibraryDialog
+from ui.dialogs.pipe_size_library_dialog import PipeSizeLibraryDialog
+from ui.dialogs.constants_library_dialog import ConstantsLibraryDialog
 from ui.dialogs.new_project_dialog import NewProjectDialog
 from ui.dialogs.open_project_dialog import OpenProjectDialog
 from ui.widgets.project_summary import ProjectSummary
@@ -34,10 +40,16 @@ class MainWindow:
         root: tk.Tk,
         project_service: ProjectService,
         on_close: Callable[[], None],
+        material_service: MaterialService | None = None,
+        pipe_size_service: PipeSizeService | None = None,
+        engineering_constant_service: EngineeringConstantService | None = None,
     ) -> None:
         """Create the window and configure its layout and close lifecycle."""
         self._on_close = on_close
         self._project_service = project_service
+        self._material_service = material_service
+        self._pipe_size_service = pipe_size_service
+        self._engineering_constant_service = engineering_constant_service
         self._active_project: Project | None = None
         self._root = root
         self._root.title("YSH")
@@ -135,6 +147,15 @@ class MainWindow:
         self._file_menu.add_command(label="Exit", command=self._close)
         menu_bar.add_cascade(label="File", menu=self._file_menu)
 
+        library_menu = tk.Menu(menu_bar, tearoff=False)
+        library_menu.add_command(label="Materials...", command=self._open_material_library)
+        library_menu.add_command(label="Pipe Sizes...", command=self._open_pipe_size_library)
+        library_menu.add_command(
+            label="Engineering Constants...",
+            command=self._open_constants_library,
+        )
+        menu_bar.add_cascade(label="Library", menu=library_menu)
+
         project_menu = tk.Menu(menu_bar, tearoff=False)
         project_menu.add_command(label="Refresh", command=self._refresh_projects)
         menu_bar.add_cascade(label="Projects", menu=project_menu)
@@ -143,6 +164,21 @@ class MainWindow:
         help_menu.add_command(label="About", command=self._show_about)
         menu_bar.add_cascade(label="Help", menu=help_menu)
         self._root.configure(menu=menu_bar)
+
+    def _open_material_library(self) -> None:
+        """Open the service-backed material-library editor."""
+        if self._material_service is not None:
+            MaterialLibraryDialog(self._root, self._material_service)
+
+    def _open_pipe_size_library(self) -> None:
+        """Open the service-backed pipe-size-library editor."""
+        if self._pipe_size_service is not None:
+            PipeSizeLibraryDialog(self._root, self._pipe_size_service)
+
+    def _open_constants_library(self) -> None:
+        """Open the service-backed engineering-constants editor."""
+        if self._engineering_constant_service is not None:
+            ConstantsLibraryDialog(self._root, self._engineering_constant_service)
 
     def _open_new_project(self) -> None:
         NewProjectDialog(self._root, self._create_project)

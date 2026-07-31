@@ -1,5 +1,19 @@
 # Sprint Status
 
+## Epic 6 - Material and Engineering Data Library
+
+Completed: local, editable material, pipe-size, and engineering-constant
+libraries are available through the Library menu. `libraries.db` has a
+versioned schema and is created automatically. Materials and constants are
+seeded only into empty tables; pipe sizes remain empty until verified values
+are entered. The automated test command is:
+
+```powershell
+"C:\Users\USER\AppData\Local\Python\pythoncore-3.14-64\python.exe" -m pytest .\YSH\tests -v --basetemp .\work\pytest-epic6 -p no:cacheprovider
+```
+
+Latest test result: 96 passed, 0 failed.
+
 ## Completed Epic 5 - Engineering Core Foundation
 
 The reusable engineering unit conversion, validation, precision, and result

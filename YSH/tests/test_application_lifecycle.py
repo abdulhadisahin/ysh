@@ -16,11 +16,17 @@ class _FakeMainWindow:
         root: object,
         project_service: object,
         on_close: object,
+        material_service: object | None = None,
+        pipe_size_service: object | None = None,
+        engineering_constant_service: object | None = None,
     ) -> None:
         """Store startup dependencies for lifecycle verification."""
         self.root = root
         self.project_service = project_service
         self.on_close = on_close
+        self.material_service = material_service
+        self.pipe_size_service = pipe_size_service
+        self.engineering_constant_service = engineering_constant_service
         _FakeMainWindow.instance = self
 
 

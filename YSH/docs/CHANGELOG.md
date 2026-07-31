@@ -1,5 +1,13 @@
 # Changelog
 
+## Epic 6 - Material and Engineering Data Library
+
+- Added local versioned SQLite storage for materials, pipe sizes, and editable
+  engineering constants.
+- Added validated domain models, repositories, service layers, initial
+  material/constant seed data, and Library menu dialogs.
+- Added isolated automated tests for the new engineering data library.
+
 ## Epic 5 - Engineering Core Foundation
 
 - Added explicit Version 1 unit conversions using SI internal units.
