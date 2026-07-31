@@ -1,0 +1,5 @@
+work/
+.pytest_cache/
+pytest-*/
+__pycache__/
+*.py[cod]
