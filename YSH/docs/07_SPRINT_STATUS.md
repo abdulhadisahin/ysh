@@ -1,9 +1,9 @@
 # Sprint Status
 
-## Completed Epic 4 - GUI Foundation and Open Project Workflow
+## Completed Epic 5 - Engineering Core Foundation
 
-The reusable GUI foundation, Open Project workflow, active-project summary,
-and close-project state management are complete.
+The reusable engineering unit conversion, validation, precision, and result
+infrastructure is complete.
 
 ## Files Modified
 
@@ -17,11 +17,21 @@ and close-project state management are complete.
 - `ui/widgets/status_bar.py`
 - `ui/widgets/project_summary.py`
 - `ui/main_window.py`
+- `engineering/__init__.py`
+- `engineering/exceptions.py`
+- `engineering/units.py`
+- `engineering/validation.py`
+- `engineering/precision.py`
+- `engineering/result.py`
 - `tests/conftest.py`
 - `tests/test_project_model.py`
 - `tests/test_project_repository.py`
 - `tests/test_project_service.py`
 - `tests/test_main_window.py`
+- `tests/test_engineering_units.py`
+- `tests/test_engineering_validation.py`
+- `tests/test_engineering_precision.py`
+- `tests/test_engineering_result.py`
 - `pyproject.toml`
 
 ## Automated Test Command
@@ -32,15 +42,19 @@ py -3.14 -m pytest
 
 ## Latest Test Result
 
-0 tests executed: the available Codex Python runtime does not include pytest.
-The suite contains 25 isolated tests and is ready to run with
-`py -3.14 -m pytest` in a Python 3.14 environment where pytest is installed.
+71 tests passed, 0 tests failed using Python 3.14.6 and pytest 9.1.1.
 
 ## Runtime Standard
 
 Python 3.14 is the official YSH runtime. Python 3.12 is no longer a supported
 project target.
 
+## Engineering Core Standards
+
+- Supported internal units: m, Pa, m³/s, m²/s, and kg/m³.
+- Calculations retain full precision; only display/reporting values are rounded.
+- User-facing numerical values use six decimal places by default.
+
 ## Next Planned Feature
 
-Save-project workflow with unsaved-change tracking.
+First engineering calculation module.

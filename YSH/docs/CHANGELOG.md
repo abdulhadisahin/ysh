@@ -1,5 +1,12 @@
 # Changelog
 
+## Epic 5 - Engineering Core Foundation
+
+- Added explicit Version 1 unit conversions using SI internal units.
+- Added reusable engineering validation and six-decimal display precision tools.
+- Added reusable engineering result and traceability-message structures.
+- Added deterministic engineering-core pytest coverage.
+
 ## Epic 4 - GUI Foundation and Open Project Workflow
 
 - Added reusable ttk status-bar and project-summary widgets.
