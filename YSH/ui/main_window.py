@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import tkinter as tk
 from collections.abc import Callable
 from tkinter import messagebox, ttk
@@ -23,12 +24,14 @@ from ui.dialogs.open_project_dialog import OpenProjectDialog
 from ui.widgets.project_summary import ProjectSummary
 from ui.widgets.status_bar import StatusBar
 
+LOGGER = logging.getLogger(__name__)
 
 class MainWindow:
     """Creates and runs the primary YSH desktop window."""
 
     def __init__(
         self,
+        root: tk.Tk,
         project_service: ProjectService,
         on_close: Callable[[], None],
     ) -> None:
@@ -36,7 +39,7 @@ class MainWindow:
         self._on_close = on_close
         self._project_service = project_service
         self._active_project: Project | None = None
-        self._root = tk.Tk()
+        self._root = root
         self._root.title("YSH")
         self._root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
         self._root.minsize(WINDOW_MINIMUM_WIDTH, WINDOW_MINIMUM_HEIGHT)
@@ -44,10 +47,6 @@ class MainWindow:
         self._root.iconname("YSH")
         self._create_layout()
         self._refresh_projects()
-
-    def run(self) -> None:
-        """Start the Tkinter event loop."""
-        self._root.mainloop()
 
     def _create_layout(self) -> None:
         self._root.columnconfigure(0, weight=1)
@@ -149,11 +148,15 @@ class MainWindow:
         NewProjectDialog(self._root, self._create_project)
 
     def _open_project(self) -> None:
-        OpenProjectDialog(
-            self._root,
-            self._project_service,
-            self._activate_project,
-        )
+        try:
+            dialog = OpenProjectDialog(self._root, self._project_service)
+            project = dialog.show()
+        except Exception as error:
+            LOGGER.exception("Unable to display the Open Project dialog.")
+            messagebox.showerror("Open Project", str(error), parent=self._root)
+            return
+        if project is not None:
+            self._activate_project(project)
 
     def _create_project(
         self,

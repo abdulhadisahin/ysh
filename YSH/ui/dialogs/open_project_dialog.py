@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+import logging
 import tkinter as tk
-from collections.abc import Callable
 from datetime import datetime
 from tkinter import messagebox, ttk
 from uuid import UUID
@@ -11,29 +11,33 @@ from uuid import UUID
 from core.project import Project
 from services.project_service import ProjectNotFoundError, ProjectService
 
+LOGGER = logging.getLogger(__name__)
+
 
 class OpenProjectDialog:
-    """Lists persisted projects and returns a user-selected project to a caller."""
+    """Lists persisted projects and returns a user-selected project result."""
 
-    def __init__(
-        self,
-        parent: tk.Misc,
-        project_service: ProjectService,
-        on_open: Callable[[Project], None],
-    ) -> None:
-        """Create and display a modal project-selection dialog."""
+    def __init__(self, parent: tk.Misc, project_service: ProjectService) -> None:
+        """Create a visible modal dialog for selecting an existing project."""
         self._project_service = project_service
-        self._on_open = on_open
+        self.result: Project | None = None
         self._dialog = tk.Toplevel(parent)
         self._dialog.title("Open Project")
-        self._dialog.transient(parent)
+        self._dialog.geometry("900x440")
         self._dialog.minsize(760, 360)
+        self._dialog.transient(parent)
         self._dialog.protocol("WM_DELETE_WINDOW", self._cancel)
         self._create_widgets()
         self._load_projects()
         self._dialog.grab_set()
         self._dialog.bind("<Return>", self._open_selected)
         self._dialog.bind("<Escape>", self._cancel)
+
+    def show(self) -> Project | None:
+        """Wait for dialog completion and return the selected project, if any."""
+        self._dialog.focus_set()
+        self._dialog.wait_window()
+        return self.result
 
     def _create_widgets(self) -> None:
         content = ttk.Frame(self._dialog, padding=16)
@@ -79,11 +83,17 @@ class OpenProjectDialog:
         for item_id in self._projects_tree.get_children():
             self._projects_tree.delete(item_id)
         self._open_button.configure(state="disabled")
-        projects = sorted(
-            self._project_service.get_all_projects(),
-            key=lambda project: project.modified_at,
-            reverse=True,
-        )
+        try:
+            projects = sorted(
+                self._project_service.get_all_projects(),
+                key=lambda project: project.modified_at,
+                reverse=True,
+            )
+        except Exception as error:
+            LOGGER.exception("Unable to load projects for the Open Project dialog.")
+            self._empty_message.configure(text="Unable to load projects.")
+            messagebox.showerror("Open Project", str(error), parent=self._dialog)
+            return
         if not projects:
             self._empty_message.configure(text="No projects are available.")
             return
@@ -102,12 +112,17 @@ class OpenProjectDialog:
             )
 
     def _update_open_button(self, event: tk.Event[tk.Misc] | None = None) -> None:
+        """Enable Open only when a Treeview row is selected."""
         del event
         state = "normal" if self._projects_tree.selection() else "disabled"
         self._open_button.configure(state=state)
 
     def _open_selected(self, event: tk.Event[tk.Misc] | None = None) -> str:
-        del event
+        """Set the selected project result and close the dialog."""
+        if event is not None:
+            clicked_item = self._projects_tree.identify_row(event.y)
+            if clicked_item:
+                self._projects_tree.selection_set(clicked_item)
         selected_items = self._projects_tree.selection()
         if not selected_items:
             return "break"
@@ -117,15 +132,23 @@ class OpenProjectDialog:
             messagebox.showerror("Open Project", str(error), parent=self._dialog)
             self._load_projects()
             return "break"
-        self._on_open(project)
+        except Exception as error:
+            LOGGER.exception("Unable to open the selected project.")
+            messagebox.showerror("Open Project", str(error), parent=self._dialog)
+            return "break"
+        self.result = project
+        self._dialog.grab_release()
         self._dialog.destroy()
         return "break"
 
     def _cancel(self, event: tk.Event[tk.Misc] | None = None) -> str:
+        """Close the dialog without selecting a project."""
         del event
+        self._dialog.grab_release()
         self._dialog.destroy()
         return "break"
 
     @staticmethod
     def _format_datetime(value: datetime) -> str:
+        """Format a project timestamp for the project-selection table."""
         return value.astimezone().strftime("%Y-%m-%d %H:%M")

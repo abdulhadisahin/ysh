@@ -33,7 +33,7 @@ py -3.14 -m pytest
 ## Latest Test Result
 
 0 tests executed: the available Codex Python runtime does not include pytest.
-The suite contains 22 isolated tests and is ready to run with
+The suite contains 25 isolated tests and is ready to run with
 `py -3.14 -m pytest` in a Python 3.14 environment where pytest is installed.
 
 ## Runtime Standard
