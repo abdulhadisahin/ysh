@@ -1,15 +1,14 @@
-"""Compatibility launcher that delegates to the repository-root entry point."""
+"""Canonical package entry point for the YSH desktop application."""
 
 from __future__ import annotations
 
-from pathlib import Path
-from runpy import run_path
+from YSH.app import YSHApplication
 
 
 def main() -> None:
-    """Run the primary repository-root YSH entry point."""
-    repository_entry_point = Path(__file__).resolve().parents[1] / "main.py"
-    run_path(str(repository_entry_point), run_name="__main__")
+    """Create and run the YSH application from package execution."""
+    application = YSHApplication()
+    application.run()
 
 
 if __name__ == "__main__":

@@ -1,5 +1,11 @@
 # Sprint Status
 
+## Epic 7 - Pipe Diameter and Wall Thickness
+
+Implemented Version 1 pipe diameter, editable-library DN recommendation, and
+minimum wall thickness calculation. Manual and library material workflows are
+supported without persisting overrides.
+
 ## Epic 6 - Material and Engineering Data Library
 
 Completed: local, editable material, pipe-size, and engineering-constant
@@ -72,3 +78,29 @@ project target.
 ## Next Planned Feature
 
 First engineering calculation module.
+
+## Epic 11 - First Windows Test EXE Packaging
+
+- Added PyInstaller onedir build configuration and PowerShell build/clean scripts.
+- Added `%LOCALAPPDATA%\YSH\data` database paths and `%LOCALAPPDATA%\YSH\logs\ysh.log`.
+- Added source/frozen resource-path separation and path regression tests.
+- Diagnostic build command: `powershell -ExecutionPolicy Bypass -File .\build\build_exe.ps1`.
+- Latest pre-build test result: 116 passed, 0 failed.
+- Build execution is pending a PyInstaller-capable Windows environment; this
+  environment blocks access to PyPI and has no installed PyInstaller package.
+
+## Epic 12 - Input and Usability Improvements
+
+- Engineering numeric inputs accept decimal points or commas, including scientific notation.
+- Mixed decimal/thousands-style separators are rejected; database values remain numeric.
+- Pipe diameter and wall thickness calculations now run as independent operations.
+- Added offline translation-key infrastructure; Turkish translation is planned for a later sprint.
+- Latest test result: 134 passed, 0 failed.
+
+## Epic 12 Final Completion
+
+- Suction-line hydraulic loss and ENPY are independent page actions.
+- Hydraulic changes invalidate both stages; pressure/NPSH changes preserve suction loss.
+- Mouse wheel is scoped: page controls route to their page and Treeviews consume table scrolling.
+- No Spinbox, Scale, Slider, or Listbox widgets currently exist in YSH.
+- Latest test result: 139 passed, 0 failed.

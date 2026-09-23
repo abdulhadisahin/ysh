@@ -8,7 +8,7 @@ from core.pipe_size import PipeSize
 from database.library_database import LibraryDatabase
 
 class PipeSizeRepositoryConflictError(RuntimeError):
-    """Raised when a pipe nominal diameter and standard conflict."""
+    """Raised when a pipe-size natural key conflicts."""
 class PipeSizeRepository:
     """Persists pipe size records with parameterized SQLite queries."""
     def __init__(self, database: LibraryDatabase) -> None: self._database = database
@@ -16,7 +16,7 @@ class PipeSizeRepository:
         """Persist a new pipe size."""
         try:
             with self._database.connection() as c: c.execute("INSERT INTO pipe_sizes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", self._values(item))
-        except sqlite3.IntegrityError as error: raise PipeSizeRepositoryConflictError("Pipe size and standard must be unique.") from error
+        except sqlite3.IntegrityError as error: raise PipeSizeRepositoryConflictError("Pipe size dimensions and standard must be unique.") from error
         return item
     def get(self, item_id: UUID) -> PipeSize | None:
         """Retrieve a pipe size by identifier."""
@@ -24,18 +24,18 @@ class PipeSizeRepository:
         return self._map(row) if row else None
     def get_all(self) -> Sequence[PipeSize]:
         """Return every stored pipe size."""
-        with self._database.connection() as c: rows = c.execute("SELECT * FROM pipe_sizes ORDER BY nominal_diameter COLLATE NOCASE, standard COLLATE NOCASE").fetchall()
+        with self._database.connection() as c: rows = c.execute("SELECT * FROM pipe_sizes ORDER BY CAST(SUBSTR(UPPER(nominal_diameter), 3) AS INTEGER), wall_thickness_mm, outside_diameter_mm, standard COLLATE NOCASE").fetchall()
         return tuple(self._map(row) for row in rows)
-    def exists(self, nominal_diameter: str, standard: str, excluded_id: UUID | None = None) -> bool:
+    def exists(self, nominal_diameter: str, outside_diameter_mm: float, wall_thickness_mm: float, standard: str, excluded_id: UUID | None = None) -> bool:
         """Return whether another record has the natural pipe-size key."""
-        sql = "SELECT 1 FROM pipe_sizes WHERE nominal_diameter=? COLLATE NOCASE AND standard=? COLLATE NOCASE"; values: tuple[str, ...] = (nominal_diameter, standard)
-        if excluded_id is not None: sql += " AND id != ?"; values = (nominal_diameter, standard, str(excluded_id))
+        sql = "SELECT 1 FROM pipe_sizes WHERE nominal_diameter=? COLLATE NOCASE AND outside_diameter_mm=? AND wall_thickness_mm=? AND standard=? COLLATE NOCASE"; values: tuple[object, ...] = (nominal_diameter, outside_diameter_mm, wall_thickness_mm, standard)
+        if excluded_id is not None: sql += " AND id != ?"; values = (*values, str(excluded_id))
         with self._database.connection() as c: return c.execute(sql, values).fetchone() is not None
     def update(self, item: PipeSize) -> PipeSize:
         """Persist an existing pipe size."""
         try:
             with self._database.connection() as c: cursor = c.execute("UPDATE pipe_sizes SET nominal_diameter=?, outside_diameter_mm=?, wall_thickness_mm=?, inside_diameter_mm=?, standard=?, description=?, is_system=?, modified_at=? WHERE id=?", self._values(item)[1:8] + (item.modified_at.isoformat(), str(item.id)))
-        except sqlite3.IntegrityError as error: raise PipeSizeRepositoryConflictError("Pipe size and standard must be unique.") from error
+        except sqlite3.IntegrityError as error: raise PipeSizeRepositoryConflictError("Pipe size dimensions and standard must be unique.") from error
         if cursor.rowcount == 0: raise KeyError(f"Pipe size '{item.id}' was not found.")
         return item
     def delete(self, item_id: UUID) -> None:

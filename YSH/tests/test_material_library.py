@@ -25,4 +25,5 @@ def test_material_numeric_validation(material_service:MaterialService,strength:f
     with pytest.raises(MaterialValidationError):material_service.create_material(name="X",designation=f"X{strength}{roughness}",yield_strength_mpa=strength,roughness_mm=roughness)
 def test_material_missing_property_detection(material_service:MaterialService)->None:
     """Materials without verified values cannot satisfy required-property use."""
-    with pytest.raises(MaterialValidationError,match="verified"):material_service.validate_required_properties(material_service.get_all_materials()[2],"yield_strength_mpa")
+    with pytest.raises(MaterialValidationError) as error:material_service.validate_required_properties(material_service.get_all_materials()[2],"yield_strength_mpa")
+    assert error.value.issue.code == "material_property_missing"

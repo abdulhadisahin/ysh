@@ -3,3 +3,7 @@ work/
 pytest-*/
 __pycache__/
 *.py[cod]
+dist/
+build/pyinstaller/
+YSH/database/*.db
+database/*.db

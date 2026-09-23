@@ -20,9 +20,19 @@ class ProjectValidationError(ValueError):
 class ProjectConflictError(ValueError):
     """Raised when a project conflicts with an existing project."""
 
+    def __init__(self, code: str = "project_duplicate_name") -> None:
+        """Create a language-neutral duplicate-project error."""
+        self.code = code
+        super().__init__(code)
+
 
 class ProjectNotFoundError(LookupError):
     """Raised when a requested project does not exist."""
+
+    def __init__(self, code: str = "project_not_found") -> None:
+        """Create a language-neutral missing-project error."""
+        self.code = code
+        super().__init__(code)
 
 
 class ProjectService:
@@ -49,16 +59,14 @@ class ProjectService:
         try:
             return self._repository.create(project)
         except ProjectRepositoryConflictError as error:
-            raise ProjectConflictError(
-                "A project with this name already exists."
-            ) from error
+            raise ProjectConflictError() from error
 
     def get_project(self, project_id: UUID) -> Project:
         """Return a project by identifier after validating the request."""
         self._validate_identifier(project_id)
         project = self._repository.get(project_id)
         if project is None:
-            raise ProjectNotFoundError(f"Project '{project_id}' was not found.")
+            raise ProjectNotFoundError()
         return project
 
     def list_projects(self) -> Sequence[Project]:
@@ -95,11 +103,9 @@ class ProjectService:
         try:
             return self._repository.update(project)
         except KeyError as error:
-            raise ProjectNotFoundError(str(error)) from error
+            raise ProjectNotFoundError() from error
         except ProjectRepositoryConflictError as error:
-            raise ProjectConflictError(
-                "A project with this name already exists."
-            ) from error
+            raise ProjectConflictError() from error
 
     def delete_project(self, project_id: UUID) -> None:
         """Validate and delete a project by identifier."""
@@ -107,7 +113,7 @@ class ProjectService:
         try:
             self._repository.delete(project_id)
         except KeyError as error:
-            raise ProjectNotFoundError(str(error)) from error
+            raise ProjectNotFoundError() from error
 
     @staticmethod
     def _validate_project(project: Project) -> None:
@@ -129,4 +135,4 @@ class ProjectService:
 
     def _ensure_name_is_available(self, candidate: Project) -> None:
         if self.project_name_exists(candidate.name, candidate.id):
-            raise ProjectConflictError("A project with this name already exists.")
+            raise ProjectConflictError()

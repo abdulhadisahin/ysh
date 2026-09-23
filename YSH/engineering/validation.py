@@ -1,101 +1,68 @@
-"""Reusable validation functions for engineering inputs."""
+"""Semantic validation primitives shared by YSH engineering boundaries."""
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import math
-from collections.abc import Collection
-from numbers import Real
-
-from engineering.exceptions import EngineeringValidationError
+from typing import Mapping
 
 
-def validate_required_text(value: object, parameter_name: str) -> str:
-    """Return normalized required text or raise a clear validation error."""
-    if not isinstance(value, str):
-        raise EngineeringValidationError(f"{parameter_name} must be text.")
-    normalized_value = value.strip()
-    if not normalized_value:
-        raise EngineeringValidationError(f"{parameter_name} is required.")
-    return normalized_value
+@dataclass(frozen=True, slots=True)
+class ValidationIssue:
+    """Describe a validation failure without embedding display-language text."""
+
+    code: str
+    field_key: str | None = None
+    params: Mapping[str, object] | None = None
 
 
-def validate_finite_number(value: object, parameter_name: str) -> float:
-    """Return a finite numeric value while rejecting booleans and non-numerics."""
-    if isinstance(value, bool) or not isinstance(value, Real):
-        raise EngineeringValidationError(f"{parameter_name} must be a finite number.")
-    normalized_value = float(value)
-    if not math.isfinite(normalized_value):
-        raise EngineeringValidationError(f"{parameter_name} must be finite.")
-    return normalized_value
+class ValidationError(ValueError):
+    """Raise one semantic validation issue across service and UI boundaries."""
+
+    def __init__(self, issue: ValidationIssue) -> None:
+        """Store the semantic issue without creating a user-facing sentence."""
+        self.issue = issue
+        super().__init__(issue.code)
 
 
-def validate_positive_number(value: object, parameter_name: str) -> float:
-    """Return a finite number greater than zero."""
-    normalized_value = validate_finite_number(value, parameter_name)
-    if normalized_value <= 0:
-        raise EngineeringValidationError(f"{parameter_name} must be greater than zero.")
-    return normalized_value
+def validate_finite_number(value: object, name: str) -> float:
+    """Retain the established Engineering Core finite-number validation API."""
+    from engineering.exceptions import EngineeringValidationError
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+        raise EngineeringValidationError(f"{name} must be a finite number.")
+    return float(value)
 
 
-def validate_non_negative_number(value: object, parameter_name: str) -> float:
-    """Return a finite number greater than or equal to zero."""
-    normalized_value = validate_finite_number(value, parameter_name)
-    if normalized_value < 0:
-        raise EngineeringValidationError(
-            f"{parameter_name} must be greater than or equal to zero."
-        )
-    return normalized_value
+def validate_required_text(value: object, name: str) -> str:
+    """Return required normalized text through the established API."""
+    from engineering.exceptions import EngineeringValidationError
+    if not isinstance(value, str) or not value.strip(): raise EngineeringValidationError(f"{name} is required.")
+    return value.strip()
 
 
-def validate_inclusive_range(
-    value: object,
-    minimum: object,
-    maximum: object,
-    parameter_name: str,
-) -> float:
-    """Return a finite value constrained to inclusive finite bounds."""
-    normalized_minimum = validate_finite_number(minimum, "minimum")
-    normalized_maximum = validate_finite_number(maximum, "maximum")
-    if normalized_minimum > normalized_maximum:
-        raise EngineeringValidationError("minimum must not be greater than maximum.")
-    normalized_value = validate_finite_number(value, parameter_name)
-    if not normalized_minimum <= normalized_value <= normalized_maximum:
-        raise EngineeringValidationError(
-            f"{parameter_name} must be between {normalized_minimum} and "
-            f"{normalized_maximum}, inclusive."
-        )
-    return normalized_value
+def validate_positive_number(value: object, name: str) -> float:
+    """Validate an established positive-number contract."""
+    result = validate_finite_number(value, name)
+    if result <= 0: raise __import__("engineering.exceptions", fromlist=["EngineeringValidationError"]).EngineeringValidationError(f"{name} must be greater than zero.")
+    return result
 
 
-def validate_percentage_range(
-    value: object,
-    minimum: object,
-    maximum: object,
-    parameter_name: str,
-) -> float:
-    """Validate a percentage against explicitly supplied inclusive bounds."""
-    return validate_inclusive_range(value, minimum, maximum, parameter_name)
+def validate_non_negative_number(value: object, name: str) -> float:
+    """Validate an established non-negative-number contract."""
+    result = validate_finite_number(value, name)
+    if result < 0: raise __import__("engineering.exceptions", fromlist=["EngineeringValidationError"]).EngineeringValidationError(f"{name} must be greater than or equal to zero.")
+    return result
 
 
-def validate_factor_range(
-    value: object,
-    minimum: object,
-    maximum: object,
-    parameter_name: str,
-) -> float:
-    """Validate a factor against explicitly supplied inclusive bounds."""
-    return validate_inclusive_range(value, minimum, maximum, parameter_name)
+def validate_inclusive_range(value: object, lower: float, upper: float, name: str) -> float:
+    """Validate an established inclusive numeric range contract."""
+    result = validate_finite_number(value, name)
+    if not lower <= result <= upper: raise __import__("engineering.exceptions", fromlist=["EngineeringValidationError"]).EngineeringValidationError(f"{name} must be between {lower} and {upper}.")
+    return result
 
 
-def validate_allowed_choice(
-    value: object,
-    allowed_choices: Collection[object],
-    parameter_name: str,
-) -> object:
-    """Return an allowed value or raise a clear validation error."""
-    if value not in allowed_choices:
-        raise EngineeringValidationError(
-            f"{parameter_name} must be one of: "
-            f"{', '.join(str(choice) for choice in allowed_choices)}."
-        )
+def validate_allowed_choice(value: object, choices: tuple[object, ...], name: str) -> object:
+    """Validate an established allowed-choice contract."""
+    from engineering.exceptions import EngineeringValidationError
+    if value not in choices: raise EngineeringValidationError(f"{name} must be one of {choices}.")
     return value

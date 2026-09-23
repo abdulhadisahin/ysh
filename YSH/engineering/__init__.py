@@ -1,12 +1,16 @@
 """Shared engineering infrastructure for YSH calculation modules."""
 
-from engineering.exceptions import (
+import sys
+
+sys.modules.setdefault("engineering", sys.modules[__name__])
+
+from .exceptions import (
     EngineeringError,
     EngineeringValidationError,
     UnitConversionError,
     UnsupportedUnitError,
 )
-from engineering.result import EngineeringMessage, EngineeringResult
+from .result import EngineeringMessage, EngineeringResult
 
 __all__ = [
     "EngineeringError",

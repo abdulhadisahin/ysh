@@ -50,8 +50,10 @@ def test_service_rejects_case_insensitive_duplicate_name(
     """Project names must be unique without regard to case."""
     project_service.create_project("Project Alpha")
 
-    with pytest.raises(ProjectConflictError, match="already exists"):
+    with pytest.raises(ProjectConflictError) as error:
         project_service.create_project("project alpha")
+
+    assert error.value.code == "project_duplicate_name"
 
 
 def test_service_update_allows_its_own_name(
@@ -76,6 +78,18 @@ def test_service_deletes_and_reports_missing_project(
 
     with pytest.raises(ProjectNotFoundError):
         project_service.get_project(project.id)
+
+
+def test_service_missing_project_uses_a_stable_semantic_code(
+    project_service: ProjectService,
+) -> None:
+    """Missing projects do not expose an English persistence message."""
+    project = Project(name="Missing Project")
+
+    with pytest.raises(ProjectNotFoundError) as error:
+        project_service.get_project(project.id)
+
+    assert error.value.code == "project_not_found"
 
 
 def test_service_returns_all_projects(project_service: ProjectService) -> None:

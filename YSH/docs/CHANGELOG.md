@@ -1,5 +1,10 @@
 # Changelog
 
+## Epic 7 - Pipe Diameter and Wall Thickness
+
+- Added approved pipe diameter, DN recommendation, and wall thickness formulas.
+- Added a service-backed Pipe Diameter and Wall Thickness workspace page.
+
 ## Epic 6 - Material and Engineering Data Library
 
 - Added local versioned SQLite storage for materials, pipe sizes, and editable
@@ -28,6 +33,23 @@
 - Set Python 3.14 as the official YSH runtime.
 - Removed Python 3.12 as a supported project target.
 - Updated the test command to `py -3.14 -m pytest`.
+
+## Epic 11 - First Windows Test EXE Packaging
+
+- Added central per-user runtime paths for SQLite databases, logs, and backups.
+- Added local startup-error logging and packaged-resource path resolution.
+- Added reproducible PyInstaller onedir specification and build documentation.
+
+## Epic 12 - Input and Usability Improvements
+
+- Added central point/comma engineering-number parsing for all numeric UI inputs.
+- Split Pipe Design into independent diameter and wall-thickness calculation actions.
+- Added an offline translation registry with English messages and Turkish registration support.
+
+## Epic 12 Final Completion
+
+- Split suction-line loss from ENPY evaluation without changing engineering formulas.
+- Added scoped, non-global mouse-wheel ownership for pages and editable Treeviews.
 
 ## Epic 3 - Project Management and Test Foundation
 
