@@ -15,7 +15,10 @@ class PipeSize:
     outside_diameter_mm: float
     wall_thickness_mm: float
     inside_diameter_mm: float
+    # ``standard`` is retained as a resolved display name for V1 callers;
+    # ``standard_id`` is authoritative in the Phase 2A database schema.
     standard: str = ""
+    standard_id: UUID | None = None
     description: str = ""
     is_system: bool = False
     id: UUID = field(default_factory=uuid4)
@@ -31,6 +34,7 @@ class PipeSize:
         return {"id": str(self.id), "nominal_diameter": self.nominal_diameter,
                 "outside_diameter_mm": self.outside_diameter_mm, "wall_thickness_mm": self.wall_thickness_mm,
                 "inside_diameter_mm": self.inside_diameter_mm, "standard": self.standard,
+                "standard_id": str(self.standard_id) if self.standard_id is not None else None,
                 "description": self.description, "is_system": self.is_system,
                 "created_at": self.created_at.isoformat(), "modified_at": self.modified_at.isoformat()}
 
@@ -40,5 +44,6 @@ class PipeSize:
         return cls(id=UUID(str(data["id"])), nominal_diameter=str(data["nominal_diameter"]),
                    outside_diameter_mm=float(data["outside_diameter_mm"]), wall_thickness_mm=float(data["wall_thickness_mm"]),
                    inside_diameter_mm=float(data["inside_diameter_mm"]), standard=str(data.get("standard", "")),
+                   standard_id=(UUID(str(data["standard_id"])) if data.get("standard_id") else None),
                    description=str(data.get("description", "")), is_system=bool(data.get("is_system", False)),
                    created_at=datetime.fromisoformat(str(data["created_at"])), modified_at=datetime.fromisoformat(str(data["modified_at"])))

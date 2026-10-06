@@ -13,7 +13,7 @@ from tkinter import ttk
 
 from core.pump_reference import PumpReference
 from engineering.transfer_pump.models import LinearRegressionModel, TransferPumpResult
-from engineering.precision import format_engineering_value
+from ui.formatting import format_user_number
 from ui.theme import colors
 from ui.theme.spacing import SM
 from i18n.translator import Translator
@@ -115,7 +115,7 @@ class TransferPumpChart(ttk.Frame):
     def __init__(
         self,
         parent: Misc,
-        decimal_places: int = 6,
+        decimal_places: int = 2,
         translate: Callable[[str], str] | None = None,
     ) -> None:
         """Create one reusable Figure and its TkAgg canvas."""
@@ -212,10 +212,9 @@ class TransferPumpChart(ttk.Frame):
         """Return concise model information displayed below, never inside, the chart."""
         if model.slope is None or model.intercept is None or model.r_squared is None:
             return self._translate("chart.model_unavailable")
-        places = self._decimal_places
         return self._translate(
             "chart.model_summary",
-            slope=format_engineering_value(model.slope, places),
-            intercept=format_engineering_value(model.intercept, places),
-            r_squared=format_engineering_value(model.r_squared, places),
+            slope=format_user_number(model.slope),
+            intercept=format_user_number(model.intercept),
+            r_squared=format_user_number(model.r_squared),
         )

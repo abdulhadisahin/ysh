@@ -183,7 +183,7 @@ def test_main_window_closes_active_project_without_display() -> None:
     window._close_project()
 
     assert window._active_project is None
-    assert window._root.title_value == "YSH — Fuel System Engineering"
+    assert window._root.title_value == "D243 Boru ve Tulumba Boyutlandırma Programı"
     assert window._project_summary.was_cleared
     assert window._file_menu.states[FILE_MENU_INDEX["close"]] == "disabled"
     assert window._status_bar.message == "Project closed"
@@ -334,7 +334,7 @@ def test_main_window_activates_dialog_result(monkeypatch: object) -> None:
     window._open_project()
 
     assert window._active_project == project
-    assert window._root.title_value == "YSH — Fuel System Engineering — Opened Project"
+    assert window._root.title_value == "D243 Boru ve Tulumba Boyutlandırma Programı — Opened Project"
     assert window._project_summary.project == project
     assert window._file_menu.states[FILE_MENU_INDEX["close"]] == "normal"
     assert window._status_bar.message == "Project opened successfully"
@@ -406,7 +406,7 @@ def test_create_project_clears_pages_then_activates_persistence_project() -> Non
     assert window._create_project("New Project", "", "") is True
     assert page.cleared is True
     assert window._active_project == project
-    assert window._root.title_value == "YSH — Fuel System Engineering — New Project"
+    assert window._root.title_value == "D243 Boru ve Tulumba Boyutlandırma Programı — New Project"
 
 
 def test_empty_project_activation_clears_existing_page_values() -> None:

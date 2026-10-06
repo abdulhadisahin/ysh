@@ -30,7 +30,7 @@ def test_ribbon_buttons_receive_translated_text_when_created() -> None:
 def test_ribbon_button_text_is_independent_of_icon_configuration() -> None:
     """The ribbon does not rely on an image or compound setting for its text."""
     source = (ROOT / "ui" / "main_window.py").read_text(encoding="utf-8")
-    ribbon_section = source[source.index("self._ribbon_project"):source.index("self._ribbon_view")]
+    ribbon_section = source[source.index("self._ribbon_project"):source.index("self._ribbon_help")]
 
     assert "image=" not in ribbon_section
     assert "compound=" not in ribbon_section
@@ -60,14 +60,8 @@ def test_ribbon_callbacks_and_live_text_refresh_are_preserved() -> None:
     assert "self._toolbar_about.configure(text=self._translate(\"menu.help.about\"))" in source
 
 
-def test_ribbon_language_selector_is_initialized_once_with_live_values() -> None:
-    """The View selector displays the active language before any later refresh."""
+def test_ribbon_language_selector_is_not_created_for_turkish_only_ui() -> None:
+    """The D243 shell has no visible runtime language selector."""
     source = (ROOT / "ui" / "main_window.py").read_text(encoding="utf-8")
 
-    assert source.count("self._ribbon_language = ttk.Combobox") == 1
-    assert 'textvariable=self._language_value' in source
-    assert 'self._translate("language.english")' in source
-    assert 'self._translate("language.turkish")' in source
-    assert 'state="readonly"' in source
-    assert "width=14" in source
-    assert "self._language_value.set(self._language_display_name())" in source
+    assert "self._ribbon_language = ttk.Combobox" not in source

@@ -15,6 +15,7 @@ from i18n.validation import render_validation_issue
 from i18n.translator import Translator
 from ui.theme.spacing import MD, SM
 from ui.widgets.scrollable_treeview import ScrollableTreeview
+from ui.formatting import format_user_number
 
 LOGGER = logging.getLogger(__name__)
 
@@ -43,15 +44,19 @@ class LibraryDialog:
         column_keys: dict[str, str] | None = None,
         description_key: str | None = None,
         display_value_keys: dict[str, str] | None = None,
+        field_key_overrides: dict[str, str] | None = None,
     ) -> None:
         """Create a modal library editor using only supplied service operations."""
-        self._translate = translate or Translator().translate
+        # Standalone library editors must match the Turkish-only D243 shell;
+        # the main window still supplies its active translator explicitly.
+        self._translate = translate or Translator("tr").translate
         self._localization_owner = localization_owner
         self._title = title
         self._title_key = title_key
         self._column_keys = column_keys or {}
         self._description_key = description_key
         self._display_value_keys = display_value_keys or {}
+        self._field_key_overrides = field_key_overrides or {}
         self._columns = columns
         self._fields = fields
         self._list_items = list_items
@@ -90,6 +95,7 @@ class LibraryDialog:
                 row=1, column=0, sticky="w", pady=(SM // 2, 0)
             )
         toolbar = ttk.Frame(frame)
+        self._toolbar = toolbar
         toolbar.grid(row=2, column=0, sticky="ew", pady=(MD, SM))
         self._search_label = ttk.Label(toolbar, text=self._translate("library.search"))
         self._search_label.pack(side="left")
@@ -166,6 +172,10 @@ class LibraryDialog:
         value = getattr(item, key)
         if value is None:
             return self._translate("library.not_verified")
+        if key == "default_corrosion_allowance_mm":
+            return format_user_number(float(value))
+        if key == "is_active":
+            return "Evet" if value else "Hayır"
         return self._translate(self._display_value_keys[value]) if value in self._display_value_keys else str(value)
 
     def refresh_texts(self) -> None:
@@ -228,9 +238,8 @@ class LibraryDialog:
             ttk.Label(
                 body, text=f"{self._field_label(key, label)}:"
             ).grid(row=row, column=0, sticky="w", pady=SM // 2)
-            variables[key] = tk.StringVar(
-                value="" if item is None or getattr(item, key) is None else str(getattr(item, key))
-            )
+            initial = "" if item is None or getattr(item, key) is None else str(getattr(item, key))
+            variables[key] = tk.StringVar(value="Evet" if item is None and key == "is_active" else initial)
             ttk.Entry(body, textvariable=variables[key], width=48).grid(
                 row=row, column=1, sticky="ew", padx=(SM, 0), pady=SM // 2
             )
@@ -272,19 +281,22 @@ class LibraryDialog:
 
     def _convert(self, key: str, value: str) -> object:
         labels = {
-            "yield_strength_mpa": "Yield Strength Rp0.2 (MPa)",
-            "roughness_mm": "Average Roughness (mm)",
-            "outside_diameter_mm": "Outside Diameter (mm)",
-            "wall_thickness_mm": "Wall Thickness (mm)",
-            "inside_diameter_mm": "Inside Diameter (mm)",
-            "value": "Engineering Constant Value",
+            "yield_strength_mpa": "Akma Dayanımı Rp0,2 (MPa)",
+            "roughness_mm": "Ortalama Pürüzlülük (mm)",
+            "outside_diameter_mm": "Dış Çap (mm)",
+            "wall_thickness_mm": "Et Kalınlığı (mm)",
+            "inside_diameter_mm": "İç Çap (mm)",
+            "value": "Mühendislik Sabiti Değeri",
+            "default_corrosion_allowance_mm": "Varsayılan Korozyon Artımı (mm)",
         }
         field_name = labels.get(key, key.replace("_", " ").title())
-        field_key = self._field_key(key)
+        field_key = self._field_key_overrides.get(key, self._field_key(key))
         if key == "yield_strength_mpa":
             return parse_engineering_float(value, field_name=field_name, allow_empty=True, field_key=field_key)
-        if key in {"roughness_mm", "outside_diameter_mm", "wall_thickness_mm", "inside_diameter_mm", "value"}:
+        if key in {"roughness_mm", "outside_diameter_mm", "wall_thickness_mm", "inside_diameter_mm", "value", "default_corrosion_allowance_mm"}:
             return parse_engineering_float(value, field_name=field_name, field_key=field_key)
+        if key == "is_active":
+            return value.strip().casefold() in {"1", "evet", "true"}
         return value
 
     @staticmethod
@@ -301,12 +313,17 @@ class LibraryDialog:
             "yield_strength_mpa": "field.yield_strength_rp02",
             "roughness_mm": "field.average_roughness",
             "source": "field.source",
+            "description": "project.description",
+            "display_name": "library.engineering_constant",
+            "unit": "library.unit",
             "value": "field.constant_value",
+            "code": "field.circuit_code",
+            "default_corrosion_allowance_mm": "field.default_corrosion_allowance",
         }.get(key)
 
     def _field_label(self, key: str, fallback: str) -> str:
         """Return the localized label for an editable field."""
-        field_key = self._field_key(key)
+        field_key = self._field_key_overrides.get(key, self._field_key(key))
         return self._translate(field_key) if field_key is not None else fallback
 
     def _delete(self) -> str:
@@ -315,7 +332,7 @@ class LibraryDialog:
         item = self._selected()
         if item is None:
             return "break"
-        label = getattr(item, "display_name", getattr(item, "name", getattr(item, "key", "record")))
+        label = getattr(item, "display_name", getattr(item, "name", getattr(item, "key", "kayıt")))
         if messagebox.askyesno(
             self._translate("dialog.delete_library_record"),
             self._translate("confirm.delete_library_record", label=label),

@@ -44,12 +44,14 @@ class LanguagePreferenceStore:
 
 
 class LocalizationManager:
-    """Coordinate translation lookup, runtime refreshes, and user preference."""
+    """Provide the fixed Turkish visible language for D243."""
 
     def __init__(self, settings_path: Path) -> None:
         """Load the application language and initialize its translation registry."""
         self._store = LanguagePreferenceStore(settings_path)
-        self._translator = Translator(self._store.load())
+        # A legacy saved English preference must never change the Turkish-only
+        # D243 interface.  Retain the store for compatibility with V1 files.
+        self._translator = Translator("tr")
         self._listeners: list[LanguageChangeListener] = []
 
     @property
@@ -62,9 +64,9 @@ class LocalizationManager:
         return self._translator.translate(key, **kwargs)
 
     def set_language(self, language: str) -> None:
-        """Persist a selected language and refresh registered live UI surfaces."""
+        """Keep the visible product language Turkish for V1 compatibility."""
         previous_language = self._translator.language
-        self._translator.set_language(language)
+        self._translator.set_language("tr")
         self._store.save(self._translator.language)
         logger = logging.getLogger(__name__)
         logger.info(

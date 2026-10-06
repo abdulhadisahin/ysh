@@ -9,9 +9,14 @@ from tkinter import messagebox, ttk
 from uuid import UUID
 
 from core.pump_reference import PumpReference
-from engineering.precision import format_engineering_value
+from ui.formatting import format_user_number
 from engineering.input_parsing import parse_engineering_float
 from engineering.validation import ValidationError, ValidationIssue
+from engineering.transfer_pump.capacity_basis import (
+    CAPACITY_MODE_MASS,
+    CAPACITY_MODE_VOLUME,
+    FUEL_DENSITY_T_PER_M3,
+)
 from i18n.translator import Translator
 from i18n.validation import render_validation_issue
 from services.transfer_pump_service import TransferPumpService
@@ -45,6 +50,9 @@ class TransferPumpPage(ttk.LabelFrame):
         self._service = service
         self._constants = constant_service
         self._capacity = tk.StringVar()
+        self._capacity_mode = tk.StringVar(value=CAPACITY_MODE_VOLUME)
+        self._capacity_mode_codes: dict[str, str] = {}
+        self._capacity_mode_labels: dict[str, str] = {}
         self._reference_search = tk.StringVar()
         self._status_messages: list[ValidationIssue] = [
             ValidationIssue("insufficient_reference_ships")
@@ -52,12 +60,16 @@ class TransferPumpPage(ttk.LabelFrame):
         self._message = tk.StringVar(value="")
         self._estimate_capacity_summary = tk.StringVar(value="—")
         self._emptying_time_summary = tk.StringVar(value="—")
+        self._required_capacity_12h_summary = tk.StringVar(value="—")
+        self._converted_volume_summary = tk.StringVar(value="—")
         self._dirty_callback: object | None = None
         self._suppress_dirty = True
         self._build()
+        self._load_capacity_modes()
         self.refresh()
         self._suppress_dirty = False
         self._capacity.trace_add("write", self._invalidate_estimate)
+        self._capacity_mode.trace_add("write", self._on_capacity_mode_change)
         self._reference_search.trace_add("write", lambda *_: self.refresh())
 
     def _build(self) -> None:
@@ -127,18 +139,43 @@ class TransferPumpPage(ttk.LabelFrame):
         )
         estimate = self._estimate_card
         estimate.grid(row=0, column=0, sticky="ew")
+        self._capacity_mode_label = ttk.Label(
+            estimate, text=self._translate("field.capacity_input_mode")
+        )
+        self._capacity_mode_label.grid(row=0, column=0, sticky="w")
+        self._capacity_mode_box = ttk.Combobox(
+            estimate, textvariable=self._capacity_mode, state="readonly", width=16
+        )
+        self._capacity_mode_box.grid(row=0, column=1, sticky="w", padx=(8, 0))
         self._capacity_label = ttk.Label(estimate, text=self._translate("chart.fuel_capacity"))
-        self._capacity_label.grid(row=0, column=0, sticky="w")
+        self._capacity_label.grid(row=1, column=0, sticky="w", pady=(6, 0))
         ttk.Entry(estimate, textvariable=self._capacity, width=16).grid(
-            row=0, column=1, sticky="w", padx=(8, 0)
+            row=1, column=1, sticky="w", padx=(8, 0), pady=(6, 0)
         )
         self._estimate_actions = ttk.Frame(estimate)
-        self._estimate_actions.grid(row=0, column=2, columnspan=2, sticky="w", padx=(8, 0))
+        self._estimate_actions.grid(row=1, column=2, columnspan=2, sticky="w", padx=(8, 0), pady=(6, 0))
         self._calculate_button = create_rounded_button(self._estimate_actions, self._translate("calculation.calculate"), self._calculate, style="TransferRoundedPrimary.TButton", palette=TRANSFER_PRIMARY_PALETTE, primary=True)
         self._clear_button = create_rounded_button(self._estimate_actions, self._translate("common.clear"), self._clear, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE)
         self._estimate_action_buttons = (self._calculate_button, self._clear_button)
         for column, button in enumerate(self._estimate_action_buttons):
             button.grid(row=0, column=column, sticky="w", padx=(0 if column == 0 else 8, 0))
+        self._conversion_detail_frame = ttk.Frame(estimate)
+        self._conversion_detail_frame.grid(row=2, column=0, columnspan=4, sticky="w", pady=(8, 0))
+        self._conversion_basis_label = ttk.Label(
+            self._conversion_detail_frame,
+            text=self._translate("transfer.conversion_basis"),
+        )
+        self._conversion_basis_label.grid(row=0, column=0, sticky="w")
+        self._converted_volume_label = ttk.Label(
+            self._conversion_detail_frame,
+            text=self._translate("result.converted_fuel_volume"),
+        )
+        self._converted_volume_label.grid(row=1, column=0, sticky="w", pady=(3, 0))
+        self._converted_volume_value = ttk.Label(
+            self._conversion_detail_frame,
+            textvariable=self._converted_volume_summary,
+        )
+        self._converted_volume_value.grid(row=1, column=1, sticky="w", padx=(8, 0), pady=(3, 0))
 
         self._results_card = ResultCard(
             prediction_column,
@@ -163,6 +200,14 @@ class TransferPumpPage(ttk.LabelFrame):
             normal_style_prefix="TransferSecondaryMetric",
         )
         self._emptying_result_metric.grid(row=1, column=0, sticky="ew", pady=(8, 0))
+        self._required_12h_metric = ResultMetric(
+            results,
+            self._translate("result.required_capacity_12h"),
+            self._required_capacity_12h_summary,
+            "m³/h",
+            normal_style_prefix="TransferSecondaryMetric",
+        )
+        self._required_12h_metric.grid(row=2, column=0, sticky="ew", pady=(8, 0))
         self._chart = TransferPumpChart(self, translate=self._translate)
         self._chart.grid(row=2, column=0, sticky="ew", pady=(12, 0))
         self._model_card = CalculationCard(
@@ -189,6 +234,13 @@ class TransferPumpPage(ttk.LabelFrame):
 
     def refresh_texts(self) -> None:
         """Refresh Transfer Pump text while retaining references and regression state."""
+        mode = self._selected_capacity_mode()
+        self._suppress_dirty = True
+        try:
+            self._load_capacity_modes()
+            self._capacity_mode.set(self._capacity_mode_labels[mode])
+        finally:
+            self._suppress_dirty = False
         self.configure(text=self._translate("page.transfer.tab"))
         self._header.set_content(self._translate("page.transfer.title"), self._translate("page.transfer.description"))
         self._references_card.configure(text=self._translate("section.reference_vessels"))
@@ -201,7 +253,10 @@ class TransferPumpPage(ttk.LabelFrame):
         self._edit_button.configure(text=self._translate("common.edit"))
         self._delete_button.configure(text=self._translate("common.delete"))
         self._estimate_card.configure(text=self._translate("section.new_vessel"))
-        self._capacity_label.configure(text=self._translate("chart.fuel_capacity"))
+        self._capacity_mode_label.configure(text=self._translate("field.capacity_input_mode"))
+        self._capacity_label.configure(text=self._capacity_input_label())
+        self._conversion_basis_label.configure(text=self._translate("transfer.conversion_basis"))
+        self._converted_volume_label.configure(text=self._translate("result.converted_fuel_volume"))
         self._calculate_button.configure(text=self._translate("calculation.calculate"))
         self._clear_button.configure(text=self._translate("common.clear"))
         self._model_card.configure(text=self._translate("section.regression_summary"))
@@ -211,6 +266,9 @@ class TransferPumpPage(ttk.LabelFrame):
         )
         self._emptying_result_metric.set_label(
             self._translate("result.full_tank_discharge_time")
+        )
+        self._required_12h_metric.set_label(
+            self._translate("result.required_capacity_12h")
         )
         self._chart.set_translate(self._translate)
         self._render_status()
@@ -356,6 +414,63 @@ class TransferPumpPage(ttk.LabelFrame):
         if not self._suppress_dirty and callable(self._dirty_callback):
             self._dirty_callback()
 
+    def _load_capacity_modes(self) -> None:
+        """Populate the compact Turkish unit selector from stable mode codes."""
+        current = self._selected_capacity_mode()
+        self._capacity_mode_labels = {
+            CAPACITY_MODE_VOLUME: self._translate("transfer.capacity_mode.volume"),
+            CAPACITY_MODE_MASS: self._translate("transfer.capacity_mode.mass"),
+        }
+        self._capacity_mode_codes = {
+            label: code for code, label in self._capacity_mode_labels.items()
+        }
+        self._capacity_mode_box.configure(values=list(self._capacity_mode_codes))
+        self._capacity_mode.set(self._capacity_mode_labels[current])
+        self._update_capacity_input_presentation()
+
+    def _selected_capacity_mode(self) -> str:
+        """Resolve a visible selector value to its stable project-state code."""
+        selected = self._capacity_mode.get()
+        return self._capacity_mode_codes.get(
+            selected,
+            selected if selected in {CAPACITY_MODE_VOLUME, CAPACITY_MODE_MASS} else CAPACITY_MODE_VOLUME,
+        )
+
+    def _capacity_input_label(self) -> str:
+        return self._translate(
+            "field.fuel_capacity_mass"
+            if self._selected_capacity_mode() == CAPACITY_MODE_MASS
+            else "chart.fuel_capacity"
+        )
+
+    def _on_capacity_mode_change(self, *_args: object) -> None:
+        """Clear ambiguous source input on a unit switch; never auto-calculate."""
+        if self._suppress_dirty:
+            return
+        self._suppress_dirty = True
+        try:
+            self._capacity.set("")
+            self.__dict__.pop("_estimate_result", None)
+            self.__dict__.pop("_estimate_capacity_m3", None)
+            self.__dict__.pop("_capacity_resolution", None)
+            self.__dict__.pop("_capacity_resolution", None)
+            self._clear_estimate_summary()
+            self._update_capacity_input_presentation()
+        finally:
+            self._suppress_dirty = False
+        self._set_model_status()
+        self._mark_dirty()
+        self._refresh_chart()
+        self._refresh_formula_panel()
+
+    def _update_capacity_input_presentation(self) -> None:
+        """Show conversion details only when mass is the active source unit."""
+        self._capacity_label.configure(text=self._capacity_input_label())
+        if self._selected_capacity_mode() == CAPACITY_MODE_MASS:
+            self._conversion_detail_frame.grid()
+        else:
+            self._conversion_detail_frame.grid_remove()
+
     def _invalidate_estimate(self, *_args: object) -> None:
         """Discard a stale estimate after the proposed fuel capacity changes."""
         if not self._suppress_dirty:
@@ -369,16 +484,24 @@ class TransferPumpPage(ttk.LabelFrame):
 
     def export_state(self) -> dict[str, object]:
         """Return project-specific input state without rendered status text."""
-        return {"capacity": self._capacity.get()}
+        return {
+            "capacity": self._capacity.get(),
+            "capacity_input_mode": self._selected_capacity_mode(),
+        }
 
     def load_state(self, state: dict[str, object]) -> None:
         """Restore saved estimate input and informational message."""
         self._suppress_dirty = True
         try:
+            saved_mode = state.get("capacity_input_mode")
+            mode = saved_mode if saved_mode in {CAPACITY_MODE_VOLUME, CAPACITY_MODE_MASS} else CAPACITY_MODE_VOLUME
+            self._capacity_mode.set(self._capacity_mode_labels[mode])
             self._capacity.set(str(state.get("capacity", "")))
             self.__dict__.pop("_estimate_result", None)
             self.__dict__.pop("_estimate_capacity_m3", None)
+            self.__dict__.pop("_capacity_resolution", None)
             self._clear_estimate_summary()
+            self._update_capacity_input_presentation()
             self.refresh()
         finally:
             self._suppress_dirty = False
@@ -419,7 +542,7 @@ class TransferPumpPage(ttk.LabelFrame):
 
     def _add(self) -> None:
         """Open the service-backed reference dialog in add mode."""
-        if PumpReferenceDialog(self, self._service._references).show() is not None:
+        if PumpReferenceDialog(self, self._service._references, translate=self._translate).show() is not None:
             self.__dict__.pop("_estimate_result", None)
             self.__dict__.pop("_estimate_capacity_m3", None)
             self._clear_estimate_summary()
@@ -442,7 +565,7 @@ class TransferPumpPage(ttk.LabelFrame):
                 parent=self,
             )
             return "break"
-        if PumpReferenceDialog(self, self._service._references, item).show() is not None:
+        if PumpReferenceDialog(self, self._service._references, item, translate=self._translate).show() is not None:
             self.__dict__.pop("_estimate_result", None)
             self.__dict__.pop("_estimate_capacity_m3", None)
             self._clear_estimate_summary()
@@ -479,17 +602,16 @@ class TransferPumpPage(ttk.LabelFrame):
     def _calculate(self) -> None:
         """Validate and calculate one authoritative transfer-pump estimate."""
         try:
-            capacity = parse_engineering_float(
+            mode = self._selected_capacity_mode()
+            source_capacity = parse_engineering_float(
                 self._capacity.get(),
-                field_name="New ship fuel capacity",
-                field_key="field.fuel_capacity",
+                field_name=self._capacity_input_label(),
+                field_key=("field.fuel_capacity_mass" if mode == CAPACITY_MODE_MASS else "field.fuel_capacity"),
             )
-            assert capacity is not None
-            if capacity <= 0:
-                raise ValidationError(
-                    ValidationIssue("greater_than_zero", "field.fuel_capacity")
-                )
-            result = self._service.calculate(capacity)
+            assert source_capacity is not None
+            resolution, result = self._service.calculate_from_capacity_input(
+                mode, source_capacity
+            )
         except ValidationError as error:
             self._set_semantic_messages([error.issue])
             return
@@ -502,7 +624,8 @@ class TransferPumpPage(ttk.LabelFrame):
             return
         model = result.regression_model
         self._estimate_result=result
-        self._estimate_capacity_m3=capacity
+        self._estimate_capacity_m3=resolution.volume_m3
+        self._capacity_resolution = resolution
         assert model is not None
         self._set_estimate_ready_status(model, result)
         self._render_estimate()
@@ -532,22 +655,51 @@ class TransferPumpPage(ttk.LabelFrame):
             sections.append(FormulaSection("MODEL INFORMATION", self._translate("transfer.formula.model_unavailable"), "1. LINEAR REGRESSION MODEL", "note"))
             return sections
         model=model_result.regression_model
-        places = int(self._constants.get_constant("display_decimal_places").value)
-        sections[2] = FormulaSection("CURRENT SUBSTITUTION", f"m = {model.slope:.{places}f}\nb = {model.intercept:.{places}f}", "1. LINEAR REGRESSION MODEL", "substitution")
-        sections[3] = FormulaSection("RESULT", f"R² = {model.r_squared:.{places}f}", "1. LINEAR REGRESSION MODEL", "result")
-        sections.append(FormulaSection("MODEL INFORMATION", f"{self._translate('formula.regression_slope')} m = {model.slope:.{places}f}\n{self._translate('formula.regression_intercept')} b = {model.intercept:.{places}f}\nR² = {model.r_squared:.{places}f}", "1. LINEAR REGRESSION MODEL", "note"))
+        sections[2] = FormulaSection("CURRENT SUBSTITUTION", f"m = {format_user_number(model.slope)}\nb = {format_user_number(model.intercept)}", "1. LINEAR REGRESSION MODEL", "substitution")
+        sections[3] = FormulaSection("RESULT", f"R² = {format_user_number(model.r_squared)}", "1. LINEAR REGRESSION MODEL", "result")
+        sections.append(FormulaSection("MODEL INFORMATION", f"{self._translate('formula.regression_slope')} m = {format_user_number(model.slope)}\n{self._translate('formula.regression_intercept')} b = {format_user_number(model.intercept)}\nR² = {format_user_number(model.r_squared)}", "1. LINEAR REGRESSION MODEL", "note"))
         estimate=getattr(self,"_estimate_result",None)
+        resolution = getattr(self, "_capacity_resolution", None)
         if estimate is not None and estimate.is_successful:
-            sections[7] = FormulaSection("CURRENT SUBSTITUTION", f"Vfuel = {self._capacity.get()} m³\nQpump = ({model.slope:.{places}f}) × ({self._capacity.get()}) + ({model.intercept:.{places}f})", "2. PREDICTED PUMP CAPACITY", "substitution")
-            sections[8] = FormulaSection("RESULT", f"{self._translate('result.estimated_pump_capacity')} = {estimate.predicted_pump_capacity_m3h:.{places}f} m³/h", "2. PREDICTED PUMP CAPACITY", "result")
-            sections[11] = FormulaSection("CURRENT SUBSTITUTION", f"t = {self._capacity.get()} / {estimate.predicted_pump_capacity_m3h:.{places}f}", "3. EMPTYING TIME", "substitution")
-            sections[12] = FormulaSection("RESULT", f"{self._translate('result.estimated_emptying_time')} = {estimate.estimated_emptying_time_hours:.{places}f} h", "3. EMPTYING TIME", "result")
+            authoritative_volume = getattr(resolution, "volume_m3", getattr(self, "_estimate_capacity_m3", 0.0))
+            sections[7] = FormulaSection("CURRENT SUBSTITUTION", f"Vfuel = {format_user_number(authoritative_volume)} m³\nQpump = ({format_user_number(model.slope)}) × ({format_user_number(authoritative_volume)}) + ({format_user_number(model.intercept)})", "2. PREDICTED PUMP CAPACITY", "substitution")
+            sections[8] = FormulaSection("RESULT", f"{self._translate('result.estimated_pump_capacity')} = {format_user_number(estimate.predicted_pump_capacity_m3h)} m³/h", "2. PREDICTED PUMP CAPACITY", "result")
+            sections[11] = FormulaSection("CURRENT SUBSTITUTION", f"t = {format_user_number(authoritative_volume)} / {format_user_number(estimate.predicted_pump_capacity_m3h)}", "3. EMPTYING TIME", "substitution")
+            sections[12] = FormulaSection("RESULT", f"{self._translate('result.estimated_emptying_time')} = {format_user_number(estimate.estimated_emptying_time_hours)} h", "3. EMPTYING TIME", "result")
+        if self._selected_capacity_mode() == CAPACITY_MODE_MASS:
+            conversion_stage = self._translate("formula.stage.fuel_conversion")
+            conversion_substitution = self._translate("message.available_after_calculation")
+            conversion_result = self._translate("message.available_after_calculation")
+            if resolution is not None:
+                conversion_substitution = f"V = {format_user_number(resolution.source_value)} / {format_user_number(FUEL_DENSITY_T_PER_M3)}"
+                conversion_result = f"V = {format_user_number(resolution.volume_m3)} m³"
+            sections.extend((
+                FormulaSection("FORMULA", "V = M / ρ", conversion_stage, "formula"),
+                FormulaSection("VARIABLES", "M | Yakıt kütlesi | t\nρ | D243 dönüşüm katsayısı | t/m³\nV | Yakıt hacmi | m³", conversion_stage, "variables"),
+                FormulaSection("CURRENT SUBSTITUTION", conversion_substitution, conversion_stage, "substitution"),
+                FormulaSection("RESULT", conversion_result, conversion_stage, "result"),
+                FormulaSection("NOTE", self._translate("transfer.conversion_basis"), conversion_stage, "note"),
+            ))
+        q12_stage = self._translate("formula.stage.required_capacity_12h")
+        q12_substitution = self._translate("message.available_after_calculation")
+        q12_result = self._translate("message.available_after_calculation")
+        if resolution is not None:
+            q12_substitution = f"Q12 = {format_user_number(resolution.volume_m3)} / 12"
+            q12_result = f"Q12 = {format_user_number(resolution.required_capacity_12h_m3h)} m³/h"
+        sections.extend((
+            FormulaSection("FORMULA", "Q12 = V / 12", q12_stage, "formula"),
+            FormulaSection("VARIABLES", "Q12 | 12 saatte gerekli ortalama kapasite | m³/h\nV | Yetkili yakıt hacmi | m³", q12_stage, "variables"),
+            FormulaSection("CURRENT SUBSTITUTION", q12_substitution, q12_stage, "substitution"),
+            FormulaSection("RESULT", q12_result, q12_stage, "result"),
+            FormulaSection("NOTE", self._translate("transfer.q12_note"), q12_stage, "note"),
+        ))
         return sections
 
     def _clear(self) -> None:
         """Clear estimate input and result text."""
         self.__dict__.pop("_estimate_result", None)
         self.__dict__.pop("_estimate_capacity_m3", None)
+        self.__dict__.pop("_capacity_resolution", None)
         self._clear_estimate_summary()
         self._capacity.set("")
         self._set_model_status()
@@ -585,20 +737,30 @@ class TransferPumpPage(ttk.LabelFrame):
         """Clear transient result presentation without touching reference data."""
         self._estimate_capacity_summary.set("—")
         self._emptying_time_summary.set("—")
+        self._required_capacity_12h_summary.set("—")
+        self._converted_volume_summary.set("—")
 
     def _render_estimate(self) -> None:
         """Render stored estimate data in the currently active language."""
         result = getattr(self, "_estimate_result", None)
         if result is None or not result.is_successful:
             return
-        places = int(self._constants.get_constant("display_decimal_places").value)
         model = result.regression_model
         self._estimate_capacity_summary.set(
-            format_engineering_value(result.predicted_pump_capacity_m3h, places)
+            format_user_number(result.predicted_pump_capacity_m3h)
         )
         self._emptying_time_summary.set(
-            format_engineering_value(result.estimated_emptying_time_hours, places)
+            format_user_number(result.estimated_emptying_time_hours)
         )
+        resolution = getattr(self, "_capacity_resolution", None)
+        if resolution is not None:
+            self._required_capacity_12h_summary.set(
+                format_user_number(resolution.required_capacity_12h_m3h)
+            )
+            if resolution.mode == CAPACITY_MODE_MASS:
+                self._converted_volume_summary.set(
+                    f"{format_user_number(resolution.volume_m3)} m³"
+                )
 
     def _set_semantic_messages(self, messages: Sequence[ValidationIssue]) -> None:
         """Store semantic status messages and render them with the active translator."""
@@ -642,12 +804,8 @@ class TransferPumpPage(ttk.LabelFrame):
         """Store the estimate status and any semantic model warnings."""
         parameters = self._model_status_params(model)
         parameters.update({
-            "predicted_capacity": format_engineering_value(
-                getattr(result, "predicted_pump_capacity_m3h"), self._display_places()
-            ),
-            "emptying_time": format_engineering_value(
-                getattr(result, "estimated_emptying_time_hours"), self._display_places()
-            ),
+            "predicted_capacity": format_user_number(getattr(result, "predicted_pump_capacity_m3h")),
+            "emptying_time": format_user_number(getattr(result, "estimated_emptying_time_hours")),
         })
         self._set_semantic_messages([
             ValidationIssue("transfer.status.estimate_ready", params=parameters),
@@ -656,23 +814,18 @@ class TransferPumpPage(ttk.LabelFrame):
 
     def _model_status_params(self, model: object) -> dict[str, object]:
         """Format authoritative model values without changing their stored precision."""
-        places = self._display_places()
         return {
             "reference_count": getattr(model, "reference_count"),
-            "slope": format_engineering_value(getattr(model, "slope"), places),
-            "intercept": format_engineering_value(getattr(model, "intercept"), places),
-            "r_squared": format_engineering_value(getattr(model, "r_squared"), places),
-            "minimum_capacity": format_engineering_value(
-                getattr(model, "minimum_reference_capacity_m3"), places
-            ),
-            "maximum_capacity": format_engineering_value(
-                getattr(model, "maximum_reference_capacity_m3"), places
-            ),
+            "slope": format_user_number(getattr(model, "slope")),
+            "intercept": format_user_number(getattr(model, "intercept")),
+            "r_squared": format_user_number(getattr(model, "r_squared")),
+            "minimum_capacity": format_user_number(getattr(model, "minimum_reference_capacity_m3")),
+            "maximum_capacity": format_user_number(getattr(model, "maximum_reference_capacity_m3")),
         }
 
     def _display_places(self) -> int:
-        """Return the current library-controlled display precision."""
-        return int(self._constants.get_constant("display_decimal_places").value)
+        """Return the fixed D243 user-facing display precision."""
+        return 2
 
     def _translator_proxy(self) -> object:
         """Expose the page translation callable to the shared issue renderer."""

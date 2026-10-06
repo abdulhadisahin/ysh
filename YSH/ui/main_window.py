@@ -25,6 +25,7 @@ from services.project_service import (
 from services.material_service import MaterialService
 from services.pipe_size_service import PipeSizeService
 from services.engineering_constant_service import EngineeringConstantService
+from services.corrosion_allowance_circuit_service import CorrosionAllowanceCircuitService
 from services.pipe_design_service import PipeDesignService
 from services.transfer_pump_service import TransferPumpService
 from services.discharge_head_loss_service import DischargeHeadLossService
@@ -35,6 +36,7 @@ from i18n.validation import render_validation_issue
 from ui.dialogs.material_library_dialog import MaterialLibraryDialog
 from ui.dialogs.pipe_size_library_dialog import PipeSizeLibraryDialog
 from ui.dialogs.constants_library_dialog import ConstantsLibraryDialog
+from ui.dialogs.corrosion_allowance_circuit_library_dialog import CorrosionAllowanceCircuitLibraryDialog
 from ui.pages.pipe_design_page import PipeDesignPage
 from ui.pages.transfer_pump_page import TransferPumpPage
 from ui.pages.discharge_head_loss_page import DischargeHeadLossPage
@@ -64,6 +66,7 @@ from ui.theme import apply_theme, colors, configure_project_tree
 from ui.theme.spacing import LG, MD, SM, XL
 from i18n.manager import LocalizationManager
 from i18n.translator import Translator
+from YSH.product import PRODUCT_FULL_NAME, PRODUCT_SHORT_NAME, PRODUCT_SUBTITLE
 
 LOGGER = logging.getLogger(__name__)
 
@@ -89,6 +92,7 @@ class MainWindow:
         material_service: MaterialService | None = None,
         pipe_size_service: PipeSizeService | None = None,
         engineering_constant_service: EngineeringConstantService | None = None,
+        corrosion_allowance_circuit_service: CorrosionAllowanceCircuitService | None = None,
         pipe_design_service: PipeDesignService | None = None,
         transfer_pump_service: TransferPumpService | None = None,
         discharge_head_loss_service: DischargeHeadLossService | None = None,
@@ -102,6 +106,7 @@ class MainWindow:
         self._material_service = material_service
         self._pipe_size_service = pipe_size_service
         self._engineering_constant_service = engineering_constant_service
+        self._corrosion_allowance_circuit_service = corrosion_allowance_circuit_service
         self._pipe_design_service = pipe_design_service
         self._transfer_pump_service = transfer_pump_service
         self._discharge_head_loss_service = discharge_head_loss_service
@@ -118,7 +123,7 @@ class MainWindow:
         self._root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
         self._root.minsize(WINDOW_MINIMUM_WIDTH, WINDOW_MINIMUM_HEIGHT)
         self._root.protocol("WM_DELETE_WINDOW", self._close)
-        self._root.iconname("YSH")
+        self._root.iconname(PRODUCT_SHORT_NAME)
         apply_theme(self._root)
         self._create_layout()
         self._refresh_projects()
@@ -132,7 +137,7 @@ class MainWindow:
 
     def _window_title(self) -> str:
         """Return the localized product title with an optional active project."""
-        title = f"{self._text('app.title')} — {self._text('app.subtitle')}"
+        title = PRODUCT_FULL_NAME
         active_project = getattr(self, "_active_project", None)
         if active_project is not None:
             return f"{title} — {active_project.display_name}"
@@ -154,11 +159,11 @@ class MainWindow:
         identity.grid(row=0, column=0, sticky="w")
         self._header_logo_image: tk.PhotoImage | None = None
         self._add_header_logo(identity)
-        self._header_title = ttk.Label(identity, text="YSH", style="HeaderTitle.TLabel")
+        self._header_title = ttk.Label(identity, text=PRODUCT_SHORT_NAME, style="HeaderTitle.TLabel")
         self._header_title.pack(side="left", pady=(0, 1))
         self._header_subtitle = ttk.Label(
             identity,
-            text=self._translate("app.subtitle"),
+            text=PRODUCT_SUBTITLE,
             style="HeaderSubtitle.TLabel",
         )
         self._header_subtitle.pack(side="left", padx=(SM, 0), pady=(2, 0))
@@ -196,20 +201,8 @@ class MainWindow:
         self._toolbar_pipe_sizes.pack(side="left", padx=(SM, 0))
         self._toolbar_constants = self._create_header_button(self._ribbon_library, self._translate("menu.library.engineering_constants"), self._open_constants_library, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE)
         self._toolbar_constants.pack(side="left", padx=(SM, 0))
-        self._ribbon_view = self._create_ribbon_group(toolbar, "ribbon.view")
-        if self._localization is not None:
-            self._ribbon_language = ttk.Combobox(
-                self._ribbon_view,
-                textvariable=self._language_value,
-                values=(
-                    self._translate("language.english"),
-                    self._translate("language.turkish"),
-                ),
-                state="readonly",
-                width=14,
-            )
-            self._ribbon_language.pack(side="left")
-            self._ribbon_language.bind("<<ComboboxSelected>>", self._change_language)
+        self._toolbar_circuits = self._create_header_button(self._ribbon_library, self._translate("menu.library.corrosion_allowance_circuits"), self._open_corrosion_allowance_circuit_library, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE)
+        self._toolbar_circuits.pack(side="left", padx=(SM, 0))
         self._ribbon_help = self._create_ribbon_group(toolbar, "ribbon.help")
         self._toolbar_about = self._create_header_button(self._ribbon_help, self._translate("menu.help.about"), self._show_about, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE)
         self._toolbar_about.pack(side="left")
@@ -537,9 +530,8 @@ class MainWindow:
     def refresh_texts(self) -> None:
         """Refresh visible navigation and registered pages without recreating them."""
         self._refresh_window_title()
-        self._header_subtitle.configure(text=self._translate("app.subtitle"))
-        if self._localization is not None:
-            self._language_value.set(self._language_display_name())
+        self._header_title.configure(text=PRODUCT_SHORT_NAME)
+        self._header_subtitle.configure(text=PRODUCT_SUBTITLE)
         self._toolbar_new.configure(text=self._translate("action.new"))
         self._toolbar_open.configure(text=self._translate("action.open"))
         self._toolbar_save.configure(text=self._translate("action.save"))
@@ -547,23 +539,16 @@ class MainWindow:
         self._toolbar_materials.configure(text=self._translate("menu.library.materials"))
         self._toolbar_pipe_sizes.configure(text=self._translate("menu.library.pipe_sizes"))
         self._toolbar_constants.configure(text=self._translate("menu.library.engineering_constants"))
+        self._toolbar_circuits.configure(text=self._translate("menu.library.corrosion_allowance_circuits"))
         self._toolbar_about.configure(text=self._translate("menu.help.about"))
         for commands in (
             self._ribbon_project,
             self._ribbon_library,
-            self._ribbon_view,
             self._ribbon_help,
         ):
             group = commands._ribbon_group  # type: ignore[attr-defined]
             group._ribbon_label.configure(  # type: ignore[attr-defined]
                 text=self._translate(group._ribbon_title_key)  # type: ignore[attr-defined]
-            )
-        if hasattr(self, "_ribbon_language"):
-            self._ribbon_language.configure(
-                values=(
-                    self._translate("language.english"),
-                    self._translate("language.turkish"),
-                )
             )
         self._sidebar_title.configure(text=self._translate("project.projects"))
         self._project_search_label.configure(text=self._translate("project.search"))
@@ -649,6 +634,10 @@ class MainWindow:
             label=self._translate("menu.library.engineering_constants"),
             command=self._open_constants_library,
         )
+        library_menu.add_command(
+            label=self._translate("menu.library.corrosion_allowance_circuits"),
+            command=self._open_corrosion_allowance_circuit_library,
+        )
         self._library_menu = library_menu
         menu_bar.add_cascade(label=self._translate("menu.library"), menu=library_menu)
 
@@ -682,6 +671,7 @@ class MainWindow:
         self._library_menu.entryconfigure(0, label=self._translate("menu.library.materials"))
         self._library_menu.entryconfigure(1, label=self._translate("menu.library.pipe_sizes"))
         self._library_menu.entryconfigure(2, label=self._translate("menu.library.engineering_constants"))
+        self._library_menu.entryconfigure(3, label=self._translate("menu.library.corrosion_allowance_circuits"))
         self._project_menu.entryconfigure(0, label=self._translate("menu.project.refresh"))
         self._help_menu.entryconfigure(0, label=self._translate("menu.help.about"))
         self._root.configure(menu=self._menu_bar)
@@ -703,6 +693,11 @@ class MainWindow:
         """Open the service-backed engineering-constants editor."""
         if self._engineering_constant_service is not None:
             ConstantsLibraryDialog(self._root, self._engineering_constant_service, translate=self._translate, localization_owner=self)
+
+    def _open_corrosion_allowance_circuit_library(self) -> None:
+        """Open the editable D243 circuit/corrosion-allowance library."""
+        if self._corrosion_allowance_circuit_service is not None:
+            CorrosionAllowanceCircuitLibraryDialog(self._root, self._corrosion_allowance_circuit_service, translate=self._translate, localization_owner=self)
 
     def _open_new_project(self) -> None:
         """Open the new-project dialog after resolving an active dirty state."""

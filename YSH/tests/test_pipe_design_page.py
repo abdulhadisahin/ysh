@@ -15,7 +15,7 @@ def test_pipe_page_keeps_two_visual_engineering_stages_and_no_head_loss_inputs()
     """The presentation separates pipe sizing from wall thickness only."""
     source = (ROOT / "ui/pages/pipe_design_page.py").read_text(encoding="utf-8")
     assert 'diameter_inputs.grid(row=0, column=0' in source
-    assert 'wall_inputs.grid(row=1, column=0' in source
+    assert 'wall_inputs.grid(row=2, column=0' in source
     assert '"calculation.calculate_diameter"' in source
     assert '"calculation.calculate_wall_thickness"' in source
     for forbidden in ("Kinematic Viscosity", "Reynolds", "Friction Factor"):
@@ -121,9 +121,7 @@ def test_pipe_diameter_summary_uses_the_stored_distinct_dn_recommendation() -> N
 
     page._update_diameter_summary()
 
-    assert page._diameter_summary.value == (
-        "74.250000 mm\nRecommended Nominal Size: DN80"
-    )
+    assert page._diameter_summary.value == "74,25 mm\nRecommended Nominal Size: DN80"
 
 
 def test_pipe_diameter_summary_clears_and_reports_out_of_range_state() -> None:

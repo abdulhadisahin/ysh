@@ -65,8 +65,8 @@ def test_identity_text_and_optional_asset_hooks_are_safe() -> None:
     assert MESSAGES["app.title"] == "YSH"
     assert MESSAGES["app.subtitle"] == "Fuel System Engineering"
     assert MESSAGES["app.workspace"] == "Engineering Calculation Workspace"
-    assert TR_MESSAGES["app.title"] == "YSH"
-    assert TR_MESSAGES["app.subtitle"] == "Yakıt Sistemi Mühendisliği"
+    assert TR_MESSAGES["app.title"] == "D243"
+    assert TR_MESSAGES["app.subtitle"] == "Boru ve Tulumba Boyutlandırma Programı"
     assert TR_MESSAGES["app.workspace"] == "Mühendislik Hesaplama Çalışma Alanı"
     assert local_asset_path(ASSET_DIRECTORY / "missing-approved-logo.png") is None
 
@@ -87,7 +87,7 @@ def test_window_identity_uses_localized_product_title() -> None:
     """The native title reflects the product identity, not a developer path."""
     source = (ROOT / "ui/main_window.py").read_text(encoding="utf-8")
     assert "def _window_title" in source
-    assert "app.subtitle" in source
+    assert "PRODUCT_FULL_NAME" in source
     assert "C:\\\\Users" not in source
 
 

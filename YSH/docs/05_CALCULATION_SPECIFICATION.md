@@ -15,11 +15,36 @@ large as D, then recommends one larger library record when available.
 Wall thickness uses `sigma_allow = Rp0.2 / safety_factor`,
 `s0 = (da × pc) / ((20 × sigma_allow × v) + pc)`,
 `b = 0.4 × (da / R) × s0`, and `s = s0 + c + b`. Bend allowance is zero when
-disabled. All values retain full precision internally and display six decimals.
+disabled. All values retain full precision internally; D243 presents them with
+two decimal places and a Turkish decimal comma.
+
+## D243 bend-radius convention
+
+The wall-thickness input offers bend-radius modes `1.5D`, `2D`, `3D`, `5D`,
+`10D`, and `Manuel`; the D243 default is `3D`. In automatic modes, `D` means
+the authoritative outside diameter `da`, so `R = multiplier × da`. Manual mode
+uses the entered positive `R` in mm without overwriting it. The selected mode
+and manual value are saved with a project; restored automatic modes recompute
+`R` from restored `da`. This is a D243 product convention only: it does not
+claim that 3D or any multiplier is a mandatory Türk Loydu requirement. The
+Türk Loydu-supported bend expression remains exactly `b = 0.4 × (da / R) × s0`.
 
 This module supports library and manual values. It does not claim
 classification-society compliance and excludes PDF reporting, network, cloud,
 and multi-user operation.
+
+## D243 transfer-pump capacity input
+
+The Transfer Pump new-ship input accepts either direct volume in m³ or mass in
+ton. For mass input only, D243 V2 uses the fixed product basis `ρ = 0.83 t/m³`
+and derives `V = M / ρ` with full internal precision. This is a D243 product
+assumption, not a universal fuel-density or standard requirement. The existing
+historical regression and emptying-time calculation remain unchanged and use
+the resulting authoritative m³ volume. `Q12 = V / 12` is shown separately as
+the mathematical average capacity for 12-hour emptying; it is not a regression
+prediction or pump selection. Switching input units clears the source field to
+avoid silently reinterpreting a value under a different unit.
+Visual redesign remains deferred in this calculation phase.
 
 ## Discharge head-loss audit
 

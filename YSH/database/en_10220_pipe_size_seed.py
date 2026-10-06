@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 
 
+EN_10220_STANDARD_CODE = "EN_10220"
 EN_10220_STANDARD = "EN 10220"
 EN_10220_DESCRIPTION = (
     "EN 10220 DN10–DN500 — Seamless and welded steel tubes – "

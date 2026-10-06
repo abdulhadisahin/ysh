@@ -20,14 +20,14 @@ def test_material_ui_uses_rp02_terminology_without_inventing_values() -> None:
     """Material labels explicitly identify Rp0.2 and missing values stay visible."""
     material_source = (ROOT / "ui/dialogs/material_library_dialog.py").read_text(encoding="utf-8")
     dialog_source = (ROOT / "ui/dialogs/library_dialog.py").read_text(encoding="utf-8")
-    assert "Yield Strength Rp0.2 (MPa)" in material_source
+    assert "Akma Dayanımı Rp0,2 (MPa)" in material_source
     assert '"library.not_verified"' in dialog_source
 
 
 def test_constants_primary_table_hides_internal_key_and_blocks_arbitrary_add_delete() -> None:
     """Engineering constants expose names while retaining their stable internal keys."""
     source = (ROOT / "ui/dialogs/constants_library_dialog.py").read_text(encoding="utf-8")
-    assert '("display_name","Engineering Constant")' in source
+    assert '("display_name","Mühendislik Sabiti")' in source
     assert "allow_create=False" in source
     assert "allow_delete=False" in source
 

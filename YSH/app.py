@@ -14,6 +14,7 @@ from YSH.repositories.pipe_size_repository import PipeSizeRepository
 from YSH.repositories.project_repository import ProjectRepository
 from YSH.repositories.pump_reference_repository import PumpReferenceRepository
 from YSH.repositories.calculation_repository import CalculationRepository
+from YSH.repositories.corrosion_allowance_circuit_repository import CorrosionAllowanceCircuitRepository
 from YSH.services.engineering_constant_service import EngineeringConstantService
 from YSH.services.material_service import MaterialService
 from YSH.services.pipe_size_service import PipeSizeService
@@ -26,6 +27,7 @@ from YSH.services.transfer_pump_service import TransferPumpService
 from YSH.services.discharge_head_loss_service import DischargeHeadLossService
 from YSH.services.suction_npsh_service import SuctionNPSHService
 from YSH.services.project_persistence_service import ProjectPersistenceService
+from YSH.services.corrosion_allowance_circuit_service import CorrosionAllowanceCircuitService
 from YSH.repositories.project_state_repository import ProjectStateRepository
 from YSH.ui.main_window import MainWindow
 from YSH.i18n.manager import LocalizationManager
@@ -90,6 +92,9 @@ class YSHApplication:
             EngineeringConstantRepository(self._library_database)
         )
         self._pump_reference_service = PumpReferenceService(PumpReferenceRepository(self._library_database))
+        self._corrosion_allowance_circuit_service = CorrosionAllowanceCircuitService(
+            CorrosionAllowanceCircuitRepository(self._library_database)
+        )
         self._transfer_pump_service = TransferPumpService(self._pump_reference_service)
         self._discharge_head_loss_service = DischargeHeadLossService(self._material_service)
         self._suction_npsh_service = SuctionNPSHService(self._material_service)
@@ -97,6 +102,7 @@ class YSHApplication:
             self._material_service,
             self._pipe_size_service,
             self._constant_service,
+            self._corrosion_allowance_circuit_service,
         )
         self._root: tk.Tk | None = None
         self._main_window: MainWindow | None = None
@@ -120,6 +126,9 @@ class YSHApplication:
             "on_close": self.shutdown,
         }
         localization = getattr(self, "_localization", None)
+        circuit_service = getattr(self, "_corrosion_allowance_circuit_service", None)
+        if circuit_service is not None:
+            window_options["corrosion_allowance_circuit_service"] = circuit_service
         if localization is not None:
             window_options["localization"] = localization
         self._main_window = MainWindow(**window_options)

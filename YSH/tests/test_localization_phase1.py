@@ -33,7 +33,7 @@ def test_turkish_lookup_preserves_symbols_and_approved_enpy_policy() -> None:
 def test_missing_turkish_translation_falls_back_to_english() -> None:
     """Partial Turkish catalogues never expose a raw key when English exists."""
     translator = Translator("tr")
-    assert translator.translate("app.title") == "YSH"
+    assert translator.translate("app.title") == "D243"
     assert translator.translate("validation.required", field_name="Debi") == "Debi gereklidir."
 
 
@@ -58,7 +58,7 @@ def test_runtime_switch_notifies_ui_only_listener_without_project_dirty_callback
     manager.register(lambda: refreshes.append(manager.language))
     manager.set_language("tr")
     manager.set_language("en")
-    assert refreshes == ["tr", "en"]
+    assert refreshes == ["tr", "tr"]
     assert dirty_calls == []
 
 

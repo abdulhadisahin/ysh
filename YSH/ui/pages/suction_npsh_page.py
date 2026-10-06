@@ -9,13 +9,17 @@ from tkinter import messagebox, ttk
 from uuid import UUID, uuid4
 
 from core.local_loss_item import LocalLossItem
+from core.engineering_context import FLUID_SYSTEMS
 from engineering.input_parsing import parse_engineering_float
 from engineering.validation import ValidationError, ValidationIssue
+from engineering.warning_rules import evaluate_npsh, evaluate_velocity
 from i18n.translator import Translator
 from i18n.validation import render_validation_issue
+from ui.formatting import format_user_number
 from ui.dialogs.local_loss_item_dialog import LocalLossItemDialog
 from ui.widgets.scrollable_treeview import ScrollableTreeview
 from ui.widgets.formula_view import FormulaReferencePanel, FormulaSection
+from ui.widgets.engineering_warning_panel import EngineeringWarningPanel
 from ui.widgets.rounded_button import ADD_BUTTON_PALETTE, CLEAR_ALL_BUTTON_PALETTE, DELETE_BUTTON_PALETTE, EDIT_BUTTON_PALETTE, FORMULA_BUTTON_PALETTE, NEUTRAL_BUTTON_PALETTE, SUCTION_PRIMARY_PALETTE, create_rounded_button
 from ui.widgets.cards import CalculationCard, InputCard, ResultCard, ResultMetric, SectionHeader
 
@@ -47,6 +51,8 @@ class SuctionNPSHPage(ttk.Frame):
             )
         }
         self._viscosity_unit = tk.StringVar(value="cSt")
+        self._warning_fluid = tk.StringVar(value=self._translate("message.select"))
+        self._warning_fluid_codes: dict[str, str] = {}
         self._roughness_source_mode = "material"
         self._roughness_source = tk.StringVar(value=self._translate("message.material_source"))
         self._material = tk.StringVar()
@@ -72,6 +78,7 @@ class SuctionNPSHPage(ttk.Frame):
         self._dirty_callback: object | None = None
         self._suppress_dirty = True
         self._build()
+        self._load_warning_fluids()
         self._load_materials()
         self._set_roughness_source()
         for key in ("diameter", "flow", "viscosity", "length", "roughness"):
@@ -83,6 +90,7 @@ class SuctionNPSHPage(ttk.Frame):
             self._material, self._pressure_unit, self._vapour_unit,
         ):
             variable.trace_add("write", self._mark_dirty)
+        self._warning_fluid.trace_add("write", self._on_warning_context_changed)
         self._suppress_dirty = False
 
     def _build(self) -> None:
@@ -130,6 +138,10 @@ class SuctionNPSHPage(ttk.Frame):
         self._active_roughness_label.grid(row=6, column=0, sticky="w", pady=3)
         self._roughness_entry = ttk.Entry(fluid, textvariable=self._fields["roughness"], width=22)
         self._roughness_entry.grid(row=6, column=1, sticky="w", padx=(12, 0), pady=3)
+        self._warning_fluid_label = ttk.Label(fluid, text=self._translate("field.system_fluid"))
+        self._warning_fluid_label.grid(row=7, column=0, sticky="w", pady=3)
+        self._warning_fluid_box = ttk.Combobox(fluid, textvariable=self._warning_fluid, state="readonly", width=22)
+        self._warning_fluid_box.grid(row=7, column=1, columnspan=2, sticky="w", padx=(12, 0), pady=3)
 
         self._losses_card = InputCard(self, self._translate("section.local_losses"))
         losses = self._losses_card
@@ -226,11 +238,14 @@ class SuctionNPSHPage(ttk.Frame):
         self._result_fallback = ttk.Label(results, textvariable=self._result, style="Info.TLabel", justify="left", wraplength=360)
         self._result_fallback.grid(row=3, column=0, sticky="w", pady=(8, 0))
         self._result_fallback.grid_remove()
-        ttk.Label(results, textvariable=self._message, style="Info.TLabel", wraplength=360).grid(row=4, column=0, sticky="w", pady=(8, 0))
-        ttk.Label(results, textvariable=self._formula, justify="left", wraplength=360).grid(row=5, column=0, sticky="w", pady=(8, 0))
+        self._warning_panel = EngineeringWarningPanel(results, self._translate)
+        self._warning_panel.grid(row=4, column=0, sticky="ew", pady=(8, 0))
+        self._warning_panel.set_findings(())
+        ttk.Label(results, textvariable=self._message, style="Info.TLabel", wraplength=360).grid(row=5, column=0, sticky="w", pady=(8, 0))
+        ttk.Label(results, textvariable=self._formula, justify="left", wraplength=360).grid(row=6, column=0, sticky="w", pady=(8, 0))
         self._actions_card = CalculationCard(results, self._translate("common.calculations"))
         actions = self._actions_card
-        actions.grid(row=6, column=0, sticky="ew", pady=(10, 0))
+        actions.grid(row=7, column=0, sticky="ew", pady=(10, 0))
         self._calculate_loss_button = create_rounded_button(actions, self._translate("calculation.calculate"), self._calculate_suction_loss, style="SuctionRoundedPrimary.TButton", palette=SUCTION_PRIMARY_PALETTE, primary=True)
         self._calculate_loss_button.grid(row=0, column=0, sticky="w")
         self._calculate_enpy_button = create_rounded_button(actions, self._translate("action.calculate_enpy"), self._calculate_enpy, style="SuctionRoundedPrimary.TButton", palette=SUCTION_PRIMARY_PALETTE, primary=True)
@@ -355,6 +370,9 @@ class SuctionNPSHPage(ttk.Frame):
         self._roughness_source_label.configure(text=self._translate("field.roughness_source"))
         self._material_label.configure(text=self._translate("field.material"))
         self._active_roughness_label.configure(text=f"{self._translate('field.active_roughness')}, mm")
+        self._warning_fluid_label.configure(text=self._translate("field.system_fluid"))
+        self._load_warning_fluids()
+        self._warning_panel.refresh_texts()
         self._pressure_note.configure(text=self._translate("suction.pressure_note"))
         self._roughness_source_box.configure(values=(
             self._translate("message.material_source"),
@@ -379,6 +397,38 @@ class SuctionNPSHPage(ttk.Frame):
         """Register the optional active-project dirty callback."""
         self._dirty_callback = callback
 
+    def _load_warning_fluids(self) -> None:
+        selected = self._selected_warning_fluid()
+        self._warning_fluid_codes = {self._translate("message.select"): ""}
+        self._warning_fluid_codes.update({item.turkish_label: item.code for item in FLUID_SYSTEMS})
+        self._warning_fluid_box.configure(values=list(self._warning_fluid_codes))
+        self._set_warning_fluid(selected)
+
+    def _selected_warning_fluid(self) -> str | None:
+        return self._warning_fluid_codes.get(self._warning_fluid.get(), "") or None
+
+    def _set_warning_fluid(self, code: str | None) -> None:
+        self._warning_fluid.set(next((label for label, item_code in self._warning_fluid_codes.items() if item_code == (code or "")), self._translate("message.select")))
+
+    def _on_warning_context_changed(self, *_args: object) -> None:
+        if not self._suppress_dirty:
+            self._mark_dirty()
+        self._evaluate_engineering_warnings()
+
+    def _evaluate_engineering_warnings(self) -> None:
+        """Combine independent advisory velocity and critical NPSH findings."""
+        findings = []
+        loss = getattr(self, "_last_loss", None)
+        fluid = self._selected_warning_fluid()
+        if loss is not None and fluid is not None:
+            findings.extend(evaluate_velocity(fluid, "SUCTION", loss.flow_velocity_m_s))
+        enpy = getattr(self, "_last_enpy", None)
+        if enpy is not None and enpy.npsh_margin_m is not None:
+            required = enpy.enpym_available_m - enpy.npsh_margin_m
+            findings.extend(evaluate_npsh(enpy.enpym_available_m, required))
+        if hasattr(self, "_warning_panel"):
+            self._warning_panel.set_findings(findings)
+
     def _mark_dirty(self, *_args: object) -> None:
         """Notify the active project only for genuine user-owned changes."""
         if not self._suppress_dirty and callable(self._dirty_callback):
@@ -386,7 +436,7 @@ class SuctionNPSHPage(ttk.Frame):
 
     def export_state(self) -> dict[str, object]:
         """Serialize page inputs without storing rendered stage-status text."""
-        return {"fields": {key: value.get() for key, value in self._fields.items()}, "viscosity_unit": self._viscosity_unit.get(), "roughness_source": self._roughness_source_mode, "material": self._material.get(), "pressure_unit": self._pressure_unit.get(), "vapour_unit": self._vapour_unit.get(), "items": [{"id": identifier, "name": item.name, "quantity": item.quantity, "k": item.k_coefficient} for identifier, item in self._items.items()], "result": self._result.get(), "formula": self._formula.get(), "hydraulic_valid": hasattr(self, "_last_loss"), "enpy_valid": hasattr(self, "_last_enpy")}
+        return {"fields": {key: value.get() for key, value in self._fields.items()}, "viscosity_unit": self._viscosity_unit.get(), "roughness_source": self._roughness_source_mode, "material": self._material.get(), "pressure_unit": self._pressure_unit.get(), "vapour_unit": self._vapour_unit.get(), "warning_fluid": self._selected_warning_fluid(), "items": [{"id": identifier, "name": item.name, "quantity": item.quantity, "k": item.k_coefficient} for identifier, item in self._items.items()], "result": self._result.get(), "formula": self._formula.get(), "hydraulic_valid": hasattr(self, "_last_loss"), "enpy_valid": hasattr(self, "_last_enpy")}
 
     def load_state(self, state: dict[str, object]) -> None:
         """Restore saved page data without modifying shared materials."""
@@ -394,7 +444,7 @@ class SuctionNPSHPage(ttk.Frame):
         try:
             for key, value in dict(state.get("fields", {})).items():
                 if key in self._fields: self._fields[key].set(str(value))
-            self._viscosity_unit.set(str(state.get("viscosity_unit", "cSt")));saved_source=str(state.get("roughness_source", "material"));self._roughness_source_mode="manual" if saved_source in {"manual","Manual"} else "material";self._roughness_source.set(self._translate("message.manual_source") if self._roughness_source_mode=="manual" else self._translate("message.material_source"));self._material.set(str(state.get("material", "")));self._pressure_unit.set(str(state.get("pressure_unit", "bar")));self._vapour_unit.set(str(state.get("vapour_unit", "bar")))
+            self._viscosity_unit.set(str(state.get("viscosity_unit", "cSt")));saved_source=str(state.get("roughness_source", "material"));self._roughness_source_mode="manual" if saved_source in {"manual","Manual"} else "material";self._roughness_source.set(self._translate("message.manual_source") if self._roughness_source_mode=="manual" else self._translate("message.material_source"));self._material.set(str(state.get("material", "")));self._pressure_unit.set(str(state.get("pressure_unit", "bar")));self._vapour_unit.set(str(state.get("vapour_unit", "bar")));self._set_warning_fluid(state.get("warning_fluid") if isinstance(state.get("warning_fluid"),str) else None)
             self._items={str(item["id"]):LocalLossItem(str(item["name"]),int(item["quantity"]),float(item["k"])) for item in state.get("items", []) if isinstance(item,dict)};self._refresh_losses();self._set_roughness_source();self._set_status("loss",[]);self._set_status("enpy",[]);self._result.set(str(state.get("result", "")));self._formula.set(str(state.get("formula", "")));self._sync_detail_presentation()
         finally:
             self._suppress_dirty = False
@@ -451,7 +501,7 @@ class SuctionNPSHPage(ttk.Frame):
             self._tree.insert("", "end", iid=identifier, values=(item.name, item.quantity, item.k_coefficient, item.subtotal_k))
 
     def _add_loss(self) -> None:
-        item = LocalLossItemDialog(self).show()
+        item = LocalLossItemDialog(self, translate=self._translate).show()
         if item is not None:
             self._items[str(uuid4())] = item
             self._refresh_losses()
@@ -463,7 +513,7 @@ class SuctionNPSHPage(ttk.Frame):
         if not selected:
             return "break"
         identifier = selected[0]
-        item = LocalLossItemDialog(self, self._items[identifier]).show()
+        item = LocalLossItemDialog(self, self._items[identifier], translate=self._translate).show()
         if item is not None:
             self._items[identifier] = item
             self._refresh_losses()
@@ -511,14 +561,14 @@ class SuctionNPSHPage(ttk.Frame):
             return
         self._last_loss = result
         loss = result
-        digits = int(self._constants.get_constant("display_decimal_places").value)
-        format_value = lambda value: f"{value:.{digits}f}"
+        format_value = format_user_number
         self._suction_loss_summary.set(format_value(loss.total_hydraulic_loss_m))
         self._k_total_summary.set(format_value(loss.local_loss_coefficient_total))
         self._enpy_summary.set("—")
         self._render_current_results()
         self._set_status("loss", loss.warnings)
         self._set_status("enpy", [])
+        self._evaluate_engineering_warnings()
         self._formula.set("")
         self._mark_dirty()
         self._refresh_formula_panel()
@@ -542,11 +592,11 @@ class SuctionNPSHPage(ttk.Frame):
             self._set_status("enpy", [ValidationIssue("unexpected_error")])
             return
         self._last_enpy = result
-        digits = int(self._constants.get_constant("display_decimal_places").value)
-        format_value = lambda value: f"{value:.{digits}f}"
+        format_value = format_user_number
         self._enpy_summary.set(format_value(result.enpym_available_m))
         self._render_current_results()
         self._set_status("enpy", result.warnings)
+        self._evaluate_engineering_warnings()
         self._formula.set("")
         self._mark_dirty()
         self._refresh_formula_panel()
@@ -567,13 +617,11 @@ class SuctionNPSHPage(ttk.Frame):
             FormulaSection("RESULT", self._translate("message.available_after_enpy_calculation"), "2. ENPY / NPSH AVAILABLE", "result"),
         ]
         if loss is not None:
-            digits = int(self._constants.get_constant("display_decimal_places").value)
-            sections[2] = FormulaSection("CURRENT SUBSTITUTION", f"ν = {loss.metadata['viscosity_m2s']:.{digits}f} m²/s\nRe = {loss.reynolds_number:.{digits}f}\nf = {loss.friction_factor:.{digits}f}\nh_local = {loss.local_loss_m:.{digits}f} m\nh_pipe = {loss.pipe_friction_loss_m:.{digits}f} m", "1. SUCTION HYDRAULICS", "substitution")
-            sections[3] = FormulaSection("RESULT", f"{self._translate('result.suction_head_loss')} he = {loss.total_hydraulic_loss_m:.{digits}f} m", "1. SUCTION HYDRAULICS", "result")
+            sections[2] = FormulaSection("CURRENT SUBSTITUTION", f"ν = {format_user_number(loss.metadata['viscosity_m2s'])} m²/s\nRe = {format_user_number(loss.reynolds_number)}\nf = {format_user_number(loss.friction_factor)}\nh_local = {format_user_number(loss.local_loss_m)} m\nh_pipe = {format_user_number(loss.pipe_friction_loss_m)} m", "1. SUCTION HYDRAULICS", "substitution")
+            sections[3] = FormulaSection("RESULT", f"{self._translate('result.suction_head_loss')} he = {format_user_number(loss.total_hydraulic_loss_m)} m", "1. SUCTION HYDRAULICS", "result")
         if enpy is not None:
-            digits = int(self._constants.get_constant("display_decimal_places").value)
-            sections[7] = FormulaSection("CURRENT SUBSTITUTION", f"PE = {enpy.metadata['suction_pressure_pa']:.{digits}f} Pa\nPb = {enpy.metadata['vapour_pressure_pa']:.{digits}f} Pa\nHEgeo = {self._fields['height'].get()} m\nhe = {enpy.suction_loss_m:.{digits}f} m\nENPYm = PE/(ρg) − Pb/(ρg) − HEgeo − he", "2. ENPY / NPSH AVAILABLE", "substitution")
-            sections[8] = FormulaSection("RESULT", f"{self._translate('result.available_npsh')} = {enpy.enpym_available_m:.{digits}f} m" + ("" if enpy.npsh_margin_m is None else f"\n{self._translate('result.npsh_margin')} = {enpy.npsh_margin_m:.{digits}f} m"), "2. ENPY / NPSH AVAILABLE", "result")
+            sections[7] = FormulaSection("CURRENT SUBSTITUTION", f"PE = {format_user_number(enpy.metadata['suction_pressure_pa'])} Pa\nPb = {format_user_number(enpy.metadata['vapour_pressure_pa'])} Pa\nHEgeo = {self._fields['height'].get()} m\nhe = {format_user_number(enpy.suction_loss_m)} m\nENPYm = PE/(ρg) − Pb/(ρg) − HEgeo − he", "2. ENPY / NPSH AVAILABLE", "substitution")
+            sections[8] = FormulaSection("RESULT", f"{self._translate('result.available_npsh')} = {format_user_number(enpy.enpym_available_m)} m" + ("" if enpy.npsh_margin_m is None else f"\n{self._translate('result.npsh_margin')} = {format_user_number(enpy.npsh_margin_m)} m"), "2. ENPY / NPSH AVAILABLE", "result")
         return sections
 
     def _invalidate_hydraulics(self, _event: object | None = None, *_args: object) -> None:
@@ -589,6 +637,8 @@ class SuctionNPSHPage(ttk.Frame):
         self._formula.set("")
         self._set_status("loss", [])
         self._set_status("enpy", [])
+        if hasattr(self, "_warning_panel"):
+            self._warning_panel.set_findings(())
         self._mark_dirty()
         self._refresh_formula_panel()
 
@@ -613,8 +663,7 @@ class SuctionNPSHPage(ttk.Frame):
         if loss is None:
             self._sync_detail_presentation()
             return
-        digits = int(self._constants.get_constant("display_decimal_places").value)
-        value = lambda number: f"{number:.{digits}f}"
+        value = format_user_number
         self._detail_values["flow_velocity"].set(f"{value(loss.flow_velocity_m_s)} m/s")
         self._detail_values["reynolds_number"].set(value(loss.reynolds_number))
         self._detail_values["flow_regime"].set(str(loss.flow_regime))
@@ -680,6 +729,7 @@ class SuctionNPSHPage(ttk.Frame):
         self._items.clear()
         self._refresh_losses()
         self._material.set("")
+        self._set_warning_fluid(None)
         self._viscosity_unit.set("cSt")
         self._roughness_source_mode = "material"
         self._roughness_source.set(self._translate("message.material_source"))

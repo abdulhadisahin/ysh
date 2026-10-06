@@ -10,7 +10,7 @@ from i18n.messages_tr import MESSAGES as TURKISH_MESSAGES
 
 
 class Translator:
-    """Resolve stable message keys with a safe English fallback."""
+    """Resolve stable message keys for internal compatibility contracts."""
 
     def __init__(self, language: str = "en") -> None:
         """Create a translator with English registered by default."""

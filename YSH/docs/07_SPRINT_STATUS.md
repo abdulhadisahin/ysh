@@ -1,5 +1,26 @@
 # Sprint Status
 
+## D243 V2 - Phase 2A Standard-Based Pipe Library Architecture
+
+The local runtime pipe library is now versioned schema 3 and represents the
+authoritative hierarchy **Pipe Standard → DN/Nominal Designation → Geometry**.
+`EN_10220` / **EN 10220** is the only seeded production standard and retains
+the verified DN10–DN500 data. Existing V1/V2 rows labelled `EN 10220` are
+migrated to that standard; other historic free-text labels become explicit
+`LEGACY_*` metadata so that no unverified engineering standard is claimed.
+
+The current Pipe Design workflow remains visually unchanged and temporarily
+uses EN 10220 internally. ISO 1127 data and a visible standard selector are
+explicitly deferred to Phase 2B.
+
+## D243 V2 - Phase 1 Product Foundation
+
+Visible product identity is now **D243 Boru ve Tulumba Boyutlandırma Programı**.
+The live application uses Turkish-only UI text and renders normal engineering
+outputs with exactly two decimal places and a decimal comma. Calculations,
+stored values, formulas, and V1 project compatibility remain unchanged.
+This phase intentionally excludes visual redesign and new engineering behavior.
+
 ## Epic 7 - Pipe Diameter and Wall Thickness
 
 Implemented Version 1 pipe diameter, editable-library DN recommendation, and
