@@ -12,7 +12,7 @@ def test_formula_panel_has_a_dedicated_row_below_pipe_page_content() -> None:
     """The full-width panel does not share a grid row with controls or status."""
     source = (ROOT / "ui/pages/pipe_design_page.py").read_text(encoding="utf-8")
     assert 'message_label.grid(row=2, column=0, sticky="w", pady=(8, 0))' in source
-    assert 'self._warning_panel.grid(row=1, column=1, sticky="ew", padx=(SM // 2, 0), pady=(SM, 0))' in source
+    assert 'self._warning_panel.grid(row=2, column=1, sticky="ew", padx=(SM // 2, 0), pady=(SM, 0))' in source
     assert 'self._formula_panel.grid(row=3, column=0, sticky="ew", pady=(10, 0))' in source
     assert "self._formula_panel.grid(row=10" not in source
 

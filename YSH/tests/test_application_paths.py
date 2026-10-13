@@ -7,6 +7,11 @@ from pathlib import Path
 
 from YSH import app
 from YSH.ui.assets import (
+    d243_icon_path,
+    d243_main_logo_path,
+    d243_logo_path,
+    d243_ui_logo_path,
+    d243_watermark_logo_path,
     ysh_icon_path,
     ysh_logo_path,
     ysh_ship_bottom_left_path,
@@ -78,8 +83,17 @@ def test_approved_brand_assets_resolve_from_source_resources() -> None:
     """Resolve supplied branding only from the package-relative resource root."""
     paths = ApplicationPaths()
 
-    assert ysh_logo_path(paths.resource_root) == paths.resource_root / "resources" / "ysh_logo.png"
-    assert ysh_icon_path(paths.resource_root) == paths.resource_root / "resources" / "ysh.ico"
+    assert ysh_logo_path(paths.resource_root) is None
+    assert ysh_icon_path(paths.resource_root) is None
+    assert d243_logo_path(paths.resource_root) == paths.resource_root / "resources" / "d243_logo.png"
+    assert d243_ui_logo_path(paths.resource_root) == paths.resource_root / "resources" / "d243_logo_ui.png"
+    assert d243_main_logo_path(paths.resource_root) == (
+        paths.resource_root / "resources" / "branding" / "d243_logo_main.png"
+    )
+    assert d243_watermark_logo_path(paths.resource_root) == (
+        paths.resource_root / "resources" / "branding" / "d243_logo_watermark.png"
+    )
+    assert d243_icon_path(paths.resource_root) == paths.resource_root / "resources" / "branding" / "d243_logo.ico"
     assert ysh_ship_top_right_path(paths.resource_root) == (
         paths.resource_root / "resources" / "ysh_ship_top_right.png"
     )
@@ -94,5 +108,10 @@ def test_missing_brand_assets_remain_optional_in_frozen_resources(tmp_path: Path
 
     assert ysh_logo_path(frozen_root) is None
     assert ysh_icon_path(frozen_root) is None
+    assert d243_logo_path(frozen_root) is None
+    assert d243_ui_logo_path(frozen_root) is None
+    assert d243_main_logo_path(frozen_root) is None
+    assert d243_watermark_logo_path(frozen_root) is None
+    assert d243_icon_path(frozen_root) is None
     assert ysh_ship_top_right_path(frozen_root) is None
     assert ysh_ship_bottom_left_path(frozen_root) is None

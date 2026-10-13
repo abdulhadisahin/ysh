@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import math
 import tkinter as tk
 from dataclasses import dataclass
 from collections.abc import Callable
 from tkinter import font as tkfont
 from tkinter import ttk
+
+from ui.assets import action_icon_fit_mode, action_icon_path
+from ui.widgets.asset_loader import AssetImageLoader, LoadedImage
+from ui.widgets.tooltip import Tooltip
 
 
 @dataclass(frozen=True, slots=True)
@@ -21,25 +26,25 @@ class RoundedButtonPalette:
 
 
 TRANSFER_PRIMARY_PALETTE = RoundedButtonPalette(
-    normal=("#F47A16", "#B7520A"),
-    hover=("#F98D32", "#B7520A"),
-    pressed=("#C85B08", "#9A4406"),
-    disabled=("#E9C9B1", "#D5AD8D"),
-    focus_border="#C85B08",
+    normal=("#102B46", "#B58A2A"),
+    hover=("#163957", "#D3B66A"),
+    pressed=("#091B2D", "#B58A2A"),
+    disabled=("#31465A", "#516275"),
+    focus_border="#F0D58D",
 )
 DISCHARGE_PRIMARY_PALETTE = RoundedButtonPalette(
-    normal=("#1265D8", "#0D55B8"),
-    hover=("#2878E4", "#0D55B8"),
-    pressed=("#0D55B8", "#093D84"),
-    disabled=("#B9CDE9", "#A3B9D7"),
-    focus_border="#0D55B8",
+    normal=("#102B46", "#B58A2A"),
+    hover=("#163957", "#D3B66A"),
+    pressed=("#091B2D", "#B58A2A"),
+    disabled=("#31465A", "#516275"),
+    focus_border="#F0D58D",
 )
 SUCTION_PRIMARY_PALETTE = RoundedButtonPalette(
-    normal=("#2600FF", "#1E00CC"),
-    hover=("#3E1AFF", "#1E00CC"),
-    pressed=("#1E00CC", "#170099"),
-    disabled=("#C9C2EA", "#B6ADDC"),
-    focus_border="#1E00CC",
+    normal=("#35698F", "#244B69"),
+    hover=("#477B9F", "#244B69"),
+    pressed=("#244B69", "#18344B"),
+    disabled=("#C8D7E1", "#B2C3D0"),
+    focus_border="#244B69",
 )
 ADD_BUTTON_PALETTE = RoundedButtonPalette(
     normal=("#F0FAF7", "#159A55"),
@@ -77,11 +82,18 @@ CLEAR_ALL_BUTTON_PALETTE = RoundedButtonPalette(
     focus_border="#A77A2D",
 )
 FORMULA_BUTTON_PALETTE = RoundedButtonPalette(
-    normal=("#F4F2FF", "#2600FF"),
-    hover=("#E8E4FF", "#2600FF"),
-    pressed=("#DCD6FF", "#1E00CC"),
-    disabled=("#F1EFF5", "#D8D0E4"),
-    focus_border="#1E00CC",
+    normal=("#FBF6E9", "#7B5A17"),
+    hover=("#F5EBCF", "#7B5A17"),
+    pressed=("#E9D9AD", "#5D4311"),
+    disabled=("#F4F0E7", "#D8CFBA"),
+    focus_border="#7B5A17",
+)
+HEADER_COMMAND_PALETTE = RoundedButtonPalette(
+    normal=("#102B46", "#B58A2A"),
+    hover=("#163957", "#D3B66A"),
+    pressed=("#091B2D", "#B58A2A"),
+    disabled=("#31465A", "#516275"),
+    focus_border="#F0D58D",
 )
 
 
@@ -94,6 +106,13 @@ def create_rounded_button(
     palette: RoundedButtonPalette,
     primary: bool = False,
     outside_background: str | None = None,
+    icon_name: str | None = None,
+    icon_only: bool = False,
+    tooltip_text: str | None = None,
+    icon_size: int | None = None,
+    square_size: int | None = None,
+    minimum_height: int | None = None,
+    horizontal_padding: int | None = None,
 ) -> "RoundedImageButton":
     """Create one compact module action without duplicating visual geometry."""
     return RoundedImageButton(
@@ -103,8 +122,14 @@ def create_rounded_button(
         style=style,
         palette=palette,
         outside_background=outside_background,
-        horizontal_padding=15 if primary else 14,
+        horizontal_padding=horizontal_padding if horizontal_padding is not None else (15 if primary else 14),
         vertical_padding=6,
+        icon_name=icon_name,
+        icon_only=icon_only,
+        tooltip_text=tooltip_text,
+        icon_size=icon_size if icon_size is not None else (34 if primary else 26),
+        square_size=square_size,
+        minimum_height=minimum_height,
     )
 
 
@@ -116,6 +141,8 @@ class RoundedImageButton(ttk.Button):
     native to Tk.
     """
 
+    ICON_TEXT_GAP = 10
+
     def __init__(
         self,
         parent: tk.Misc,
@@ -125,6 +152,12 @@ class RoundedImageButton(ttk.Button):
         radius: int = 9,
         horizontal_padding: int = 20,
         vertical_padding: int = 9,
+        icon_name: str | None = None,
+        icon_size: int = 26,
+        icon_only: bool = False,
+        tooltip_text: str | None = None,
+        square_size: int | None = None,
+        minimum_height: int | None = None,
         **kwargs: object,
     ) -> None:
         """Create a native ttk button with an aspect-safe rounded surface."""
@@ -138,6 +171,17 @@ class RoundedImageButton(ttk.Button):
         self._focused = False
         self._stable_texts: tuple[str, ...] = ()
         self._surface_images: dict[str, tk.PhotoImage] = {}
+        self._icon_name = icon_name
+        self._icon_size = icon_size
+        self._icon_text_gap = self.ICON_TEXT_GAP
+        self._icon_only = icon_only
+        self._square_size = square_size or max(36, icon_size + 12)
+        self._minimum_height = minimum_height
+        self._icon_image: LoadedImage | None = None
+        self._tooltip: Tooltip | None = None
+        self._logical_text = str(kwargs.get("text", ""))
+        if self._icon_only:
+            kwargs["text"] = ""
         requested_style = str(kwargs.get("style", "TButton"))
         if outside_background is not None:
             kwargs["style"] = self._surface_aware_style(
@@ -146,6 +190,17 @@ class RoundedImageButton(ttk.Button):
                 outside_background,
             )
         super().__init__(parent, compound="center", **kwargs)
+        if tooltip_text is not None or self._icon_only:
+            self._tooltip = Tooltip(self, tooltip_text or self._logical_text)
+        if self._icon_name is not None:
+            self._icon_image = AssetImageLoader.load(
+                self,
+                action_icon_path(self._icon_name),
+                self._icon_size,
+                fit_mode=action_icon_fit_mode(self._icon_name),
+            )
+            if self._icon_image is not None and not self._icon_only:
+                super().configure(text=self._icon_text(str(self.cget("text"))))
         self.bind("<Configure>", self._on_configure, add="+")
         self.bind("<Enter>", self._on_enter, add="+")
         self.bind("<Leave>", self._on_leave, add="+")
@@ -184,6 +239,13 @@ class RoundedImageButton(ttk.Button):
     def configure(self, cnf: object | None = None, **kwargs: object) -> object:
         """Refresh the generated surface after text or state changes."""
         if "text" in kwargs:
+            self._logical_text = str(kwargs["text"])
+            if self._tooltip is not None:
+                self._tooltip.set_text(self._logical_text)
+            if self._icon_only:
+                kwargs["text"] = ""
+            elif self._icon_image is not None:
+                kwargs["text"] = self._icon_text(self._logical_text)
             super().configure(image="")
             self._surface_images.clear()
         result = super().configure(cnf, **kwargs)
@@ -192,6 +254,34 @@ class RoundedImageButton(ttk.Button):
         return result
 
     config = configure
+
+    @staticmethod
+    def _icon_text_gap_spaces(
+        icon_width: int,
+        horizontal_padding: int,
+        icon_text_gap: int,
+        space_width: int,
+    ) -> int:
+        """Return a measured native-text lane after an independently drawn icon."""
+        icon_x = max(6, horizontal_padding // 2)
+        required_text_start = icon_x + icon_width + icon_text_gap
+        leading_width = max(0, required_text_start - horizontal_padding)
+        return max(1, math.ceil(leading_width / max(1, space_width)))
+
+    def _icon_text(self, text: str) -> str:
+        """Reserve a DPI-aware lane: ``[ icon ] 10px [ localized text ]``."""
+        if self._icon_image is None or self._icon_only:
+            return text
+        style_name = str(self.cget("style"))
+        font_spec = ttk.Style(self).lookup(style_name, "font") or "TkDefaultFont"
+        font = tkfont.Font(root=self, font=font_spec)
+        spaces = self._icon_text_gap_spaces(
+            self._icon_image.rendered.width(),
+            self._horizontal_padding,
+            self._icon_text_gap,
+            font.measure(" "),
+        )
+        return f"{' ' * spaces}{text.lstrip()}"
 
     def set_stable_texts(self, texts: tuple[str, ...]) -> None:
         """Reserve the largest natural surface needed by interchangeable labels."""
@@ -253,22 +343,29 @@ class RoundedImageButton(ttk.Button):
 
     def _content_surface_dimensions(self) -> tuple[int, int]:
         """Measure text and padding without reusing a prior rendered surface size."""
+        if self._icon_only:
+            return (self._square_size, self._square_size)
         style_name = str(self.cget("style"))
         font_spec = ttk.Style(self).lookup(style_name, "font") or "TkDefaultFont"
         font = tkfont.Font(root=self, font=font_spec)
-        texts = self._stable_texts or (str(self.cget("text")),)
+        texts = (
+            tuple(self._icon_text(text) for text in self._stable_texts)
+            if self._stable_texts and self._icon_image is not None and not self._icon_only
+            else self._stable_texts or (str(self.cget("text")),)
+        )
         text_width = max(
             font.measure(line)
             for text in texts
             for line in (text.splitlines() or [""])
         )
         line_count = max(max(1, len(text.splitlines())) for text in texts)
-        return self._surface_dimensions_from_content(
+        width, height = self._surface_dimensions_from_content(
             text_width,
             font.metrics("linespace") * line_count,
             self._horizontal_padding,
             self._vertical_padding,
         )
+        return (width, max(height, self._minimum_height or 0))
 
     @staticmethod
     def _surface_dimensions_from_content(
@@ -320,7 +417,35 @@ class RoundedImageButton(ttk.Button):
                 image.put(color, to=(start, y, end, y + 1))
         if self._outside_background is None:
             self._set_transparent_corners(image, width, height, radius)
+        self._composite_icon(image, height)
         return image
+
+    def _composite_icon(self, surface: tk.PhotoImage, surface_height: int) -> None:
+        """Place an optional production icon onto the rendered native button surface."""
+        if self._icon_image is None:
+            return
+        icon = self._icon_image.rendered
+        x = (
+            max(0, (surface.width() - icon.width()) // 2)
+            if self._icon_only
+            else max(6, self._horizontal_padding // 2)
+        )
+        y = max(0, (surface_height - icon.height()) // 2)
+        try:
+            self.tk.call(
+                str(surface),
+                "copy",
+                str(icon),
+                "-to",
+                x,
+                y,
+                "-compositingrule",
+                "overlay",
+            )
+        except tk.TclError:
+            # Keep the label and callback usable when a platform Tk build
+            # cannot alpha-composite a decorative optional asset.
+            return
 
     def _surface_pixel(
         self,

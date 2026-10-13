@@ -6,6 +6,7 @@ import tkinter as tk
 from collections.abc import Callable
 from tkinter import ttk
 
+from ui.assets import d243_watermark_logo_path
 from ui.theme import colors
 from ui.widgets.scrollable_frame import ScrollableFrame
 
@@ -19,12 +20,6 @@ class ScrollablePageHost(ttk.Notebook):
         self._hosts: dict[str, ScrollableFrame] = {}
         self._page_hosts: dict[str, ScrollableFrame] = {}
         self._page_keys: dict[str, ScrollableFrame] = {}
-        self._tab_colors: dict[str, str] = {
-            "pipe_design": colors.PIPE,
-            "transfer_pump": colors.TRANSFER,
-            "discharge_head_loss": colors.DISCHARGE,
-            "suction_npsh": colors.SUCTION,
-        }
         self.bind("<<NotebookTabChanged>>", self._on_tab_changed)
         self.bind("<Prior>", self._page_up)
         self.bind("<Next>", self._page_down)
@@ -39,6 +34,7 @@ class ScrollablePageHost(ttk.Notebook):
     ) -> tk.Misc:
         """Create and register a page within a standard scroll viewport."""
         host = ScrollableFrame(self)
+        host.set_background_watermark(d243_watermark_logo_path())
         page = factory(host.content)
         page.pack(fill="x", expand=True)
         self.add(host, text=title)
@@ -73,8 +69,10 @@ class ScrollablePageHost(ttk.Notebook):
             (key for key, host in self._page_keys.items() if str(host) == selected),
             None,
         )
-        accent = self._tab_colors.get(page_key or "", colors.NAVY)
-        selected_foreground = colors.ON_ACCENT
+        # D243 navigation is product-led rather than page-color-led: Gold
+        # identifies the selected engineering module without borrowing purple
+        # or other legacy module colors into the shell.
+        selected_foreground = colors.GOLD
         style = ttk.Style(self)
         style.configure(
             "YSH.TNotebook.Tab",
@@ -83,8 +81,8 @@ class ScrollablePageHost(ttk.Notebook):
         )
         style.map(
             "YSH.TNotebook.Tab",
-            background=[("selected", accent), ("active", colors.DEEP_NAVY)],
-            foreground=[("selected", selected_foreground), ("active", colors.ON_ACCENT)],
+            background=[("selected", colors.DEEP_NAVY), ("active", colors.DEEP_NAVY)],
+            foreground=[("selected", selected_foreground), ("active", colors.GOLD)],
         )
 
     def _activate_current_host(self) -> None:

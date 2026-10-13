@@ -79,6 +79,7 @@ def test_chart_is_embedded_and_uses_theme_palette_without_refitting() -> None:
     source = _source("ui/widgets/transfer_pump_chart.py")
     assert "FigureCanvasTkAgg" in source
     assert "from ui.theme import colors" in source
-    assert "colors.TRANSFER" in source
+    assert "colors.GOLD" in source
+    assert "colors.NAVY" in source
     assert "def render" in source
     assert "calculate(" not in source

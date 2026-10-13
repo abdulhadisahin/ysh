@@ -49,15 +49,14 @@ from ui.widgets.status_bar import StatusBar
 from ui.widgets.scrollable_frame import ScrollableFrame
 from ui.widgets.scrollable_page_host import ScrollablePageHost
 from ui.widgets.scrollable_treeview import ScrollableTreeview
-from ui.assets import (
-    ysh_logo_path,
-    ysh_ship_bottom_left_path,
-    ysh_ship_top_right_path,
-)
+from ui.widgets.engineering_components import EmptyState
+from ui.assets import d243_main_logo_path, ysh_ship_bottom_left_path, ysh_ship_top_right_path
+from ui.widgets.asset_loader import AssetImageLoader
 from ui.widgets.rounded_button import (
     ADD_BUTTON_PALETTE,
     DELETE_BUTTON_PALETTE,
     EDIT_BUTTON_PALETTE,
+    HEADER_COMMAND_PALETTE,
     NEUTRAL_BUTTON_PALETTE,
     RoundedButtonPalette,
     create_rounded_button,
@@ -69,6 +68,8 @@ from i18n.translator import Translator
 from YSH.product import PRODUCT_FULL_NAME, PRODUCT_SHORT_NAME, PRODUCT_SUBTITLE
 
 LOGGER = logging.getLogger(__name__)
+
+HEADER_LOGO_TARGET_SIZE = 180
 
 FILE_MENU_INDEX = {
     "new": 0,
@@ -154,62 +155,55 @@ class MainWindow:
 
         header = ttk.Frame(self._root, style="Header.TFrame", padding=(LG, SM, LG, SM))
         header.grid(row=0, column=0, sticky="ew")
+        header.columnconfigure(0, weight=0)
         header.columnconfigure(1, weight=1)
         identity = ttk.Frame(header, style="HeaderBrand.TFrame", padding=(0, SM // 2))
         identity.grid(row=0, column=0, sticky="w")
+        self._header_logo_source_image: tk.PhotoImage | None = None
         self._header_logo_image: tk.PhotoImage | None = None
         self._add_header_logo(identity)
-        self._header_title = ttk.Label(identity, text=PRODUCT_SHORT_NAME, style="HeaderTitle.TLabel")
-        self._header_title.pack(side="left", pady=(0, 1))
+        brand_text = ttk.Frame(identity, style="HeaderBrand.TFrame")
+        brand_text.pack(side="left")
+        self._header_title = ttk.Label(brand_text, text=PRODUCT_SHORT_NAME, style="HeaderTitle.TLabel")
+        self._header_title.pack(anchor="w")
         self._header_subtitle = ttk.Label(
-            identity,
+            brand_text,
             text=PRODUCT_SUBTITLE,
             style="HeaderSubtitle.TLabel",
         )
-        self._header_subtitle.pack(side="left", padx=(SM, 0), pady=(2, 0))
-        self._header_ship_image: tk.PhotoImage | None = None
-        self._header_ship_source_image: tk.PhotoImage | None = None
-        self._header_ship_dimensions: tuple[int, int] | None = None
-        self._header_ship_label = self._add_decorative_image(
-            header,
-            ysh_ship_top_right_path(),
-            maximum_width=260,
-            maximum_height=76,
-            style="HeaderProject.TLabel",
-        )
-        if self._header_ship_label is not None:
-            self._header_ship_label.grid(row=0, column=1, sticky="e", padx=(LG, SM))
-            header.bind("<Configure>", self._update_header_artwork_visibility, add="+")
+        self._header_subtitle.pack(anchor="w", pady=(2, 0))
+        # The locked D243 emblem is displayed by ``_add_header_logo`` when
+        # supplied; legacy decorative ship art is not part of this shell.
         if self._localization is not None:
             self._language_value = tk.StringVar(value=self._language_display_name())
 
-        toolbar = ttk.Frame(header, style="Ribbon.TFrame", padding=(0, SM, 0, 0))
-        toolbar.grid(row=1, column=0, columnspan=2, sticky="ew")
+        toolbar = ttk.Frame(header, style="Ribbon.TFrame", padding=(MD, 0, 0, 0))
+        toolbar.grid(row=0, column=1, sticky="e")
         self._ribbon_project = self._create_ribbon_group(toolbar, "ribbon.project")
-        self._toolbar_new = self._create_header_button(self._ribbon_project, self._translate("action.new"), self._open_new_project, style="RoundedAdd.TButton", palette=ADD_BUTTON_PALETTE)
+        self._toolbar_new = self._create_header_button(self._ribbon_project, self._translate("action.new"), self._open_new_project, style="RoundedAdd.TButton", palette=ADD_BUTTON_PALETTE, icon_name="new")
         self._toolbar_new.pack(side="left")
-        self._toolbar_open = self._create_header_button(self._ribbon_project, self._translate("action.open"), self._open_project, style="RoundedEdit.TButton", palette=EDIT_BUTTON_PALETTE)
+        self._toolbar_open = self._create_header_button(self._ribbon_project, self._translate("action.open"), self._open_project, style="RoundedEdit.TButton", palette=EDIT_BUTTON_PALETTE, icon_name="open")
         self._toolbar_open.pack(side="left", padx=(SM, 0))
-        self._toolbar_save = self._create_header_button(self._ribbon_project, self._translate("action.save"), self._save_project, style="RoundedAdd.TButton", palette=ADD_BUTTON_PALETTE)
+        self._toolbar_save = self._create_header_button(self._ribbon_project, self._translate("action.save"), self._save_project, style="RoundedAdd.TButton", palette=ADD_BUTTON_PALETTE, icon_name="save")
         self._toolbar_save.pack(side="left", padx=(SM, 0))
-        self._toolbar_save_as = self._create_header_button(self._ribbon_project, self._translate("action.save_as"), self._save_project_as, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE)
+        self._toolbar_save_as = self._create_header_button(self._ribbon_project, self._translate("action.save_as"), self._save_project_as, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="save_as")
         self._toolbar_save_as.pack(side="left", padx=(SM, 0))
         self._ribbon_library = self._create_ribbon_group(toolbar, "ribbon.data_library")
-        self._toolbar_materials = self._create_header_button(self._ribbon_library, self._translate("menu.library.materials"), self._open_material_library, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE)
+        self._toolbar_materials = self._create_header_button(self._ribbon_library, self._translate("menu.library.materials"), self._open_material_library, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="library_materials")
         self._toolbar_materials.pack(side="left")
-        self._toolbar_pipe_sizes = self._create_header_button(self._ribbon_library, self._translate("menu.library.pipe_sizes"), self._open_pipe_size_library, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE)
+        self._toolbar_pipe_sizes = self._create_header_button(self._ribbon_library, self._translate("menu.library.pipe_sizes"), self._open_pipe_size_library, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="library_pipe_sizes")
         self._toolbar_pipe_sizes.pack(side="left", padx=(SM, 0))
-        self._toolbar_constants = self._create_header_button(self._ribbon_library, self._translate("menu.library.engineering_constants"), self._open_constants_library, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE)
+        self._toolbar_constants = self._create_header_button(self._ribbon_library, self._translate("menu.library.engineering_constants"), self._open_constants_library, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="library_engineering_constants")
         self._toolbar_constants.pack(side="left", padx=(SM, 0))
-        self._toolbar_circuits = self._create_header_button(self._ribbon_library, self._translate("menu.library.corrosion_allowance_circuits"), self._open_corrosion_allowance_circuit_library, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE)
+        self._toolbar_circuits = self._create_header_button(self._ribbon_library, self._translate("menu.library.corrosion_allowance_circuits"), self._open_corrosion_allowance_circuit_library, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="library_corrosion_circuits")
         self._toolbar_circuits.pack(side="left", padx=(SM, 0))
         self._ribbon_help = self._create_ribbon_group(toolbar, "ribbon.help")
-        self._toolbar_about = self._create_header_button(self._ribbon_help, self._translate("menu.help.about"), self._show_about, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE)
+        self._toolbar_about = self._create_header_button(self._ribbon_help, self._translate("menu.help.about"), self._show_about, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="about")
         self._toolbar_about.pack(side="left")
 
         workspace = ttk.Frame(self._root, style="Main.TFrame", padding=(LG, MD, LG, LG))
         workspace.grid(row=1, column=0, sticky="nsew")
-        workspace.columnconfigure(0, minsize=304, weight=0)
+        workspace.columnconfigure(0, minsize=248, weight=0)
         workspace.columnconfigure(1, weight=1)
         workspace.rowconfigure(0, weight=1)
 
@@ -217,7 +211,7 @@ class MainWindow:
             workspace,
             style="SidebarPanel.TFrame",
             padding=MD,
-            width=304,
+            width=248,
         )
         navigation.grid(row=0, column=0, sticky="nsew")
         navigation.columnconfigure(0, weight=1)
@@ -248,11 +242,21 @@ class MainWindow:
         self._projects_tree = self._project_tree_container.tree
         self._projects_tree.heading("name", text=self._translate("project.name"))
         self._projects_tree.heading("modified", text=self._translate("project.modified"))
-        self._projects_tree.column("name", width=164, anchor="w")
-        self._projects_tree.column("modified", width=104, anchor="w")
+        self._projects_tree.column("name", width=142, anchor="w")
+        self._projects_tree.column("modified", width=86, anchor="w")
         self._projects_tree.configure(style="Project.Treeview")
         configure_project_tree(self._projects_tree)
         self._project_tree_container.grid(row=3, column=0, sticky="nsew")
+        self._project_empty_state = None
+        # Headless test fixtures intentionally expose no Tk interpreter.
+        if hasattr(navigation, "tk"):
+            self._project_empty_state = EmptyState(
+                navigation, "project", "Henüz proje yok",
+                "Başlamak için yeni bir proje oluşturun veya mevcut bir projeyi açın.",
+                "Yeni ve Aç komutlarını kullanabilirsiniz.", image_size=145,
+            )
+            self._project_empty_state.grid(row=3, column=0, sticky="nsew")
+            self._project_empty_state.grid_remove()
         self._projects_tree.bind("<Double-1>", self._open_selected_project)
         self._projects_tree.bind("<Return>", self._open_selected_project)
         self._projects_tree.bind("<Delete>", self._delete_project)
@@ -260,29 +264,18 @@ class MainWindow:
         actions.grid(row=4, column=0, sticky="ew", pady=(SM, 0))
         actions.columnconfigure(0, weight=1)
         actions.columnconfigure(1, weight=1)
-        self._sidebar_new = self._create_sidebar_button(actions, f"+ {self._translate('action.new')}", self._open_new_project, style="RoundedAdd.TButton", palette=ADD_BUTTON_PALETTE)
+        self._sidebar_new = self._create_sidebar_button(actions, self._translate('action.new'), self._open_new_project, style="RoundedAdd.TButton", palette=ADD_BUTTON_PALETTE, icon_name="new")
         self._sidebar_new.grid(row=0, column=0, sticky="ew", padx=(0, SM // 2))
-        self._sidebar_open = self._create_sidebar_button(actions, self._translate("action.open"), self._open_selected_project, style="RoundedEdit.TButton", palette=EDIT_BUTTON_PALETTE)
+        self._sidebar_open = self._create_sidebar_button(actions, self._translate("action.open"), self._open_selected_project, style="RoundedEdit.TButton", palette=EDIT_BUTTON_PALETTE, icon_name="open")
         self._sidebar_open.grid(row=0, column=1, sticky="ew", padx=(SM // 2, 0))
-        self._sidebar_save = self._create_sidebar_button(actions, self._translate("action.save"), self._save_project, style="RoundedAdd.TButton", palette=ADD_BUTTON_PALETTE)
+        self._sidebar_save = self._create_sidebar_button(actions, self._translate("action.save"), self._save_project, style="RoundedAdd.TButton", palette=ADD_BUTTON_PALETTE, icon_name="save")
         self._sidebar_save.grid(row=1, column=0, sticky="ew", padx=(0, SM // 2), pady=(SM // 2, 0))
-        self._sidebar_delete = self._create_sidebar_button(actions, self._translate("action.delete"), self._delete_project, style="RoundedDelete.TButton", palette=DELETE_BUTTON_PALETTE)
+        self._sidebar_delete = self._create_sidebar_button(actions, self._translate("action.delete"), self._delete_project, style="RoundedDelete.TButton", palette=DELETE_BUTTON_PALETTE, icon_name="delete")
         self._sidebar_delete.grid(row=1, column=1, sticky="ew", padx=(SM // 2, 0), pady=(SM // 2, 0))
-        self._sidebar_refresh = self._create_sidebar_button(actions, self._translate("action.refresh"), self._refresh_projects, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE)
+        self._sidebar_refresh = self._create_sidebar_button(actions, self._translate("action.refresh"), self._refresh_projects, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="refresh")
         self._sidebar_refresh.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(SM // 2, 0))
         self._project_summary = ProjectSummary(navigation, self._translate)
         self._project_summary.grid(row=5, column=0, sticky="ew", pady=(MD, 0))
-        self._sidebar_ship_image: tk.PhotoImage | None = None
-        self._sidebar_ship_label = self._add_decorative_image(
-            navigation,
-            ysh_ship_bottom_left_path(),
-            maximum_width=216,
-            maximum_height=82,
-            style="SidebarSearchLabel.TLabel",
-        )
-        if self._sidebar_ship_label is not None:
-            self._sidebar_ship_label.grid(row=6, column=0, sticky="sw", pady=(MD, 0))
-            navigation.bind("<Configure>", self._update_sidebar_artwork_visibility, add="+")
 
         self._page_host = ScrollablePageHost(content)
         self._page_host.grid(row=0, column=0, sticky="nsew")
@@ -314,33 +307,38 @@ class MainWindow:
         *,
         style: str,
         palette: RoundedButtonPalette,
+        icon_name: str,
     ) -> tk.Widget:
-        """Create a header command whose rounded corners match the navy shell."""
+        """Create one restrained command inside the unified D243 shell."""
         return create_rounded_button(
             parent,
             text,
             command,
-            style=style,
-            palette=palette,
+            style="HeaderCommand.TButton",
+            palette=HEADER_COMMAND_PALETTE,
             outside_background=colors.NAVY,
+            icon_name=icon_name,
+            icon_only=True,
+            tooltip_text=text,
+            # Keep the full composed action tile visible with a six-pixel
+            # breathing margin inside the slightly tighter header surface.
+            icon_size=72,
+            square_size=86,
         )
 
     def _add_header_logo(self, parent: ttk.Frame) -> None:
-        """Show the optional approved YSH symbol without affecting startup."""
-        logo_path = ysh_logo_path()
-        photo_image = getattr(tk, "PhotoImage", None)
-        if logo_path is None or not callable(photo_image):
+        """Show the locked D243 emblem only when the approved asset exists."""
+        logo_path = d243_main_logo_path()
+        if logo_path is None:
             return
         try:
-            image = photo_image(master=self._root, file=str(logo_path))
-            scale = max(1, math.ceil(max(image.width(), image.height()) / 32))
-            self._header_logo_image = image.subsample(scale, scale)
-            logo_plate = ttk.Frame(
-                parent,
-                style="HeaderLogoPlate.TFrame",
-                padding=(SM // 2, SM // 2),
-            )
-            logo_plate.pack(side="left", padx=(0, 6))
+            loaded = AssetImageLoader.load(self._root, logo_path, HEADER_LOGO_TARGET_SIZE)
+            if loaded is None:
+                return
+            self._header_logo_source_image = loaded.source
+            self._header_logo_image = loaded.rendered
+            logo_plate = ttk.Frame(parent, style="HeaderLogoPlate.TFrame")
+            logo_plate.pack(side="left", padx=(0, MD))
             logo = ttk.Label(
                 logo_plate,
                 image=self._header_logo_image,
@@ -349,7 +347,7 @@ class MainWindow:
             logo.pack()
         except tk.TclError:
             LOGGER.warning(
-                "Unable to load optional YSH header logo: %s",
+                "Unable to load optional D243 header logo: %s",
                 logo_path,
                 exc_info=True,
             )
@@ -362,6 +360,7 @@ class MainWindow:
         *,
         style: str,
         palette: RoundedButtonPalette,
+        icon_name: str,
     ) -> tk.Widget:
         """Create a project-sidebar action that blends into its neutral panel."""
         return create_rounded_button(
@@ -371,6 +370,12 @@ class MainWindow:
             style=style,
             palette=palette,
             outside_background=colors.SIDEBAR_SURFACE,
+            icon_name=icon_name,
+            # Sidebar labels retain their readable native text lane while
+            # giving the complete icon composition a six-pixel vertical margin.
+            icon_size=36,
+            minimum_height=48,
+            horizontal_padding=18,
         )
 
     def _add_decorative_image(
@@ -463,10 +468,10 @@ class MainWindow:
 
     def _create_ribbon_group(self, parent: tk.Misc, title_key: str) -> ttk.Frame:
         """Create one compact ribbon group using an existing command callback."""
-        group = ttk.Frame(parent, style="CommandGroup.TFrame", padding=(SM, SM // 2))
-        group.pack(side="left", padx=(0, SM), fill="y")
+        group = ttk.Frame(parent, style="CommandGroup.TFrame", padding=(0, 0))
+        group.pack(side="left", padx=(0, MD), fill="y")
         label = ttk.Label(group, text=self._translate(title_key), style="CommandGroupTitle.TLabel")
-        label.pack(anchor="w", pady=(0, SM // 2))
+        label.pack(anchor="w", pady=(0, 2))
         commands = ttk.Frame(group, style="CommandGroupCommands.TFrame")
         commands.pack(anchor="w")
         group._ribbon_title_key = title_key  # type: ignore[attr-defined]
@@ -1066,6 +1071,12 @@ class MainWindow:
                 ).casefold()
                 if not query or query in searchable:
                     self._add_project(project)
+            is_empty = not self._projects_tree.get_children()
+            tree_container = getattr(self, "_project_tree_container", None)
+            empty_state = getattr(self, "_project_empty_state", None)
+            if tree_container is not None and empty_state is not None:
+                (tree_container.grid_remove if is_empty else tree_container.grid)()
+                (empty_state.grid if is_empty else empty_state.grid_remove)()
             if (
                 selected
                 and hasattr(self._projects_tree, "exists")

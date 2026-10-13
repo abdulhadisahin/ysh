@@ -14,11 +14,12 @@ def _source(path: str) -> str:
 
 
 def test_non_pipe_primary_palettes_are_solid_module_actions() -> None:
-    """Transfer, Discharge, and Suction calculations use solid module fills."""
+    """Transfer follows D243 navy/gold while remaining modules retain their identities."""
     source = _source("ui/widgets/rounded_button.py")
 
-    for fill in ('normal=("#F47A16", "#B7520A")', 'normal=("#1265D8", "#0D55B8")', 'normal=("#2600FF", "#1E00CC")'):
+    for fill in ('normal=("#102B46", "#B58A2A")', 'normal=("#35698F", "#244B69")'):
         assert fill in source
+    assert source.count('normal=("#102B46", "#B58A2A")') >= 2
 
 
 def test_primary_buttons_use_white_live_text_and_crud_stays_restrained() -> None:

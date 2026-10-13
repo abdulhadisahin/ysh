@@ -23,6 +23,7 @@ from services.pipe_design_service import PipeDesignService
 from services.pipe_size_service import PipeSizeService
 from ui.widgets.formula_view import FormulaReferencePanel, FormulaSection
 from ui.widgets.engineering_warning_panel import EngineeringWarningPanel
+from ui.widgets.engineering_components import EmptyState
 from ui.widgets.rounded_button import RoundedButtonPalette, RoundedImageButton
 from ui.dialogs.turk_loydu_table_8_9_dialog import TurkLoyduTable89Dialog
 from ui.widgets.cards import (
@@ -43,11 +44,11 @@ _DN_WARNING_TRANSLATION_KEYS = {
 }
 
 _PIPE_BUTTON_PALETTE = RoundedButtonPalette(
-    normal=(colors.PIPE, colors.PIPE_DEEP),
-    hover=(colors.PIPE_ACTION_HOVER, colors.PIPE_DARK),
-    pressed=(colors.PIPE_ACTION_PRESSED, colors.PIPE_DEEP),
-    disabled=(colors.PIPE_DISABLED, colors.STRONG_BORDER),
-    focus_border=colors.PIPE_DEEP,
+    normal=(colors.NAVY, colors.GOLD),
+    hover=("#163957", "#D3B66A"),
+    pressed=(colors.DEEP_NAVY, colors.GOLD),
+    disabled=("#5E7181", colors.STRONG_BORDER),
+    focus_border="#F0D58D",
 )
 _PIPE_NEUTRAL_BUTTON_PALETTE = RoundedButtonPalette(
     normal=(colors.CARD_SURFACE, colors.STRONG_BORDER),
@@ -58,9 +59,9 @@ _PIPE_NEUTRAL_BUTTON_PALETTE = RoundedButtonPalette(
 )
 _PIPE_FORMULA_BUTTON_PALETTE = RoundedButtonPalette(
     normal=(colors.FORMULA_SOFT, colors.FORMULA),
-    hover=("#E8E4FF", colors.FORMULA),
-    pressed=("#DCD6FF", "#1E00CC"),
-    disabled=("#F1EFF5", "#D8D0E4"),
+    hover=(colors.PIPE_HOVER_SOFT, colors.FORMULA),
+    pressed=(colors.PIPE_PRESSED_SOFT, colors.PIPE_DEEP),
+    disabled=("#F4F0E7", "#D8CFBA"),
     focus_border=colors.FORMULA,
 )
 _PIPE_RECOMMENDED_BUTTON_PALETTE = RoundedButtonPalette(
@@ -352,6 +353,17 @@ class PipeDesignPage(ttk.Frame):
         inputs.columnconfigure(0, minsize=420, weight=6)
         inputs.columnconfigure(1, minsize=300, weight=4)
 
+        # Stable stage markers provide hierarchy without changing either
+        # calculation workflow or the persisted state behind it.
+        self._diameter_stage_label = ttk.Label(
+            inputs,
+            text=self._translate("pipe.stage.diameter"),
+            style="PipeStage.TLabel",
+        )
+        self._diameter_stage_label.grid(
+            row=0, column=0, columnspan=2, sticky="w", pady=(0, SM)
+        )
+
         self._diameter_inputs = SurfaceCard(
             inputs,
             self._translate("section.pipe_diameter_inputs"),
@@ -361,10 +373,11 @@ class PipeDesignPage(ttk.Frame):
         )
         diameter_inputs = self._diameter_inputs
         self._diameter_inputs.columnconfigure(0, weight=1)
-        diameter_inputs.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
+        diameter_inputs.grid(row=1, column=0, sticky="nsew", padx=(0, 6))
         diameter_form = diameter_inputs.content
         self._diameter_form = diameter_form
         diameter_form.columnconfigure(1, weight=1)
+        diameter_form.columnconfigure(3, weight=1)
 
         self._diameter_result_card = SurfaceCard(
             inputs,
@@ -377,7 +390,7 @@ class PipeDesignPage(ttk.Frame):
         )
         diameter_result = self._diameter_result_card
         self._diameter_result_card.columnconfigure(0, weight=1)
-        diameter_result.grid(row=0, column=1, sticky="nsew", padx=(6, 0))
+        diameter_result.grid(row=1, column=1, sticky="nsew", padx=(6, 0))
         diameter_metrics = diameter_result.content
         diameter_metrics.columnconfigure(0, weight=0)
         diameter_metrics.columnconfigure(1, weight=0)
@@ -420,7 +433,7 @@ class PipeDesignPage(ttk.Frame):
         self._diameter_dn_value = ttk.Label(
             diameter_metrics,
             textvariable=self._diameter_dn,
-            style="PipeSupportingValue.TLabel",
+            style="PipeSecondaryMetric.TLabel",
         )
         self._diameter_dn_value.grid(row=5, column=0, sticky="w")
         self._recommended_outside_label = ttk.Label(
@@ -447,6 +460,8 @@ class PipeDesignPage(ttk.Frame):
             state="disabled",
         )
         self._use_recommended_pipe_button.grid(row=8, column=0, sticky="w", pady=(SM, 0))
+        self._pipe_result_metrics=(self._diameter_metric_label,self._diameter_metric_value,self._diameter_unit_label,self._diameter_standard_label,self._diameter_standard_value,self._diameter_dn_label,self._diameter_dn_value,self._recommended_outside_label,self._recommended_outside_value,self._use_recommended_pipe_button)
+        self._pipe_result_empty_state=EmptyState(diameter_metrics,"result","Henüz sonuç üretilmedi","Girdileri tamamlayın ve Hesapla komutunu çalıştırın.",image_size=140);self._pipe_result_empty_state.grid(row=0,column=0,columnspan=2,sticky="nsew")
 
         self._wall_inputs = SurfaceCard(
             inputs,
@@ -457,7 +472,15 @@ class PipeDesignPage(ttk.Frame):
         )
         wall_inputs = self._wall_inputs
         self._wall_inputs.columnconfigure(0, weight=1)
-        wall_inputs.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(10, 0))
+        self._wall_stage_label = ttk.Label(
+            inputs,
+            text=self._translate("pipe.stage.wall"),
+            style="PipeStage.TLabel",
+        )
+        self._wall_stage_label.grid(
+            row=3, column=0, columnspan=2, sticky="w", pady=(MD, SM)
+        )
+        wall_inputs.grid(row=4, column=0, columnspan=2, sticky="ew")
         wall_form = wall_inputs.content
         self._wall_form = wall_form
         for column in range(4):
@@ -539,19 +562,19 @@ class PipeDesignPage(ttk.Frame):
         self._bend_convention_label.grid(row=5, column=0, columnspan=2, sticky="w", pady=(2, SM))
 
         self._circuit_label = ttk.Label(
-            allowance_group, text=self._translate("field.circuit"), style="PipeField.TLabel"
+            diameter_form, text=self._translate("field.circuit"), style="PipeField.TLabel"
         )
-        self._circuit_label.grid(row=1, column=0, sticky="w", pady=3)
+        self._circuit_label.grid(row=1, column=2, sticky="w", pady=3, padx=(MD, 0))
         self._circuit_box = ttk.Combobox(
-            allowance_group, textvariable=self._circuit, state="readonly", width=20
+            diameter_form, textvariable=self._circuit, state="readonly", width=20
         )
-        self._circuit_box.grid(row=1, column=1, sticky="w", padx=(SM, 0), pady=3)
+        self._circuit_box.grid(row=1, column=3, sticky="w", padx=(SM, 0), pady=3)
         self._circuit_box.bind("<<ComboboxSelected>>", self._on_circuit_selected)
         self._widgets.append(self._circuit_box)
-        self._line_role_label = ttk.Label(allowance_group, text=self._translate("field.line_role"), style="PipeField.TLabel")
-        self._line_role_label.grid(row=12, column=0, sticky="w", pady=(SM, 3))
-        self._line_role_box = ttk.Combobox(allowance_group, textvariable=self._line_role, state="readonly", width=20)
-        self._line_role_box.grid(row=12, column=1, sticky="w", padx=(SM, 0), pady=(SM, 3))
+        self._line_role_label = ttk.Label(diameter_form, text=self._translate("field.line_role"), style="PipeField.TLabel")
+        self._line_role_label.grid(row=3, column=0, sticky="w", pady=3)
+        self._line_role_box = ttk.Combobox(diameter_form, textvariable=self._line_role, state="readonly", width=20)
+        self._line_role_box.grid(row=3, column=1, sticky="w", padx=(SM, 0), pady=3)
         self._line_role_box.bind("<<ComboboxSelected>>", self._on_line_role_selected)
         self._widgets.append(self._line_role_box)
 
@@ -571,19 +594,19 @@ class PipeDesignPage(ttk.Frame):
         self._pipe_standard_box.bind("<<ComboboxSelected>>", self._on_pipe_standard_selected)
         self._widgets.append(self._pipe_standard_box)
 
-        for target_row, key, label_key, suffix in (
-            (2, "q", "field.flow_rate", " Q (m³/h)"),
-            (3, "v", "field.design_velocity", " V (m/s)"),
+        for target_row, label_column, key, label_key, suffix in (
+            (2, 0, "q", "field.flow_rate", " Q (m³/h)"),
+            (2, 2, "v", "field.design_velocity", " V (m/s)"),
         ):
             label = ttk.Label(
                 diameter_form,
                 text=f"{self._translate(label_key)}{suffix}",
                 style="PipeField.TLabel",
             )
-            label.grid(row=target_row, column=0, sticky="w", pady=3)
+            label.grid(row=target_row, column=label_column, sticky="w", pady=3, padx=((0 if label_column == 0 else MD), 0))
             self._field_labels[key] = (label, label_key, suffix)
             entry = ttk.Entry(diameter_form, textvariable=self._fields[key], width=16)
-            entry.grid(row=target_row, column=1, padx=(SM, 0), pady=3, sticky="w")
+            entry.grid(row=target_row, column=label_column + 1, padx=(SM, 0), pady=3, sticky="w")
             self._widgets.append(entry)
 
         self._source_label = ttk.Label(
@@ -636,9 +659,11 @@ class PipeDesignPage(ttk.Frame):
             radius=7,
             horizontal_padding=16,
             vertical_padding=7,
+            icon_name="calculate",
+            icon_size=36,
         )
         diameter_button = self._diameter_button
-        diameter_button.grid(row=4, column=0, columnspan=2, sticky="w", pady=(MD, 0))
+        diameter_button.grid(row=4, column=0, columnspan=4, sticky="w", pady=(MD, 0))
         self._widgets.append(diameter_button)
 
         action_row = ttk.Frame(wall_form, style="PipeInputCardContent.TFrame")
@@ -653,6 +678,8 @@ class PipeDesignPage(ttk.Frame):
             radius=7,
             horizontal_padding=16,
             vertical_padding=7,
+            icon_name="calculate",
+            icon_size=33,
         )
         wall_button = self._wall_button
         wall_button.pack(side="left")
@@ -666,6 +693,8 @@ class PipeDesignPage(ttk.Frame):
             radius=7,
             horizontal_padding=15,
             vertical_padding=7,
+            icon_name="clear",
+            icon_size=28,
         )
         clear_button = self._clear_button
         clear_button.pack(side="left", padx=(SM, 0))
@@ -706,18 +735,20 @@ class PipeDesignPage(ttk.Frame):
         message_label.grid(row=2, column=0, sticky="w", pady=(8, 0))
         self._widgets.append(message_label)
         self._warning_panel = EngineeringWarningPanel(inputs, self._translate)
-        self._warning_panel.grid(row=1, column=1, sticky="ew", padx=(SM // 2, 0), pady=(SM, 0))
+        self._warning_panel.grid(row=2, column=1, sticky="ew", padx=(SM // 2, 0), pady=(SM, 0))
         self._warning_panel.set_findings(())
         self._formula_panel = FormulaReferencePanel(
             self,
             self._formula_sections,
             self._translate,
             self._create_formula_toggle,
+            lambda: bool(self._diameter_result or self._wall_result),
         )
         self._formula_panel.grid(row=3, column=0, sticky="ew", pady=(10, 0))
         self._responsive_layout_mode = ""
         self._layout_container.bind("<Configure>", self._on_layout_configure, add="+")
         self.after_idle(self._reflow_layout)
+        self._sync_pipe_result_empty_state()
 
     @staticmethod
     def _create_formula_toggle(
@@ -735,6 +766,8 @@ class PipeDesignPage(ttk.Frame):
             radius=7,
             horizontal_padding=15,
             vertical_padding=7,
+            icon_name="formula",
+            icon_size=36,
         )
 
     def _open_table_8_9(self) -> None:
@@ -769,30 +802,32 @@ class PipeDesignPage(ttk.Frame):
             self._layout_container.columnconfigure(0, minsize=0, weight=1)
             self._layout_container.columnconfigure(1, minsize=0, weight=0)
             self._diameter_inputs.grid_configure(
-                row=0, column=0, columnspan=2, sticky="ew", padx=(0, 0)
+                row=1, column=0, columnspan=2, sticky="ew", padx=(0, 0)
             )
             self._diameter_result_card.grid_configure(
-                row=1,
+                row=2,
                 column=0,
                 columnspan=2,
                 sticky="ew",
                 padx=(0, 0),
                 pady=(SM, 0),
             )
-            self._warning_panel.grid_configure(row=2, column=0, columnspan=2, sticky="ew", padx=0, pady=(SM, 0))
-            self._wall_inputs.grid_configure(row=3, column=0, columnspan=2, sticky="ew", pady=(SM, 0))
+            self._warning_panel.grid_configure(row=3, column=0, columnspan=2, sticky="ew", padx=0, pady=(SM, 0))
+            self._wall_stage_label.grid_configure(row=4, column=0, columnspan=2, sticky="w", pady=(MD, SM))
+            self._wall_inputs.grid_configure(row=5, column=0, columnspan=2, sticky="ew", pady=0)
             return
         self._layout_container.columnconfigure(0, minsize=420, weight=6)
         self._layout_container.columnconfigure(1, minsize=300, weight=4)
         self._diameter_inputs.grid_configure(
-            row=0, column=0, columnspan=1, sticky="nsew", padx=(0, SM // 2)
+            row=1, column=0, columnspan=1, sticky="nsew", padx=(0, SM // 2)
         )
         self._diameter_result_card.grid_configure(
-            row=0, column=1, columnspan=1, sticky="nsew", padx=(SM // 2, 0), pady=0
+            row=1, column=1, columnspan=1, sticky="nsew", padx=(SM // 2, 0), pady=0
         )
-        self._warning_panel.grid_configure(row=1, column=1, columnspan=1, sticky="ew", padx=(SM // 2, 0), pady=(SM, 0))
+        self._warning_panel.grid_configure(row=2, column=1, columnspan=1, sticky="ew", padx=(SM // 2, 0), pady=(SM, 0))
+        self._wall_stage_label.grid_configure(row=3, column=0, columnspan=2, sticky="w", pady=(MD, SM))
         self._wall_inputs.grid_configure(
-            row=2, column=0, columnspan=2, sticky="ew", pady=(MD, 0)
+            row=4, column=0, columnspan=2, sticky="ew", pady=0
         )
 
     def _reflow_wall_workspace(self, available_width: int) -> None:
@@ -847,6 +882,8 @@ class PipeDesignPage(ttk.Frame):
     def refresh_texts(self) -> None:
         """Refresh Pipe Design labels without recreating inputs or result state."""
         self._header.set_content(self._translate("page.pipe.title"), self._translate("page.pipe.description"))
+        self._diameter_stage_label.configure(text=self._translate("pipe.stage.diameter"))
+        self._wall_stage_label.configure(text=self._translate("pipe.stage.wall"))
         self._diameter_inputs.set_title(self._translate("section.pipe_diameter_inputs"))
         self._wall_inputs.set_title(self._translate("section.wall_thickness_inputs"))
         for label, key in zip(self._wall_group_labels, ("pipe.group.material_pipe", "pipe.group.design_conditions", "pipe.group.allowances_bend")): label.configure(text=self._translate(key))
@@ -1197,6 +1234,15 @@ class PipeDesignPage(ttk.Frame):
                 self._warning_panel.set_findings(())
             self._update_diameter_summary()
             self._message.set(self._t("validation.unexpected_error"))
+        finally:self._sync_pipe_result_empty_state()
+
+    def _sync_pipe_result_empty_state(self)->None:
+        """Keep a clean Pipe result card informative without masking validation."""
+        if not hasattr(self,"_pipe_result_metrics") or not hasattr(self,"_pipe_result_empty_state"):return
+        has_result=bool(self._diameter_result)
+        has_error=hasattr(self,"_message") and self._message.get()!=self._t("message.ready")
+        for widget in self._pipe_result_metrics:(widget.grid if has_result or has_error else widget.grid_remove)()
+        (self._pipe_result_empty_state.grid_remove if has_result or has_error else self._pipe_result_empty_state.grid)()
 
     def _calculate_wall(self)->None:
         """Calculate operation 2 without requiring operation 1 inputs."""
@@ -1245,23 +1291,23 @@ class PipeDesignPage(ttk.Frame):
         bend_stage = self._translate("formula.stage.bend_allowance")
         required_stage = self._translate("formula.stage.required_wall_thickness")
         sections: list[FormulaSection] = [
-            FormulaSection("FORMULA", "Qm³/s = Qm³/h / 3600\nD = √((4 × Qm³/s) / (π × V))", diameter_stage, "formula"),
+            FormulaSection("FORMULA", "Qm³/s = Qm³/h / 3600\nD = √((4 × Qm³/s) / (π × V))", diameter_stage, "formula", ("pipe_diameter",)),
             FormulaSection("VARIABLES", f"D | {self._translate('result.calculated_diameter')} | mm\nQ | {self._translate('field.flow_rate')} | m³/h\nV | {self._translate('field.design_velocity')} | m/s\nπ | {self._translate('formula.mathematical_constant')} | −", diameter_stage, "variables"),
             FormulaSection("CURRENT SUBSTITUTION", self._translate("message.available_after_calculation"), diameter_stage, "substitution"),
             FormulaSection("RESULT", self._translate("message.available_after_calculation"), diameter_stage, "result"),
-            FormulaSection("FORMULA", "σallow = Rp0.2 / B", stress_stage, "formula"),
+            FormulaSection("FORMULA", "σallow = Rp0.2 / B", stress_stage, "formula", ("allowable_stress",)),
             FormulaSection("VARIABLES", f"σallow | {self._translate('result.allowable_stress')} | MPa\nRp0.2 | {self._translate('field.yield_strength')} | MPa\nB | {self._translate('field.safety_factor')} | −", "2. ALLOWABLE STRESS", "variables"),
             FormulaSection("CURRENT SUBSTITUTION", self._translate("message.available_after_wall_thickness_calculation"), stress_stage, "substitution"),
             FormulaSection("RESULT", self._translate("message.available_after_wall_thickness_calculation"), stress_stage, "result"),
-            FormulaSection("FORMULA", "s0 = (da × pc) / ((20 × σallow × w) + pc)", base_stage, "formula"),
+            FormulaSection("FORMULA", "s0 = (da × pc) / ((20 × σallow × w) + pc)", base_stage, "formula", ("base_wall_thickness",)),
             FormulaSection("VARIABLES", f"s0 | {self._translate('result.base_wall_thickness')} | mm\nda | {self._translate('field.pipe_outside_diameter')} | mm\npc | {self._translate('field.design_pressure')} | bar\nw | {self._translate('field.weld_factor')} | −", "3. BASE WALL THICKNESS", "variables"),
             FormulaSection("CURRENT SUBSTITUTION", self._translate("message.available_after_wall_thickness_calculation"), "3. BASE WALL THICKNESS", "substitution"),
             FormulaSection("RESULT", self._translate("message.available_after_wall_thickness_calculation"), "3. BASE WALL THICKNESS", "result"),
-            FormulaSection("FORMULA", "b = 0.4 × (da / R) × s0", bend_stage, "formula"),
+            FormulaSection("FORMULA", "b = 0.4 × (da / R) × s0", bend_stage, "formula", ("bend_allowance",)),
             FormulaSection("VARIABLES", f"b | {self._translate('result.bend_allowance')} | mm\nR | {self._translate('field.bend_radius')} | mm\ns0 | {self._translate('result.base_wall_thickness')} | mm", "4. BEND ALLOWANCE", "variables"),
             FormulaSection("CURRENT SUBSTITUTION", self._translate("message.available_after_wall_thickness_calculation"), "4. BEND ALLOWANCE", "substitution"),
             FormulaSection("RESULT", self._translate("message.available_after_wall_thickness_calculation"), "4. BEND ALLOWANCE", "result"),
-            FormulaSection("FORMULA", "s = s0 + c + b", required_stage, "formula"),
+            FormulaSection("FORMULA", "s = s0 + c + b", required_stage, "formula", ("required_wall_thickness",)),
             FormulaSection("VARIABLES", f"s | {self._translate('result.required_wall_thickness')} | mm\nc | {self._translate('field.corrosion_allowance')} | mm\nb | {self._translate('result.bend_allowance')} | mm", "5. REQUIRED WALL THICKNESS", "variables"),
             FormulaSection("CURRENT SUBSTITUTION", self._translate("message.available_after_wall_thickness_calculation"), "5. REQUIRED WALL THICKNESS", "substitution"),
             FormulaSection("RESULT", self._translate("message.available_after_wall_thickness_calculation"), "5. REQUIRED WALL THICKNESS", "result"),

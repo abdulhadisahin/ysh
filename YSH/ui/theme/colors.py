@@ -1,42 +1,59 @@
-"""Central semantic color tokens for the final YSH engineering interface."""
+"""Central semantic tokens for the D243 naval engineering interface.
 
-NAVY = "#0B2F5B"
-DEEP_NAVY = "#062449"
-NAVY_TEXT = "#102A43"
+The values here deliberately describe roles rather than pages.  Calculation
+screens can retain a small module accent, while the shell, typography and
+primary actions all speak the same restrained navy / white / gold language.
+"""
+
+NAVY = "#102B46"
+DEEP_NAVY = "#091B2D"
+NAVY_TEXT = "#152B3F"
 WHITE = "#FFFFFF"
-PIPE = "#00FFFF"
-PIPE_DARK = "#006B6B"
-PIPE_DEEP = "#005555"
-PIPE_SOFT = "#F1FFFF"
-PIPE_HOVER_SOFT = "#DDFFFF"
-PIPE_PRESSED_SOFT = "#CCFFFF"
-PIPE_BORDER = "#A8EEEE"
-PIPE_DISABLED = "#B7D9D9"
-PIPE_ACTION_HOVER = "#00E6E6"
-PIPE_ACTION_PRESSED = "#00BFC4"
-TRANSFER = "#F47A16"
-TRANSFER_SOFT = "#FFF0E4"
-DISCHARGE = "#1265D8"
-DISCHARGE_SOFT = "#E9F2FF"
-SUCTION = "#2600FF"
-SUCTION_SOFT = "#F0EEFF"
+# Gold is an accent and action cue, never a severity signal.
+GOLD = "#B58A2A"
+GOLD_DARK = "#7B5A17"
+GOLD_SOFT = "#FBF6E9"
+GOLD_BORDER = "#D8C18D"
 
-APP_BACKGROUND = "#F5F8FC"
-HEADER_SURFACE = WHITE
-RIBBON_SURFACE = "#F1F5F9"
-SECONDARY_SURFACE = "#F1F5F9"
+# Pipe is the first D243 master screen, so its visual accent intentionally
+# aligns to the product accent rather than creating a competing neon identity.
+PIPE = GOLD
+PIPE_DARK = GOLD_DARK
+PIPE_DEEP = "#5D4311"
+PIPE_SOFT = GOLD_SOFT
+PIPE_HOVER_SOFT = "#F5EBCF"
+PIPE_PRESSED_SOFT = "#E9D9AD"
+PIPE_BORDER = GOLD_BORDER
+PIPE_DISABLED = "#E2D7BB"
+PIPE_ACTION_HOVER = "#C79D3B"
+PIPE_ACTION_PRESSED = "#96701F"
+# Transfer now follows the shared D243 product accent rather than retaining a
+# competing module-orange visual system.
+TRANSFER = GOLD
+TRANSFER_SOFT = GOLD_SOFT
+# Discharge adopts the shared D243 navy-led presentation; gold remains the
+# restrained engineering-result accent rather than a competing bright blue.
+DISCHARGE = NAVY
+DISCHARGE_SOFT = GOLD_SOFT
+SUCTION = "#35698F"
+SUCTION_SOFT = "#EEF4F8"
+
+APP_BACKGROUND = "#EEF2F5"
+HEADER_SURFACE = NAVY
+RIBBON_SURFACE = NAVY
+SECONDARY_SURFACE = "#F4F6F8"
 SIDEBAR_SURFACE = SECONDARY_SURFACE
 WORKSPACE_SURFACE = APP_BACKGROUND
 CARD_SURFACE = WHITE
-RESULT_SURFACE = "#FBFDFE"
-FORMULA_SURFACE = "#FAF8FD"
+RESULT_SURFACE = "#F9FBFC"
+FORMULA_SURFACE = "#F8F7F3"
 INFO_SURFACE = "#EDF5FF"
 TEXT_PRIMARY = NAVY_TEXT
 TEXT_SECONDARY = "#5B6B82"
 TEXT_MUTED = "#7C8BA1"
-BORDER = "#D5DEE9"
-STRONG_BORDER = "#B8C6D8"
-DIVIDER = "#E4EAF2"
+BORDER = "#D3DAE1"
+STRONG_BORDER = "#A9B7C4"
+DIVIDER = "#E3E8EC"
 ON_ACCENT = WHITE
 
 # The shell uses a restrained tonal step inside the fixed two-row navy header.
@@ -59,15 +76,15 @@ CRITICAL_ENGINEERING_SURFACE = "#FCECEF"
 BACKGROUND = APP_BACKGROUND
 SURFACE = CARD_SURFACE
 SURFACE_ALT = WORKSPACE_SURFACE
-# Generic application-primary compatibility values are intentionally separate
-# from the Pipe module's vivid cyan identity.
-PRIMARY = "#08A9A5"
-PRIMARY_HOVER = "#078B88"
-PRIMARY_SOFT = "#E8FAF9"
-SECONDARY = DISCHARGE
+# Generic application-primary compatibility values remain aligned with the
+# navy-led D243 product identity rather than a module-specific accent.
+PRIMARY = NAVY
+PRIMARY_HOVER = DEEP_NAVY
+PRIMARY_SOFT = "#E9EFF4"
+SECONDARY = NAVY
 SECONDARY_SOFT = INFO_SURFACE
-FORMULA = "#2600FF"
-FORMULA_SOFT = "#F4F2FF"
+FORMULA = GOLD_DARK
+FORMULA_SOFT = GOLD_SOFT
 SUCCESS_SOFT = SUCCESS_SURFACE
 WARNING_SOFT = WARNING_SURFACE
 DANGER = ERROR

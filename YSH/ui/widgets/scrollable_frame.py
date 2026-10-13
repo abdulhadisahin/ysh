@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import tkinter as tk
+from pathlib import Path
 from tkinter import ttk
 
+from ui.widgets.workspace_watermark import CanvasBackgroundWatermark
 
 class ScrollableFrame(ttk.Frame):
     """Canvas-backed page viewport with active-tab-aware wheel routing."""
@@ -22,6 +24,7 @@ class ScrollableFrame(ttk.Frame):
         self.scrollbar.grid(row=0, column=1, sticky="ns")
         self.content = ttk.Frame(self.canvas)
         self._window = self.canvas.create_window((0, 0), window=self.content, anchor="nw")
+        self._background_watermark: CanvasBackgroundWatermark | None = None
         self.content.bind("<Configure>", self._update_scrollregion)
         self.canvas.bind("<Configure>", self._sync_width)
         self.canvas.bind("<MouseWheel>", self.scroll_mousewheel)
@@ -29,6 +32,10 @@ class ScrollableFrame(ttk.Frame):
         self.canvas.bind("<Next>", lambda _event: self._scroll_pages(1))
         self.canvas.bind("<Home>", lambda _event: self._move_to(0.0))
         self.canvas.bind("<End>", lambda _event: self._move_to(1.0))
+
+    def set_background_watermark(self, source_path: Path | None) -> None:
+        """Attach an optional Canvas-only decoration below the content window."""
+        self._background_watermark = CanvasBackgroundWatermark(self.canvas, source_path)
 
     def set_wheel_active(self, active: bool) -> None:
         """Enable wheel routing only while this page is the selected tab."""

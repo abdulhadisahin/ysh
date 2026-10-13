@@ -14,9 +14,9 @@ from i18n.translator import Translator
 from i18n.validation import render_validation_issue
 from ui.formatting import format_user_number
 from ui.dialogs.local_loss_item_dialog import LocalLossItemDialog
-from ui.widgets.scrollable_treeview import ScrollableTreeview
 from ui.widgets.formula_view import FormulaReferencePanel, FormulaSection
 from ui.widgets.engineering_warning_panel import EngineeringWarningPanel
+from ui.widgets.engineering_components import EmptyState, TechnicalTable
 from ui.widgets.rounded_button import ADD_BUTTON_PALETTE, CLEAR_ALL_BUTTON_PALETTE, DELETE_BUTTON_PALETTE, DISCHARGE_PRIMARY_PALETTE, EDIT_BUTTON_PALETTE, FORMULA_BUTTON_PALETTE, NEUTRAL_BUTTON_PALETTE, create_rounded_button
 from ui.widgets.cards import CalculationCard, InputCard, ResultCard, ResultMetric, SectionHeader
 class DischargeHeadLossPage(ttk.LabelFrame):
@@ -34,7 +34,7 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         workspace.columnconfigure(0,weight=3)
         workspace.columnconfigure(1,weight=3)
         workspace.columnconfigure(2,weight=3)
-        self._pipe_card=InputCard(workspace,self._translate("section.hydraulic_inputs"));pipe=self._pipe_card;pipe.grid(row=0,column=0,sticky="nsew",padx=(0,6))
+        self._pipe_card=InputCard(workspace,self._translate("section.hydraulic_inputs"));pipe=self._pipe_card;pipe.grid(row=0,column=0,sticky="new",padx=(0,6))
         for row,(key,unit) in enumerate((("d","mm"),("q","m³/h"),("nu",""),("l","m"),("h","m"))):
             localized={"d":"field.pipe_inside_diameter","q":"field.flow_rate","nu":"field.kinematic_viscosity","l":"field.pipe_length","h":"field.geodetic_head"}[key];widget=ttk.Label(pipe,text=f"{self._translate(localized)}"+(f" ({unit})" if unit else ""));widget.grid(row=row,column=0,sticky="w",pady=3);setattr(self,f"_field_label_{key}",widget);ttk.Entry(pipe,textvariable=self._fields[key],width=16).grid(row=row,column=1,sticky="w",padx=(8,0),pady=3)
         ttk.Combobox(pipe,textvariable=self._viscosity_unit,values=("cSt","m²/s"),state="readonly",width=7).grid(row=2,column=2,sticky="w",padx=(8,0))
@@ -43,29 +43,36 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         self._active_roughness_label=ttk.Label(pipe,text=f"{self._translate('field.active_roughness')} (mm)");self._active_roughness_label.grid(row=7,column=0,sticky="w",pady=3);self._roughness_entry=ttk.Entry(pipe,textvariable=self._fields["k"],width=16);self._roughness_entry.grid(row=7,column=1,sticky="w",padx=(8,0),pady=3)
         self._warning_fluid_label=ttk.Label(pipe,text=self._translate("field.system_fluid"));self._warning_fluid_label.grid(row=8,column=0,sticky="w",pady=3);self._warning_fluid_box=ttk.Combobox(pipe,textvariable=self._warning_fluid,state="readonly",width=22);self._warning_fluid_box.grid(row=8,column=1,columnspan=2,sticky="w",padx=(8,0),pady=3)
         self._losses_card=InputCard(workspace,self._translate("section.local_losses"));losses=self._losses_card;losses.grid(row=0,column=1,sticky="nsew",padx=6);losses.columnconfigure(0,weight=1)
-        self._tree_container=ScrollableTreeview(losses,columns=("name","quantity","k","total"),show="headings",height=8);self._tree=self._tree_container.tree;self._tree.configure(style="Discharge.Treeview")
+        self._tree_container=TechnicalTable(losses,columns=("name","quantity","k","total"),show="headings",height=8);self._tree=self._tree_container.tree;self._tree.configure(style="Discharge.Treeview")
         for key,label in (("name",self._translate("table.component")),("quantity",self._translate("table.quantity")),("k","K"),("total",self._translate("table.quantity_times_k"))):self._tree.heading(key,text=label)
         self._tree.column("name",width=150,anchor="w");self._tree.column("quantity",width=72,anchor="e");self._tree.column("k",width=72,anchor="e");self._tree.column("total",width=82,anchor="e")
         self._tree_container.grid(row=0,column=0,sticky="nsew");self._tree.bind("<Double-1>",self._edit);self._tree.bind("<Return>",self._edit);self._tree.bind("<Delete>",self._delete)
+        self._local_loss_empty_state=EmptyState(losses,"local_loss","Lokal kayıp elemanı eklenmedi","Dirsek, vana, süzgeç veya diğer elemanları ekleyerek lokal kayıp hesabını oluşturabilirsiniz.","Ekle komutunu kullanın.",image_size=150);self._local_loss_empty_state.grid(row=0,column=0,sticky="nsew");self._local_loss_empty_state.grid_remove()
         self._loss_actions=ttk.Frame(losses);self._loss_actions.grid(row=1,column=0,sticky="w",pady=(8,0))
-        self._add_button=create_rounded_button(self._loss_actions,self._translate("common.add"),self._add,style="RoundedAdd.TButton",palette=ADD_BUTTON_PALETTE)
-        self._edit_button=create_rounded_button(self._loss_actions,self._translate("common.edit"),self._edit,style="RoundedEdit.TButton",palette=EDIT_BUTTON_PALETTE)
-        self._delete_button=create_rounded_button(self._loss_actions,self._translate("common.delete"),self._delete,style="RoundedDelete.TButton",palette=DELETE_BUTTON_PALETTE)
-        self._clear_all_button=create_rounded_button(self._loss_actions,self._translate("action.clear_all"),self._clear_all,style="RoundedClearAll.TButton",palette=CLEAR_ALL_BUTTON_PALETTE)
+        self._add_button=create_rounded_button(self._loss_actions,self._translate("common.add"),self._add,style="RoundedAdd.TButton",palette=ADD_BUTTON_PALETTE,icon_name="add",icon_only=True,tooltip_text=self._translate("common.add"),icon_size=30,square_size=38)
+        self._edit_button=create_rounded_button(self._loss_actions,self._translate("common.edit"),self._edit,style="RoundedEdit.TButton",palette=EDIT_BUTTON_PALETTE,icon_name="edit",icon_only=True,tooltip_text=self._translate("common.edit"),icon_size=30,square_size=38)
+        self._delete_button=create_rounded_button(self._loss_actions,self._translate("common.delete"),self._delete,style="RoundedDelete.TButton",palette=DELETE_BUTTON_PALETTE,icon_name="delete",icon_only=True,tooltip_text=self._translate("common.delete"),icon_size=30,square_size=38)
+        self._clear_all_button=create_rounded_button(self._loss_actions,self._translate("action.clear_all"),self._clear_all,style="RoundedClearAll.TButton",palette=CLEAR_ALL_BUTTON_PALETTE,icon_name="clear",icon_size=28)
         self._loss_action_buttons=(self._add_button,self._edit_button,self._delete_button,self._clear_all_button)
         for column,button in enumerate(self._loss_action_buttons):button.grid(row=0,column=column,sticky="w",padx=(0 if column==0 else 8,0))
-        self._results_card=ResultCard(workspace,self._translate("section.calculation_results"));results=self._results_card;results.grid(row=0,column=2,sticky="nsew",padx=(6,0));results.columnconfigure(0,weight=1)
+        self._k_total_context=ttk.Frame(losses);self._k_total_context.grid(row=2,column=0,sticky="w",pady=(6,0))
+        self._k_total_context_label=ttk.Label(self._k_total_context,text="ΣK",style="TechnicalReference.TLabel");self._k_total_context_label.grid(row=0,column=0,sticky="w")
+        self._k_total_context_value=ttk.Label(self._k_total_context,textvariable=self._k_total_summary,style="TechnicalReferenceValue.TLabel");self._k_total_context_value.grid(row=0,column=1,sticky="w",padx=(8,0))
+        self._results_card=ResultCard(workspace,self._translate("section.calculation_results"));results=self._results_card;results.grid(row=0,column=2,sticky="new",padx=(6,0));results.columnconfigure(0,weight=1)
         self._result_actions=ttk.Frame(results);self._result_actions.grid(row=0,column=0,columnspan=2,sticky="w")
-        self._calculate_button=create_rounded_button(self._result_actions,self._translate("calculation.calculate"),self._calculate,style="DischargeRoundedPrimary.TButton",palette=DISCHARGE_PRIMARY_PALETTE,primary=True)
-        self._clear_button=create_rounded_button(self._result_actions,self._translate("common.clear"),self._clear,style="RoundedNeutral.TButton",palette=NEUTRAL_BUTTON_PALETTE)
+        self._calculate_button=create_rounded_button(self._result_actions,self._translate("calculation.calculate"),self._calculate,style="DischargeRoundedPrimary.TButton",palette=DISCHARGE_PRIMARY_PALETTE,primary=True,icon_name="calculate",icon_size=36)
+        self._clear_button=create_rounded_button(self._result_actions,self._translate("common.clear"),self._clear,style="RoundedNeutral.TButton",palette=NEUTRAL_BUTTON_PALETTE,icon_name="clear",icon_size=28)
         self._result_action_buttons=(self._calculate_button,self._clear_button)
         for column,button in enumerate(self._result_action_buttons):button.grid(row=0,column=column,sticky="w",padx=(0 if column==0 else 8,0))
-        self._system_metric=ResultMetric(results,self._translate("result.pump_discharge_head"),self._system_head_summary,"m",normal_style_prefix="DischargeResultMetric");self._system_metric.grid(row=1,column=0,columnspan=2,sticky="ew",pady=(12,0))
-        losses_metrics=ttk.Frame(results);losses_metrics.grid(row=2,column=0,columnspan=2,sticky="ew",pady=(8,0));losses_metrics.columnconfigure(0,weight=1);losses_metrics.columnconfigure(1,weight=1)
-        self._total_loss_metric=ResultMetric(losses_metrics,self._translate("result.total_hydraulic_loss"),self._total_loss_summary,"m",normal_style_prefix="DischargeLossMetric");self._total_loss_metric.grid(row=0,column=0,columnspan=2,sticky="ew")
-        self._local_loss_metric=ResultMetric(losses_metrics,self._translate("result.local_loss"),self._local_loss_summary,"m",normal_style_prefix="DischargeLossMetric");self._local_loss_metric.grid(row=1,column=0,sticky="ew",pady=(8,0),padx=(0,4))
-        self._pipe_loss_metric=ResultMetric(losses_metrics,self._translate("result.pipe_friction_loss"),self._pipe_loss_summary,"m",normal_style_prefix="DischargeLossMetric");self._pipe_loss_metric.grid(row=1,column=1,sticky="ew",pady=(8,0),padx=(4,0))
-        self._supporting_metrics=ttk.Frame(results);self._supporting_metrics.grid(row=3,column=0,columnspan=2,sticky="ew",pady=(10,0))
+        self._system_metric=ResultMetric(results,self._translate("result.pump_discharge_head"),self._system_head_summary,"m",normal_style_prefix="DischargeResultMetric");self._system_metric.grid(row=1,column=0,columnspan=2,sticky="ew",pady=(10,0))
+        self._total_loss_metric=ResultMetric(results,self._translate("result.total_hydraulic_loss"),self._total_loss_summary,"m",normal_style_prefix="DischargeLossMetric");self._total_loss_metric.grid(row=2,column=0,columnspan=2,sticky="ew",pady=(6,0))
+        self._system_relation_summary=tk.StringVar(value="—")
+        self._system_relation=ttk.Label(results,textvariable=self._system_relation_summary,style="TechnicalReference.TLabel")
+        self._system_relation.grid(row=3,column=0,columnspan=2,sticky="w",pady=(6,0))
+        losses_metrics=ttk.Frame(results);losses_metrics.grid(row=4,column=0,columnspan=2,sticky="ew",pady=(8,0));losses_metrics.columnconfigure(0,weight=1);losses_metrics.columnconfigure(1,weight=1)
+        self._local_loss_metric=ResultMetric(losses_metrics,self._translate("result.local_loss"),self._local_loss_summary,"m",normal_style_prefix="DischargeLossMetric");self._local_loss_metric.grid(row=0,column=0,sticky="ew",padx=(0,4))
+        self._pipe_loss_metric=ResultMetric(losses_metrics,self._translate("result.pipe_friction_loss"),self._pipe_loss_summary,"m",normal_style_prefix="DischargeLossMetric");self._pipe_loss_metric.grid(row=0,column=1,sticky="ew",padx=(4,0))
+        self._supporting_metrics=ttk.Frame(results);self._supporting_metrics.grid(row=5,column=0,columnspan=2,sticky="ew",pady=(8,0))
         self._supporting_metric_widgets=[]
         for label,value in (("result.reynolds_number",self._reynolds_summary),("result.relative_roughness",self._relative_roughness_summary),("result.friction_factor",self._friction_factor_summary),("result.local_loss_coefficient",self._k_total_summary)):
             metric=ttk.Frame(self._supporting_metrics)
@@ -76,19 +83,21 @@ class DischargeHeadLossPage(ttk.LabelFrame):
             metric.columnconfigure(1,weight=1)
             self._supporting_metric_widgets.append((metric,label_widget,label))
         self._reflow_supporting_metrics()
-        self._warning_panel=EngineeringWarningPanel(results,self._translate);self._warning_panel.grid(row=4,column=0,columnspan=2,sticky="ew",pady=(10,0));self._warning_panel.set_findings(())
+        self._result_empty_state=EmptyState(results,"result","Henüz sonuç üretilmedi","Girdileri tamamlayın ve Hesapla komutunu çalıştırın.",image_size=145);self._result_empty_state.grid(row=1,column=0,columnspan=2,sticky="nsew");self._result_metrics=(self._total_loss_metric,self._system_metric,self._system_relation,losses_metrics,self._supporting_metrics)
+        self._warning_panel=EngineeringWarningPanel(results,self._translate);self._warning_panel.grid(row=6,column=0,columnspan=2,sticky="ew",pady=(8,0));self._warning_panel.set_findings(())
         ttk.Label(self,textvariable=self._message,wraplength=1000).grid(row=2,column=0,sticky="w",pady=(8,0))
-        self._formula_panel=FormulaReferencePanel(self,self._formula_sections,self._translate,self._create_formula_toggle);self._formula_panel.grid(row=3,column=0,sticky="ew",pady=(10,0))
+        self._formula_panel=FormulaReferencePanel(self,self._formula_sections,self._translate,self._create_formula_toggle,lambda:hasattr(self,"_last_result"));self._formula_panel.grid(row=3,column=0,sticky="ew",pady=(10,0))
         self._responsive_layout_mode=""
         self._workspace.bind("<Configure>",self._on_workspace_configure,add="+")
         self._loss_actions.bind("<Configure>",self._on_action_configure,add="+")
         self._result_actions.bind("<Configure>",self._on_action_configure,add="+")
         self._results_card.bind("<Configure>",self._on_results_configure,add="+")
         self.after_idle(self._reflow_layout)
+        self._sync_result_empty_state()
     @staticmethod
     def _create_formula_toggle(parent:tk.Misc,text:str,command:Callable[[],None])->ttk.Button:
         """Create the Discharge-only rounded tertiary Formula toggle."""
-        return create_rounded_button(parent,text,command,style="RoundedFormula.TButton",palette=FORMULA_BUTTON_PALETTE)
+        return create_rounded_button(parent,text,command,style="RoundedFormula.TButton",palette=FORMULA_BUTTON_PALETTE,icon_name="formula",icon_size=36)
     def refresh_texts(self)->None:
         """Refresh discharge labels without changing hydraulic inputs or results."""
         manual=self._source_mode=="manual";self._suppress_dirty=True;self._source.set(self._translate("message.manual_source") if manual else self._translate("message.material_source"));self._suppress_dirty=False;self.configure(text=self._translate("page.discharge.tab"));self._header.set_content(self._translate("page.discharge.title"),self._translate("page.discharge.description"));self._pipe_card.configure(text=self._translate("section.hydraulic_inputs"));self._losses_card.configure(text=self._translate("section.local_losses"));self._results_card.configure(text=self._translate("section.calculation_results"));self._calculate_button.configure(text=self._translate("calculation.calculate"));self._clear_button.configure(text=self._translate("common.clear"));self._system_metric.set_label(self._translate("result.pump_discharge_head"));self._total_loss_metric.set_label(self._translate("result.total_hydraulic_loss"));self._local_loss_metric.set_label(self._translate("result.local_loss"));self._pipe_loss_metric.set_label(self._translate("result.pipe_friction_loss"));self._field_label_d.configure(text=f"{self._translate('field.pipe_inside_diameter')} (mm)");self._field_label_q.configure(text=f"{self._translate('field.flow_rate')} (m³/h)");self._field_label_nu.configure(text=self._translate("field.kinematic_viscosity"));self._field_label_l.configure(text=f"{self._translate('field.pipe_length')} (m)");self._field_label_h.configure(text=f"{self._translate('field.geodetic_head')} (m)");self._source_label.configure(text=self._translate("field.roughness_source"));self._material_label.configure(text=self._translate("field.material"));self._active_roughness_label.configure(text=f"{self._translate('field.active_roughness')} (mm)");self._source_box.configure(values=(self._translate("message.material_source"),self._translate("message.manual_source")));self._tree.heading("name",text=self._translate("table.component"));self._tree.heading("quantity",text=self._translate("table.quantity"));self._tree.heading("total",text=self._translate("table.quantity_times_k"));self._add_button.configure(text=self._translate("common.add"));self._edit_button.configure(text=self._translate("common.edit"));self._delete_button.configure(text=self._translate("common.delete"));self._clear_all_button.configure(text=self._translate("action.clear_all"));
@@ -196,6 +205,7 @@ class DischargeHeadLossPage(ttk.LabelFrame):
             self._result_summary.set(self._translate("message.no_current_calculation"))
             self._clear_result_metrics()
             self._set_semantic_messages([])
+            self._sync_result_empty_state()
             if hasattr(self,"_warning_panel"):self._warning_panel.set_findings(())
             self._refresh_formula_panel()
 
@@ -211,6 +221,14 @@ class DischargeHeadLossPage(ttk.LabelFrame):
             self._friction_factor_summary,
             self._k_total_summary,
         ):value.set("—")
+        if hasattr(self,"_system_relation_summary"):self._system_relation_summary.set("—")
+    def _sync_result_empty_state(self)->None:
+        """Show guidance only for a clean, uncalculated result card."""
+        if not hasattr(self,"_result_metrics") or not hasattr(self,"_result_empty_state"):return
+        has_result=hasattr(self,"_last_result")
+        has_message=bool(getattr(self,"_status_messages",()))
+        for metric in self._result_metrics:(metric.grid if has_result or has_message else metric.grid_remove)()
+        (self._result_empty_state.grid_remove if has_result or has_message else self._result_empty_state.grid)()
     def _load_warning_fluids(self)->None:
         selected=self._selected_warning_fluid()
         self._warning_fluid_codes={self._translate("message.select"):""}
@@ -268,6 +286,7 @@ class DischargeHeadLossPage(ttk.LabelFrame):
     def _refresh(self)->None:
         for row in self._tree.get_children():self._tree.delete(row)
         for identifier,item in self._items.items():self._tree.insert("","end",iid=identifier,values=(item.name,item.quantity,item.k_coefficient,item.subtotal_k))
+        (self._tree_container.grid_remove if not self._items else self._tree_container.grid)();(self._local_loss_empty_state.grid if not self._items else self._local_loss_empty_state.grid_remove)()
     def _add(self)->None:
         item=LocalLossItemDialog(self,translate=self._translate).show()
         if item:self._items[str(uuid4())]=item;self._refresh();self._invalidate_result();self._mark_dirty()
@@ -299,7 +318,7 @@ class DischargeHeadLossPage(ttk.LabelFrame):
             FormulaSection("VARIABLES", f"v | {self._translate('result.flow_velocity')} | m/s\nRe | {self._translate('result.reynolds_number')} | −\nD | {self._translate('field.pipe_inside_diameter')} | mm\nQ | {self._translate('field.flow_rate')} | m³/h\nν | {self._translate('field.kinematic_viscosity')} | m²/s\nk | {self._translate('field.roughness')} | mm\nε | {self._translate('result.relative_roughness')} | −\nf | {self._translate('result.friction_factor')} | −", self._translate("formula.stage.flow_and_friction"), "variables"),
             FormulaSection("CURRENT SUBSTITUTION", self._translate("message.available_after_calculation"), self._translate("formula.stage.flow_and_friction"), "substitution"),
             FormulaSection("RESULT", self._translate("message.available_after_calculation"), self._translate("formula.stage.flow_and_friction"), "result"),
-            FormulaSection("FORMULA", "Ktotal = Σ(quantity × K)\nh_local = 6400 × Ktotal × Q² / D⁴\nh_pipe = 6.4 × 10⁶ × f × L × Q² / D⁵", self._translate("formula.stage.hydraulic_losses"), "formula"),
+            FormulaSection("FORMULA", "Ktotal = Σ(quantity × K)\nh_local = 6400 × Ktotal × Q² / D⁴\nh_pipe = 6.4 × 10⁶ × f × L × Q² / D⁵", self._translate("formula.stage.hydraulic_losses"), "formula", ("local_loss", "pipe_friction_loss")),
             FormulaSection("VARIABLES", f"Ktotal | {self._translate('formula.total_local_loss_coefficient')} | −\nK | {self._translate('field.local_loss_k')} | −\nL | {self._translate('field.pipe_length')} | m\nh_local | {self._translate('result.local_loss')} | m\nh_pipe | {self._translate('result.pipe_friction_loss')} | m", self._translate("formula.stage.hydraulic_losses"), "variables"),
             FormulaSection("CURRENT SUBSTITUTION", self._translate("message.available_after_calculation"), self._translate("formula.stage.hydraulic_losses"), "substitution"),
             FormulaSection("RESULT", self._translate("message.available_after_calculation"), self._translate("formula.stage.hydraulic_losses"), "result"),
@@ -340,7 +359,8 @@ class DischargeHeadLossPage(ttk.LabelFrame):
     def _render_result(self)->None:
         """Render the stored hydraulic result in the current UI language."""
         result=getattr(self,"_last_result",None)
-        if result is None:return
+        if result is None:self._sync_result_empty_state();return
+        self._sync_result_empty_state()
         self._set_semantic_messages([ValidationIssue("discharge.status.result_ready",params={"pipe_loss":format_user_number(result.pipe_friction_loss_m),"local_loss":format_user_number(result.local_loss_m),"total_loss":format_user_number(result.total_hydraulic_loss_m),"system_head":format_user_number(result.system_head_m)}),*result.warnings])
         self._evaluate_velocity_warning()
         self._result_summary.set(self._translate("message.ready"))
@@ -352,10 +372,17 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         self._relative_roughness_summary.set(format_user_number(result.relative_roughness))
         self._friction_factor_summary.set(format_user_number(result.friction_factor))
         self._k_total_summary.set(format_user_number(result.local_loss_coefficient_total))
+        relation_summary=getattr(self,"_system_relation_summary",None)
+        if relation_summary is not None:
+            relation_summary.set(
+                f"Hgeo {self._fields['h'].get()} m  +  "
+                f"{self._translate('result.total_hydraulic_loss')} {format_user_number(result.total_hydraulic_loss_m)} m  "
+                f"=  Hs {format_user_number(result.system_head_m)} m"
+            )
 
     def _set_semantic_messages(self,messages:list[ValidationIssue])->None:
         """Store semantic page status and render it using the active translator."""
-        self._status_messages=list(messages);self._render_status()
+        self._status_messages=list(messages);self._render_status();self._sync_result_empty_state()
 
     def _render_status(self)->None:
         """Render current semantic status without recalculating hydraulic results."""

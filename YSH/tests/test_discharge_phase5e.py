@@ -34,11 +34,13 @@ def test_discharge_page_uses_the_approved_three_area_workspace() -> None:
         assert required_element in source
 
 
-def test_discharge_results_keep_hs_primary_and_hydraulic_values_secondary() -> None:
-    """The authoritative system head is the blue primary metric, not a new result."""
+def test_discharge_results_keep_system_head_primary_and_hydraulic_values_secondary() -> None:
+    """System head leads while line losses and technical values stay secondary."""
     source = _page_source()
 
     assert 'self._translate("result.pump_discharge_head")' in source
+    assert 'self._translate("result.pump_discharge_head"),self._system_head_summary,"m",normal_style_prefix="DischargeResultMetric"' in source
+    assert 'self._translate("result.total_hydraulic_loss"),self._total_loss_summary,"m",normal_style_prefix="DischargeLossMetric"' in source
     assert 'normal_style_prefix="DischargeResultMetric"' in source
     assert 'normal_style_prefix="DischargeLossMetric"' in source
     for metric in (
@@ -58,6 +60,7 @@ def test_discharge_initial_metrics_and_sigma_k_use_page_owned_result_state() -> 
 
     assert 'self._k_total_summary=tk.StringVar(value="—")' in source
     assert '"result.local_loss_coefficient",self._k_total_summary' in source
+    assert 'self._k_total_context_label=ttk.Label(self._k_total_context,text="ΣK"' in source
     assert "result.local_loss_coefficient_total" in source
     assert "def _clear_result_metrics" in source
 
@@ -70,7 +73,7 @@ def test_discharge_table_crud_and_formula_remain_authoritative() -> None:
     )[0]
 
     assert 'self._tree.configure(style="Discharge.Treeview")' in source
-    assert "ScrollableTreeview(" in source
+    assert "TechnicalTable(" in source
     for callback in ("self._add", "self._edit", "self._delete"):
         assert callback in source
     assert "self._service.calculate" not in formula_source
@@ -121,10 +124,24 @@ def test_discharge_actions_and_supporting_metrics_reflow_in_place() -> None:
         assert required_element in source
 
 
+def test_discharge_uses_shared_icon_actions_without_replacing_callbacks() -> None:
+    """Primary and compact actions retain their existing workflows and gain assets only."""
+    source = _page_source()
+
+    assert 'self._calculate_button=create_rounded_button' in source
+    assert 'self._translate("calculation.calculate"),self._calculate' in source
+    assert 'icon_name="calculate",icon_size=36' in source
+    for icon_name, callback in (("add", "self._add"), ("edit", "self._edit"), ("delete", "self._delete")):
+        assert f"{callback},style=" in source
+        assert f'icon_name="{icon_name}",icon_only=True' in source
+
+
 def test_discharge_uses_structured_metrics_without_redundant_result_dump() -> None:
     """Hs and its supporting values remain the sole visible result presentation."""
     source = _page_source()
 
     assert "self._system_metric=ResultMetric" in source
+    assert "self._total_loss_metric=ResultMetric(results" in source
     assert "self._supporting_metric_widgets" in source
+    assert "self._system_relation_summary" in source
     assert 'ttk.Label(results,textvariable=self._result_summary' not in source

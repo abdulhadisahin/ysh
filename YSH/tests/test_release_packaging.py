@@ -11,10 +11,11 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 def test_spec_bundles_resources_icon_and_matplotlib_tkagg() -> None:
     """The canonical spec packages all local visual and chart runtime assets."""
     source = (REPOSITORY_ROOT / "build" / "ysh.spec").read_text(encoding="utf-8")
+    assert '"resources" / "branding" / "d243_logo.ico"' in source
 
     assert 'main_entry = repository_root / "main.py"' in source
     assert '"resources"' in source
-    assert '"ysh.ico"' in source
+    assert '"d243_logo.ico"' in source
     assert 'collect_all(\n    "matplotlib"' in source
     assert '"matplotlib.backends.backend_tkagg"' in source
     assert '"_tcl_data"' in source
@@ -36,12 +37,13 @@ def test_spec_resource_and_icon_paths_are_repository_relative() -> None:
     source = (REPOSITORY_ROOT / "build" / "ysh.spec").read_text(encoding="utf-8")
 
     for asset_name in (
-        "ysh_logo.png",
-        "ysh.ico",
-        "ysh_ship_top_right.png",
-        "ysh_ship_bottom_left.png",
+        "d243_logo_main.png",
+        "d243_logo_medium.png",
+        "d243_logo_small.png",
+        "d243_logo_watermark.png",
+        "d243_logo.ico",
     ):
-        assert (REPOSITORY_ROOT / "YSH" / "resources" / asset_name).is_file()
+        assert (REPOSITORY_ROOT / "YSH" / "resources" / "branding" / asset_name).is_file()
     assert "C:\\Users\\" not in source
     assert "repository_root" in source
 

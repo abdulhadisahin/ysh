@@ -28,7 +28,7 @@ def test_primary_editable_tables_use_scrollable_treeview() -> None:
 
     for relative_path in page_paths:
         source = (PROJECT_ROOT / relative_path).read_text(encoding="utf-8")
-        assert "ScrollableTreeview" in source
+        assert "ScrollableTreeview" in source or "TechnicalTable" in source
         assert "self._tree_container" in source
 
 

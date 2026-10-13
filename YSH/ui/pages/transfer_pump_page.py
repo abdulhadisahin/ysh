@@ -21,7 +21,8 @@ from i18n.translator import Translator
 from i18n.validation import render_validation_issue
 from services.transfer_pump_service import TransferPumpService
 from ui.dialogs.pump_reference_dialog import PumpReferenceDialog
-from ui.widgets.scrollable_treeview import ScrollableTreeview
+from ui.widgets.engineering_components import TableToolbar, TechnicalTable
+from ui.widgets.engineering_components import EmptyState
 from ui.widgets.formula_view import FormulaReferencePanel, FormulaSection
 from ui.widgets.rounded_button import ADD_BUTTON_PALETTE, DELETE_BUTTON_PALETTE, EDIT_BUTTON_PALETTE, FORMULA_BUTTON_PALETTE, NEUTRAL_BUTTON_PALETTE, TRANSFER_PRIMARY_PALETTE, create_rounded_button
 from ui.widgets.transfer_pump_chart import TransferPumpChart, TransferPumpChartModel
@@ -61,6 +62,7 @@ class TransferPumpPage(ttk.LabelFrame):
         self._estimate_capacity_summary = tk.StringVar(value="—")
         self._emptying_time_summary = tk.StringVar(value="—")
         self._required_capacity_12h_summary = tk.StringVar(value="—")
+        self._r_squared_summary = tk.StringVar(value="—")
         self._converted_volume_summary = tk.StringVar(value="—")
         self._dirty_callback: object | None = None
         self._suppress_dirty = True
@@ -79,32 +81,143 @@ class TransferPumpPage(ttk.LabelFrame):
             self._translate("page.transfer.title"),
             self._translate("page.transfer.description"),
         )
-        self._header.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        self._header.grid(row=0, column=0, sticky="ew", pady=(0, 6))
         upper = ttk.Frame(self)
-        upper.grid(row=1, column=0, sticky="nsew")
+        upper.grid(row=1, column=0, sticky="ew")
         self._upper = upper
-        upper.columnconfigure(0, weight=3)
-        upper.columnconfigure(1, weight=2)
+        upper.columnconfigure(0, weight=2)
+        upper.columnconfigure(1, weight=3)
 
-        self._references_card = InputCard(
+        self._estimate_card = InputCard(
             upper,
+            self._translate("section.new_vessel"),
+        )
+        estimate = self._estimate_card
+        estimate.grid(row=0, column=0, sticky="new", padx=(0, 10))
+        estimate.columnconfigure(1, weight=1)
+        self._capacity_mode_label = ttk.Label(
+            estimate, text=self._translate("field.capacity_input_mode")
+        )
+        self._capacity_mode_label.grid(row=0, column=0, sticky="w")
+        self._capacity_mode_box = ttk.Combobox(
+            estimate, textvariable=self._capacity_mode, state="readonly", width=18
+        )
+        self._capacity_mode_box.grid(row=0, column=1, sticky="w", padx=(8, 0))
+        self._capacity_label = ttk.Label(estimate, text=self._translate("chart.fuel_capacity"))
+        self._capacity_label.grid(row=1, column=0, sticky="w", pady=(5, 0))
+        ttk.Entry(estimate, textvariable=self._capacity, width=18).grid(
+            row=1, column=1, sticky="w", padx=(8, 0), pady=(5, 0)
+        )
+        self._estimate_actions = ttk.Frame(estimate)
+        self._estimate_actions.grid(row=2, column=0, columnspan=2, sticky="w", pady=(7, 0))
+        self._calculate_button = create_rounded_button(self._estimate_actions, self._translate("calculation.calculate"), self._calculate, style="TransferRoundedPrimary.TButton", palette=TRANSFER_PRIMARY_PALETTE, primary=True, icon_name="calculate", icon_size=36)
+        self._clear_button = create_rounded_button(self._estimate_actions, self._translate("common.clear"), self._clear, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="clear")
+        self._estimate_action_buttons = (self._calculate_button, self._clear_button)
+        for column, button in enumerate(self._estimate_action_buttons):
+            button.grid(row=0, column=column, sticky="w", padx=(0 if column == 0 else 8, 0))
+        self._conversion_detail_frame = ttk.Frame(estimate)
+        self._conversion_detail_frame.grid(row=3, column=0, columnspan=2, sticky="w", pady=(7, 0))
+        self._entered_mass_label = ttk.Label(
+            self._conversion_detail_frame,
+            text=self._translate("transfer.entered_fuel_mass"),
+            style="TransferReference.TLabel",
+        )
+        self._entered_mass_label.grid(row=0, column=0, sticky="w")
+        self._entered_mass_value = ttk.Label(
+            self._conversion_detail_frame,
+            textvariable=self._capacity,
+            style="TransferReferenceValue.TLabel",
+        )
+        self._entered_mass_value.grid(row=0, column=1, sticky="w", padx=(8, 0))
+        self._entered_mass_unit = ttk.Label(
+            self._conversion_detail_frame, text="ton", style="TransferReference.TLabel"
+        )
+        self._entered_mass_unit.grid(row=0, column=2, sticky="w", padx=(4, 0))
+        self._converted_volume_label = ttk.Label(
+            self._conversion_detail_frame,
+            text=self._translate("result.converted_fuel_volume"),
+            style="TransferReference.TLabel",
+        )
+        self._converted_volume_label.grid(row=1, column=0, sticky="w", pady=(3, 0))
+        self._converted_volume_value = ttk.Label(
+            self._conversion_detail_frame,
+            textvariable=self._converted_volume_summary,
+            style="TransferReferenceValue.TLabel",
+        )
+        self._converted_volume_value.grid(row=1, column=1, columnspan=2, sticky="w", padx=(8, 0), pady=(3, 0))
+        self._conversion_basis_label = ttk.Label(
+            self._conversion_detail_frame,
+            text=self._translate("transfer.conversion_basis"),
+            style="TransferReference.TLabel",
+        )
+        self._conversion_basis_label.grid(row=2, column=0, columnspan=3, sticky="w", pady=(3, 0))
+
+        self._results_card = ResultCard(
+            upper,
+            self._translate("section.estimate_results"),
+        )
+        results = self._results_card
+        results.grid(row=0, column=1, sticky="nsew")
+        results.columnconfigure(0, weight=1)
+        self._pump_result_metric = ResultMetric(
+            results,
+            self._translate("result.predicted_pump_capacity"),
+            self._estimate_capacity_summary,
+            "m³/h",
+            normal_style_prefix="TransferResultMetric",
+        )
+        self._pump_result_metric.grid(row=0, column=0, sticky="ew")
+        self._required_12h_metric = ResultMetric(
+            results,
+            self._translate("result.required_capacity_12h"),
+            self._required_capacity_12h_summary,
+            "m³/h",
+            normal_style_prefix="TransferSecondaryMetric",
+        )
+        self._required_12h_metric.grid(row=1, column=0, sticky="ew", pady=(4, 0))
+        self._emptying_result_metric = ResultMetric(
+            results,
+            self._translate("result.full_tank_discharge_time"),
+            self._emptying_time_summary,
+            "h",
+            normal_style_prefix="TransferSecondaryMetric",
+        )
+        self._emptying_result_metric.grid(row=2, column=0, sticky="ew", pady=(4, 0))
+        self._r_squared_metric = ResultMetric(
+            results,
+            "R²",
+            self._r_squared_summary,
+            normal_style_prefix="TransferSecondaryMetric",
+        )
+        self._r_squared_metric.grid(row=3, column=0, sticky="ew", pady=(4, 0))
+        self._result_metrics = (self._pump_result_metric, self._required_12h_metric, self._emptying_result_metric, self._r_squared_metric)
+        self._result_empty_state = EmptyState(results, "result", "Henüz sonuç üretilmedi", "Girdileri tamamlayın ve Hesapla komutunu çalıştırın.", image_size=150)
+        self._result_empty_state.grid(row=0, column=0, sticky="nsew")
+
+        analysis = ttk.Frame(self)
+        analysis.grid(row=2, column=0, sticky="ew", pady=(8, 0))
+        self._analysis = analysis
+        analysis.columnconfigure(0, weight=3)
+        analysis.columnconfigure(1, weight=4)
+        self._references_card = InputCard(
+            analysis,
             self._translate("section.reference_vessels"),
         )
         references = self._references_card
         references.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
         references.columnconfigure(0, weight=1)
-        toolbar = ttk.Frame(references)
+        toolbar = TableToolbar(references)
         toolbar.grid(row=0, column=0, sticky="ew", pady=(0, 6))
         self._search_label = ttk.Label(toolbar, text=self._translate("field.search_references"))
         self._search_label.pack(side="left")
         ttk.Entry(toolbar, textvariable=self._reference_search, width=28).pack(
             side="left", padx=(6, 0)
         )
-        self._tree_container = ScrollableTreeview(
+        self._tree_container = TechnicalTable(
             references,
             columns=("name", "fuel", "pump", "source"),
             show="headings",
-            height=5,
+            height=7,
         )
         self._tree = self._tree_container.tree
         self._tree.configure(style="Transfer.Treeview")
@@ -117,120 +230,50 @@ class TransferPumpPage(ttk.LabelFrame):
             self._tree.heading(key, text=label)
             self._tree.column(key, width=150)
         self._tree_container.grid(row=1, column=0, sticky="nsew")
+        self._reference_empty_state = EmptyState(references, "reference", "Referans verisi bulunmuyor", "Yeni bir kayıt ekleyerek tabloyu doldurabilirsiniz.", "Ekle komutunu kullanın.", image_size=170)
+        self._reference_empty_state.grid(row=1, column=0, sticky="nsew")
+        self._reference_empty_state.grid_remove()
         self._tree.bind("<Double-1>", self._edit)
         self._tree.bind("<Return>", self._edit)
         self._tree.bind("<Delete>", self._delete)
-        self._reference_actions = ttk.Frame(references)
+        self._reference_actions = TableToolbar(references)
         self._reference_actions.grid(row=2, column=0, sticky="w", pady=(8, 0))
-        self._add_button = create_rounded_button(self._reference_actions, self._translate("common.add"), self._add, style="RoundedAdd.TButton", palette=ADD_BUTTON_PALETTE)
-        self._edit_button = create_rounded_button(self._reference_actions, self._translate("common.edit"), self._edit, style="RoundedEdit.TButton", palette=EDIT_BUTTON_PALETTE)
-        self._delete_button = create_rounded_button(self._reference_actions, self._translate("common.delete"), self._delete, style="RoundedDelete.TButton", palette=DELETE_BUTTON_PALETTE)
+        self._add_button = create_rounded_button(self._reference_actions, self._translate("common.add"), self._add, style="RoundedAdd.TButton", palette=ADD_BUTTON_PALETTE, icon_name="add", icon_only=True, tooltip_text=self._translate("common.add"), icon_size=30, square_size=38)
+        self._edit_button = create_rounded_button(self._reference_actions, self._translate("common.edit"), self._edit, style="RoundedEdit.TButton", palette=EDIT_BUTTON_PALETTE, icon_name="edit", icon_only=True, tooltip_text=self._translate("common.edit"), icon_size=30, square_size=38)
+        self._delete_button = create_rounded_button(self._reference_actions, self._translate("common.delete"), self._delete, style="RoundedDelete.TButton", palette=DELETE_BUTTON_PALETTE, icon_name="delete", icon_only=True, tooltip_text=self._translate("common.delete"), icon_size=30, square_size=38)
         self._reference_action_buttons = (self._add_button, self._edit_button, self._delete_button)
         for column, button in enumerate(self._reference_action_buttons):
             button.grid(row=0, column=column, sticky="w", padx=(0 if column == 0 else 8, 0))
 
-        prediction_column = ttk.Frame(upper)
-        self._prediction_column = prediction_column
-        prediction_column.grid(row=0, column=1, sticky="nsew")
-        prediction_column.columnconfigure(0, weight=1)
-        self._estimate_card = InputCard(
-            prediction_column,
-            self._translate("section.new_vessel"),
+        self._chart_card = CalculationCard(
+            analysis,
+            self._translate("section.regression_chart"),
         )
-        estimate = self._estimate_card
-        estimate.grid(row=0, column=0, sticky="ew")
-        self._capacity_mode_label = ttk.Label(
-            estimate, text=self._translate("field.capacity_input_mode")
+        self._chart_card.grid(row=0, column=1, sticky="nsew")
+        self._chart_card.columnconfigure(0, weight=1)
+        self._chart = TransferPumpChart(self._chart_card, translate=self._translate)
+        self._chart.grid(row=0, column=0, sticky="ew")
+        self._chart_empty_state = EmptyState(self._chart_card, "chart", "Grafik henüz oluşturulmadı", "Referans verilerini ekleyin ve hesaplama yapın. Grafik burada görüntülenecektir.", image_size=180)
+        self._chart_empty_state.grid(row=0, column=0, sticky="nsew")
+        self._chart_empty_state.grid_remove()
+        self._model_message = ttk.Label(
+            self._chart_card, textvariable=self._message, wraplength=680, style="Info.TLabel"
         )
-        self._capacity_mode_label.grid(row=0, column=0, sticky="w")
-        self._capacity_mode_box = ttk.Combobox(
-            estimate, textvariable=self._capacity_mode, state="readonly", width=16
-        )
-        self._capacity_mode_box.grid(row=0, column=1, sticky="w", padx=(8, 0))
-        self._capacity_label = ttk.Label(estimate, text=self._translate("chart.fuel_capacity"))
-        self._capacity_label.grid(row=1, column=0, sticky="w", pady=(6, 0))
-        ttk.Entry(estimate, textvariable=self._capacity, width=16).grid(
-            row=1, column=1, sticky="w", padx=(8, 0), pady=(6, 0)
-        )
-        self._estimate_actions = ttk.Frame(estimate)
-        self._estimate_actions.grid(row=1, column=2, columnspan=2, sticky="w", padx=(8, 0), pady=(6, 0))
-        self._calculate_button = create_rounded_button(self._estimate_actions, self._translate("calculation.calculate"), self._calculate, style="TransferRoundedPrimary.TButton", palette=TRANSFER_PRIMARY_PALETTE, primary=True)
-        self._clear_button = create_rounded_button(self._estimate_actions, self._translate("common.clear"), self._clear, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE)
-        self._estimate_action_buttons = (self._calculate_button, self._clear_button)
-        for column, button in enumerate(self._estimate_action_buttons):
-            button.grid(row=0, column=column, sticky="w", padx=(0 if column == 0 else 8, 0))
-        self._conversion_detail_frame = ttk.Frame(estimate)
-        self._conversion_detail_frame.grid(row=2, column=0, columnspan=4, sticky="w", pady=(8, 0))
-        self._conversion_basis_label = ttk.Label(
-            self._conversion_detail_frame,
-            text=self._translate("transfer.conversion_basis"),
-        )
-        self._conversion_basis_label.grid(row=0, column=0, sticky="w")
-        self._converted_volume_label = ttk.Label(
-            self._conversion_detail_frame,
-            text=self._translate("result.converted_fuel_volume"),
-        )
-        self._converted_volume_label.grid(row=1, column=0, sticky="w", pady=(3, 0))
-        self._converted_volume_value = ttk.Label(
-            self._conversion_detail_frame,
-            textvariable=self._converted_volume_summary,
-        )
-        self._converted_volume_value.grid(row=1, column=1, sticky="w", padx=(8, 0), pady=(3, 0))
-
-        self._results_card = ResultCard(
-            prediction_column,
-            self._translate("section.estimate_results"),
-        )
-        results = self._results_card
-        results.grid(row=1, column=0, sticky="ew", pady=(10, 0))
-        results.columnconfigure(0, weight=1)
-        self._pump_result_metric = ResultMetric(
-            results,
-            self._translate("result.predicted_pump_capacity"),
-            self._estimate_capacity_summary,
-            "m³/h",
-            normal_style_prefix="TransferResultMetric",
-        )
-        self._pump_result_metric.grid(row=0, column=0, sticky="ew")
-        self._emptying_result_metric = ResultMetric(
-            results,
-            self._translate("result.full_tank_discharge_time"),
-            self._emptying_time_summary,
-            "h",
-            normal_style_prefix="TransferSecondaryMetric",
-        )
-        self._emptying_result_metric.grid(row=1, column=0, sticky="ew", pady=(8, 0))
-        self._required_12h_metric = ResultMetric(
-            results,
-            self._translate("result.required_capacity_12h"),
-            self._required_capacity_12h_summary,
-            "m³/h",
-            normal_style_prefix="TransferSecondaryMetric",
-        )
-        self._required_12h_metric.grid(row=2, column=0, sticky="ew", pady=(8, 0))
-        self._chart = TransferPumpChart(self, translate=self._translate)
-        self._chart.grid(row=2, column=0, sticky="ew", pady=(12, 0))
-        self._model_card = CalculationCard(
-            self,
-            self._translate("section.regression_summary"),
-        )
-        model = self._model_card
-        model.grid(row=3, column=0, sticky="ew", pady=(10, 0))
-        ttk.Label(model, textvariable=self._message, wraplength=800).grid(
-            row=0, column=0, sticky="w"
-        )
-        self._formula_panel = FormulaReferencePanel(self, self._formula_sections, self._translate, self._create_formula_toggle)
-        self._formula_panel.grid(row=4, column=0, sticky="ew", pady=(10, 0))
+        self._model_message.grid(row=1, column=0, sticky="w", pady=(8, 0))
+        self._formula_panel = FormulaReferencePanel(self, self._formula_sections, self._translate, self._create_formula_toggle, lambda: bool(getattr(self, "_estimate_result", None)))
+        self._formula_panel.grid(row=3, column=0, sticky="ew", pady=(8, 0))
         self._responsive_layout_mode = ""
         self._upper.bind("<Configure>", self._on_upper_configure, add="+")
+        self._analysis.bind("<Configure>", self._on_upper_configure, add="+")
         self._reference_actions.bind("<Configure>", self._on_action_configure, add="+")
         self._estimate_actions.bind("<Configure>", self._on_action_configure, add="+")
         self.after_idle(self._reflow_layout)
+        self._sync_result_empty_state()
 
     @staticmethod
     def _create_formula_toggle(parent: tk.Misc, text: str, command: Callable[[], None]) -> ttk.Button:
         """Create the Transfer-only rounded tertiary Formula toggle."""
-        return create_rounded_button(parent, text, command, style="RoundedFormula.TButton", palette=FORMULA_BUTTON_PALETTE)
+        return create_rounded_button(parent, text, command, style="RoundedFormula.TButton", palette=FORMULA_BUTTON_PALETTE, icon_name="formula", icon_size=36)
 
     def refresh_texts(self) -> None:
         """Refresh Transfer Pump text while retaining references and regression state."""
@@ -255,11 +298,12 @@ class TransferPumpPage(ttk.LabelFrame):
         self._estimate_card.configure(text=self._translate("section.new_vessel"))
         self._capacity_mode_label.configure(text=self._translate("field.capacity_input_mode"))
         self._capacity_label.configure(text=self._capacity_input_label())
+        self._entered_mass_label.configure(text=self._translate("transfer.entered_fuel_mass"))
         self._conversion_basis_label.configure(text=self._translate("transfer.conversion_basis"))
         self._converted_volume_label.configure(text=self._translate("result.converted_fuel_volume"))
         self._calculate_button.configure(text=self._translate("calculation.calculate"))
         self._clear_button.configure(text=self._translate("common.clear"))
-        self._model_card.configure(text=self._translate("section.regression_summary"))
+        self._chart_card.configure(text=self._translate("section.regression_chart"))
         self._results_card.configure(text=self._translate("section.estimate_results"))
         self._pump_result_metric.set_label(
             self._translate("result.predicted_pump_capacity")
@@ -277,7 +321,7 @@ class TransferPumpPage(ttk.LabelFrame):
         self.after_idle(self._reflow_layout)
 
     def _on_upper_configure(self, event: tk.Event[tk.Misc]) -> None:
-        """Reflow the reference and prediction workspace for the usable width."""
+        """Reflow the input, result, data, and graph workspaces for the usable width."""
         self._reflow_layout(event.width)
 
     def _reflow_layout(self, available_width: int | None = None) -> None:
@@ -285,23 +329,18 @@ class TransferPumpPage(ttk.LabelFrame):
         width = available_width or self._upper.winfo_width()
         if width <= 1:
             return
-        references_width = self._references_card.winfo_reqwidth()
-        prediction_width = self._prediction_column.winfo_reqwidth()
-        prediction_pair_width = (
+        input_result_width = (
             self._estimate_card.winfo_reqwidth()
             + self._results_card.winfo_reqwidth()
-            + 12
+            + 10
         )
-        wide_width = references_width + prediction_width + 10
-        two_column_width = max(references_width, prediction_pair_width)
+        analysis_width = (
+            self._references_card.winfo_reqwidth()
+            + self._chart_card.winfo_reqwidth()
+            + 10
+        )
         content_width = max(1, width - 12)
-        mode = (
-            "wide"
-            if content_width >= wide_width
-            else "two_column"
-            if content_width >= two_column_width
-            else "stacked"
-        )
+        mode = "wide" if content_width >= max(input_result_width, analysis_width) else "stacked"
         if mode == self._responsive_layout_mode:
             return
         self._responsive_layout_mode = mode
@@ -309,55 +348,39 @@ class TransferPumpPage(ttk.LabelFrame):
 
     def _apply_responsive_layout(self, mode: str) -> None:
         """Arrange the existing cards without recreating controls or chart data."""
-        for column in range(2):
-            self._upper.columnconfigure(column, weight=0)
-            self._prediction_column.columnconfigure(column, weight=0)
+        for container in (self._upper, self._analysis):
+            for column in range(2):
+                container.columnconfigure(column, weight=0)
         if mode == "wide":
-            self._upper.columnconfigure(0, weight=3)
-            self._upper.columnconfigure(1, weight=2)
+            self._upper.columnconfigure(0, weight=2)
+            self._upper.columnconfigure(1, weight=3)
+            self._analysis.columnconfigure(0, weight=3)
+            self._analysis.columnconfigure(1, weight=4)
+            self._estimate_card.grid_configure(
+                row=0, column=0, columnspan=1, padx=(0, 10), pady=0
+            )
+            self._results_card.grid_configure(
+                row=0, column=1, columnspan=1, padx=0, pady=0
+            )
             self._references_card.grid_configure(
                 row=0, column=0, columnspan=1, padx=(0, 10), pady=0
             )
-            self._prediction_column.grid_configure(
+            self._chart_card.grid_configure(
                 row=0, column=1, columnspan=1, padx=0, pady=0
-            )
-            self._prediction_column.columnconfigure(0, weight=1)
-            self._estimate_card.grid_configure(
-                row=0, column=0, columnspan=1, padx=0, pady=0
-            )
-            self._results_card.grid_configure(
-                row=1, column=0, columnspan=1, padx=0, pady=(10, 0)
-            )
-        elif mode == "two_column":
-            self._upper.columnconfigure(0, weight=1)
-            self._upper.columnconfigure(1, weight=1)
-            self._references_card.grid_configure(
-                row=0, column=0, columnspan=2, padx=0, pady=0
-            )
-            self._prediction_column.grid_configure(
-                row=1, column=0, columnspan=2, padx=0, pady=(10, 0)
-            )
-            self._prediction_column.columnconfigure(0, weight=1)
-            self._prediction_column.columnconfigure(1, weight=1)
-            self._estimate_card.grid_configure(
-                row=0, column=0, columnspan=1, padx=(0, 6), pady=0
-            )
-            self._results_card.grid_configure(
-                row=0, column=1, columnspan=1, padx=(6, 0), pady=0
             )
         else:
             self._upper.columnconfigure(0, weight=1)
-            self._references_card.grid_configure(
-                row=0, column=0, columnspan=1, padx=0, pady=0
-            )
-            self._prediction_column.grid_configure(
-                row=1, column=0, columnspan=1, padx=0, pady=(10, 0)
-            )
-            self._prediction_column.columnconfigure(0, weight=1)
+            self._analysis.columnconfigure(0, weight=1)
             self._estimate_card.grid_configure(
                 row=0, column=0, columnspan=1, padx=0, pady=0
             )
             self._results_card.grid_configure(
+                row=1, column=0, columnspan=1, padx=0, pady=(10, 0)
+            )
+            self._references_card.grid_configure(
+                row=0, column=0, columnspan=1, padx=0, pady=0
+            )
+            self._chart_card.grid_configure(
                 row=1, column=0, columnspan=1, padx=0, pady=(10, 0)
             )
         self.after_idle(self._reflow_action_buttons)
@@ -477,6 +500,7 @@ class TransferPumpPage(ttk.LabelFrame):
             self.__dict__.pop("_estimate_result", None)
             self.__dict__.pop("_estimate_capacity_m3", None)
             self._clear_estimate_summary()
+            self._sync_result_empty_state()
             self._set_model_status()
             self._mark_dirty()
             self._refresh_chart()
@@ -528,17 +552,26 @@ class TransferPumpPage(ttk.LabelFrame):
         ]
         for item in records:
             self._tree.insert("", "end", iid=str(item.id), values=(item.ship_name, item.fuel_capacity_m3, item.pump_capacity_m3h, item.source))
+        self._set_reference_empty_state(not records)
         if selected and self._tree.exists(selected[0]):
             self._tree.selection_set(selected[0])
         model_result=self._service.get_regression_model()
         self._model_result=model_result
         if not model_result.is_successful or model_result.regression_model is None:
+            self._r_squared_summary.set("—")
             self._set_semantic_messages(model_result.errors)
         else:
+            self._r_squared_summary.set(
+                format_user_number(model_result.regression_model.r_squared)
+            )
             self._set_model_ready_status(model_result.regression_model)
         self._refresh_chart(all_records)
         if hasattr(self, "_formula_panel"):
             self._refresh_formula_panel()
+
+    def _set_reference_empty_state(self, is_empty: bool) -> None:
+        (self._tree_container.grid_remove if is_empty else self._tree_container.grid)()
+        (self._reference_empty_state.grid if is_empty else self._reference_empty_state.grid_remove)()
 
     def _add(self) -> None:
         """Open the service-backed reference dialog in add mode."""
@@ -701,6 +734,7 @@ class TransferPumpPage(ttk.LabelFrame):
         self.__dict__.pop("_estimate_capacity_m3", None)
         self.__dict__.pop("_capacity_resolution", None)
         self._clear_estimate_summary()
+        self._sync_result_empty_state()
         self._capacity.set("")
         self._set_model_status()
         self._mark_dirty()
@@ -726,6 +760,9 @@ class TransferPumpPage(ttk.LabelFrame):
             getattr(self, "_estimate_result", None),
             getattr(self, "_estimate_capacity_m3", None),
         )
+        has_chart = regression_model is not None and len(references) >= 2
+        (self._chart.grid if has_chart else self._chart.grid_remove)()
+        (self._chart_empty_state.grid_remove if has_chart else self._chart_empty_state.grid)()
         self._chart.render(chart_model)
 
     def _refresh_formula_panel(self) -> None:
@@ -740,11 +777,21 @@ class TransferPumpPage(ttk.LabelFrame):
         self._required_capacity_12h_summary.set("—")
         self._converted_volume_summary.set("—")
 
+    def _sync_result_empty_state(self) -> None:
+        """Swap compact metrics for guidance only while no estimate exists."""
+        result = getattr(self, "_estimate_result", None)
+        has_result = result is not None and result.is_successful
+        for metric in self._result_metrics:
+            (metric.grid if has_result else metric.grid_remove)()
+        (self._result_empty_state.grid_remove if has_result else self._result_empty_state.grid)()
+
     def _render_estimate(self) -> None:
         """Render stored estimate data in the currently active language."""
         result = getattr(self, "_estimate_result", None)
         if result is None or not result.is_successful:
+            self._sync_result_empty_state()
             return
+        self._sync_result_empty_state()
         model = result.regression_model
         self._estimate_capacity_summary.set(
             format_user_number(result.predicted_pump_capacity_m3h)

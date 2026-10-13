@@ -15,6 +15,7 @@ from i18n.validation import render_validation_issue
 from i18n.translator import Translator
 from ui.theme.spacing import MD, SM
 from ui.widgets.scrollable_treeview import ScrollableTreeview
+from ui.widgets.engineering_components import EmptyState
 from ui.formatting import format_user_number
 
 LOGGER = logging.getLogger(__name__)
@@ -124,6 +125,9 @@ class LibraryDialog:
                 key, width=150, anchor="e" if key in numeric_columns else "w"
             )
         self._tree_container.grid(row=3, column=0, sticky="nsew")
+        self._empty_state = EmptyState(frame, "library", "Kütüphane boş", "Yeni kayıt ekleyerek kütüphaneyi doldurabilirsiniz.", image_size=160)
+        self._empty_state.grid(row=3, column=0, sticky="nsew")
+        self._empty_state.grid_remove()
         self._tree.bind("<<TreeviewSelect>>", self._show_selected_details)
         self._tree.bind("<Double-1>", lambda _event: self._edit())
         self._tree.bind("<Return>", lambda _event: self._edit())
@@ -162,6 +166,8 @@ class LibraryDialog:
         self._status.set(
             self._translate("library.no_records") if not visible else self._translate("library.record_count", count=visible)
         )
+        (self._tree_container.grid_remove if not visible else self._tree_container.grid)()
+        (self._empty_state.grid if not visible else self._empty_state.grid_remove)()
         if selected and self._tree.exists(selected[0]):
             self._tree.selection_set(selected[0])
             self._show_selected_details()

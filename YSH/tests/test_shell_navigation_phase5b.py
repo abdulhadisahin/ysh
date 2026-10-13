@@ -16,15 +16,14 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_calculation_tabs_have_stable_semantic_page_colors() -> None:
     """The tab band owns one approved accent token per calculation page."""
     source = (ROOT / "ui/widgets/scrollable_page_host.py").read_text(encoding="utf-8")
-    assert colors.PIPE == "#00FFFF"
-    assert colors.TRANSFER == "#F47A16"
-    assert colors.DISCHARGE == "#1265D8"
-    assert colors.SUCTION == "#2600FF"
-    for page_key in ("pipe_design", "transfer_pump", "discharge_head_loss", "suction_npsh"):
-        assert page_key in source
+    assert colors.PIPE == colors.GOLD
+    assert colors.TRANSFER == colors.GOLD
+    assert colors.DISCHARGE == colors.NAVY
+    assert colors.SUCTION == "#35698F"
+    assert "self._page_keys" in source
     assert "YSH.TNotebook" in source
-    assert "selected_foreground = colors.ON_ACCENT" in source
-    assert 'background=[("selected", accent)' in source
+    assert "selected_foreground = colors.GOLD" in source
+    assert 'background=[("selected", colors.DEEP_NAVY)' in source
     assert 'foreground=[("selected", selected_foreground)' in source
 
 
@@ -33,7 +32,7 @@ def test_command_ribbon_is_embedded_in_the_unified_navy_header() -> None:
     source = (ROOT / "ui" / "main_window.py").read_text(encoding="utf-8")
 
     assert 'toolbar = ttk.Frame(header, style="Ribbon.TFrame"' in source
-    assert 'toolbar.grid(row=1, column=0, columnspan=2, sticky="ew")' in source
+    assert 'toolbar.grid(row=0, column=1, sticky="e")' in source
     assert 'workspace.grid(row=1, column=0, sticky="nsew")' in source
 
 
@@ -71,15 +70,12 @@ def test_identity_text_and_optional_asset_hooks_are_safe() -> None:
     assert local_asset_path(ASSET_DIRECTORY / "missing-approved-logo.png") is None
 
 
-def test_unified_header_uses_the_approved_ship_without_a_workspace_slogan() -> None:
-    """The approved ship replaces the removed workspace slogan in the header."""
+def test_unified_header_reserves_the_d243_logo_slot_without_legacy_ship_art() -> None:
+    """The D243 shell does not depend on temporary marine decoration."""
     source = (ROOT / "ui" / "main_window.py").read_text(encoding="utf-8")
 
-    assert "ysh_ship_top_right_path()" in source
-    assert "maximum_width=260" in source
-    assert "maximum_height=76" in source
-    assert "self._header_ship_source_image" in source
-    assert "self._resize_header_ship" in source
+    assert "d243_main_logo_path" in source
+    assert "ysh_ship_top_right_path()," not in source
     assert "self._header_workspace" not in source
 
 
@@ -96,10 +92,10 @@ def test_header_logo_keeps_a_strong_tkinter_image_reference() -> None:
     source = (ROOT / "ui/main_window.py").read_text(encoding="utf-8")
     assert "self._header_logo_image" in source
     assert "tk.PhotoImage" in source
-    assert "ysh_logo_path" in source
+    assert "d243_main_logo_path" in source
     assert "HeaderLogoPlate.TFrame" in source
     assert "HeaderLogoPlate.TLabel" in source
-    assert "padding=(SM // 2, SM // 2)" in source
+    assert "HEADER_LOGO_TARGET_SIZE = 180" in source
 
 
 def test_header_rounded_commands_match_the_navy_shell_at_outer_corners() -> None:

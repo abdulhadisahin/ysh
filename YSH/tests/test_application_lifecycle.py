@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import YSH.app as application_module
 from YSH.app import YSHApplication
 from YSH.paths import ApplicationPaths
@@ -55,6 +57,17 @@ class _FakeRoot:
         self.mainloop_called = True
 
 
+class _FakeIconRoot:
+    """Records the optional native window-icon path without a display."""
+
+    def __init__(self) -> None:
+        self.icon_path: str | None = None
+
+    def iconbitmap(self, *, default: str) -> None:
+        """Record the icon selected by the application."""
+        self.icon_path = default
+
+
 def test_application_run_initializes_then_runs_main_window(
     monkeypatch: object,
 ) -> None:
@@ -81,3 +94,15 @@ def test_application_run_initializes_then_runs_main_window(
     assert _FakeMainWindow.instance is not None
     assert _FakeMainWindow.instance.root is application._root
     assert application._root.mainloop_called
+
+
+def test_application_uses_the_official_d243_icon_for_the_tk_root() -> None:
+    """The native source-window identity comes from the approved D243 ICO."""
+    application = YSHApplication.__new__(YSHApplication)
+    application._paths = ApplicationPaths()
+    application._root = _FakeIconRoot()
+
+    application._apply_window_icon()
+
+    assert application._root.icon_path is not None
+    assert Path(application._root.icon_path).name == "d243_logo.ico"

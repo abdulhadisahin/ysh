@@ -31,6 +31,6 @@ def test_formula_panel_reserves_localized_show_hide_texts_for_rounded_toggles() 
     assert "self._configure_toggle_stable_texts()" in source
 
 
-def test_formula_identity_remains_the_approved_blue_violet() -> None:
-    """Sizing repair does not alter Formula's independent semantic identity."""
-    assert colors.FORMULA == "#2600FF"
+def test_formula_identity_uses_the_d243_gold_reference_accent() -> None:
+    """Formula presentation shares the restrained D243 reference language."""
+    assert colors.FORMULA == colors.GOLD_DARK

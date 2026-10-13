@@ -129,14 +129,13 @@ class TransferPumpChart(ttk.Frame):
         self._canvas = FigureCanvasTkAgg(self._figure, master=self)
         self._canvas.get_tk_widget().grid(row=0, column=0, sticky="ew")
         self._summary = StringVar(master=self, value="")
-        ttk.Label(
+        self._summary_label = ttk.Label(
             self,
             textvariable=self._summary,
             justify="left",
             style="ChartSummary.TLabel",
-        ).grid(
-            row=1, column=0, sticky="w", pady=(SM, 0)
         )
+        self._summary_label.grid(row=1, column=0, sticky="w", pady=(SM // 2, 0))
 
     def render(self, model: TransferPumpChartModel) -> None:
         """Redraw the existing canvas from prepared authoritative chart data."""
@@ -148,7 +147,7 @@ class TransferPumpChart(ttk.Frame):
             axes.scatter(
                 [point.fuel_capacity_m3 for point in model.reference_points],
                 [point.pump_capacity_m3h for point in model.reference_points],
-                color=colors.DISCHARGE,
+                color=colors.NAVY,
                 marker="o",
                 label=self._translate("chart.reference_ships"),
                 zorder=3,
@@ -157,7 +156,7 @@ class TransferPumpChart(ttk.Frame):
             axes.plot(
                 [point[0] for point in model.regression_line],
                 [point[1] for point in model.regression_line],
-                color=colors.TRANSFER,
+                color=colors.GOLD,
                 linewidth=2,
                 label=self._translate("chart.linear_regression"),
                 zorder=2,
@@ -166,7 +165,7 @@ class TransferPumpChart(ttk.Frame):
             axes.scatter(
                 [model.prediction_point.fuel_capacity_m3],
                 [model.prediction_point.pump_capacity_m3h],
-                color=colors.TRANSFER,
+                color=colors.GOLD_DARK,
                 marker="D",
                 edgecolors=colors.TEXT_PRIMARY,
                 linewidths=0.8,

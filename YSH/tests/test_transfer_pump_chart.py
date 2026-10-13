@@ -93,3 +93,14 @@ def test_chart_widget_uses_tkagg_without_external_windows_or_toolbar() -> None:
     assert "pyplot" not in source
     assert 'loc="upper left"' in source
     assert 'marker="D"' in source
+
+
+def test_chart_keeps_regression_parameters_in_a_compact_technical_summary() -> None:
+    """The chart retains model information without a verbose secondary card."""
+    source = (ROOT / "ui/widgets/transfer_pump_chart.py").read_text(encoding="utf-8")
+    turkish = (ROOT / "i18n/messages_tr.py").read_text(encoding="utf-8")
+
+    assert "self._summary_label = ttk.Label(" in source
+    assert "pady=(SM // 2, 0)" in source
+    assert "m (Eğim): {slope}" in turkish
+    assert "Qpump = m × Vfuel + b" in turkish

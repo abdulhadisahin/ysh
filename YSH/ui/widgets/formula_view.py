@@ -10,8 +10,11 @@ from dataclasses import dataclass
 from tkinter import ttk
 from typing import Literal
 
+from ui.assets import formula_asset_path, status_icon_fit_mode, status_icon_path
+from ui.widgets.engineering_components import EmptyState
 from ui.theme import typography
 from ui.theme.spacing import MD, SM
+from ui.widgets.asset_loader import AssetImageLoader, LoadedImage
 
 
 FormulaSectionRole = Literal[
@@ -66,6 +69,9 @@ _MATHTEXT_LINES = {
 }
 
 _LONG_EQUATION_CHARACTER_THRESHOLD = 90
+_FORMULA_ASSET_MAX_SIDE = 260
+_FORMULA_MARKER_RENDER_SIZE = 32
+_FORMULA_MARKER_LANE_SIZE = 36
 
 
 @dataclass(frozen=True, slots=True)
@@ -76,6 +82,7 @@ class FormulaSection:
     text: str
     stage: str = "ENGINEERING REFERENCE"
     role: FormulaSectionRole = "formula"
+    asset_names: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -95,12 +102,14 @@ class FormulaReferencePanel(ttk.Frame):
         section_provider: Callable[[], list[FormulaSection]],
         translate: Callable[[str], str] | None = None,
         toggle_button_factory: FormulaToggleFactory | None = None,
+        content_available: Callable[[], bool] | None = None,
     ) -> None:
         """Create a collapsed panel backed by a page-owned section provider."""
         super().__init__(parent)
         self.columnconfigure(0, weight=1)
         self._section_provider = section_provider
         self._translate = translate or (lambda key: key)
+        self._content_available = content_available
         self._expanded = False
         button_factory = toggle_button_factory or self._create_default_toggle
         self._toggle = button_factory(
@@ -119,6 +128,8 @@ class FormulaReferencePanel(ttk.Frame):
         self._content.columnconfigure(0, weight=1)
         self._formula_strips: list[tuple[ttk.Frame, tuple[ttk.Frame, ...]]] = []
         self._equation_images: list[tk.PhotoImage] = []
+        self._formula_asset_images: list[LoadedImage] = []
+        self._section_marker_images: list[LoadedImage] = []
 
     @staticmethod
     def _create_default_toggle(
@@ -179,6 +190,15 @@ class FormulaReferencePanel(ttk.Frame):
             child.destroy()
         self._formula_strips.clear()
         self._equation_images.clear()
+        self._formula_asset_images.clear()
+        self._section_marker_images.clear()
+        if self._content_available is not None and not self._content_available():
+            EmptyState(
+                self._content, "formula", "Formül referansı henüz hazır değil",
+                "Önce hesaplama yapın. Formül, değişkenler ve yerine koyma adımları burada gösterilecektir.",
+                image_size=190,
+            ).grid(row=0, column=0, sticky="ew", pady=SM)
+            return
         for row, block in enumerate(self._blocks()):
             self._render_block(block, row)
 
@@ -232,8 +252,12 @@ class FormulaReferencePanel(ttk.Frame):
             "result": "FormulaResult",
             "note": "FormulaNote",
         }[section.role]
-        container = ttk.Frame(parent, style=f"{style_root}.TFrame")
-        container.columnconfigure(1, weight=1)
+        container = ttk.Frame(
+            parent,
+            style=f"{style_root}.TFrame",
+            padding=(MD, SM),
+        )
+        container.columnconfigure(3, weight=1)
         heading_key = {
             "FORMULA": "formula.formula",
             "VARIABLES": "formula.variables",
@@ -248,12 +272,40 @@ class FormulaReferencePanel(ttk.Frame):
             width=4,
         )
         accent.grid(row=0, column=0, rowspan=2, sticky="ns")
+        marker = AssetImageLoader.load(
+            container,
+            status_icon_path(self._marker_state(section.role)),
+            _FORMULA_MARKER_RENDER_SIZE,
+            fit_mode=status_icon_fit_mode(self._marker_state(section.role)),
+        )
+        if marker is not None:
+            self._section_marker_images.append(marker)
+            ttk.Label(
+                container,
+                image=marker.rendered,
+                style=f"{style_root}Title.TLabel",
+            # The marker is a semantic silhouette, not a square thumbnail.
+            # Its 32 px render canvas occupies a compact 36 px title lane.
+            ).grid(
+                row=0,
+                column=1,
+                sticky="w",
+                padx=(_FORMULA_MARKER_LANE_SIZE - _FORMULA_MARKER_RENDER_SIZE, 0),
+                pady=(0, 0),
+            )
         ttk.Label(
             container,
             text=(self._translate(heading_key) if heading_key is not None else section.heading),
             style=f"{style_root}Title.TLabel",
             wraplength=260,
-        ).grid(row=0, column=1, sticky="w", padx=(SM, MD), pady=(SM, 0))
+        ).grid(
+            row=0,
+            column=2,
+            columnspan=3,
+            sticky="w",
+            padx=(SM, 0),
+            pady=(0, 0),
+        )
         self._render_section_content(container, section, style_root)
         return container
 
@@ -264,9 +316,15 @@ class FormulaReferencePanel(ttk.Frame):
         style_root: str,
     ) -> None:
         """Render MathText only for equations, retaining Tk text as the fallback."""
+        if section.role == "formula" and self._render_formula_assets(
+            container, section, style_root
+        ):
+            return
         if section.role == "formula" and self._render_mathtext_equations(
             container, section.text, style_root
         ):
+            return
+        if section.role == "variables" and self._render_variable_rows(container, section):
             return
         ttk.Label(
             container,
@@ -276,11 +334,87 @@ class FormulaReferencePanel(ttk.Frame):
             wraplength=260,
         ).grid(
             row=1,
-            column=1,
-            sticky="w",
+            column=2,
+            columnspan=3,
+            sticky="ew",
             padx=(SM, MD),
-            pady=(SM // 2, SM),
+            pady=(SM, 0),
         )
+
+    @staticmethod
+    def _variable_rows(text: str) -> tuple[tuple[str, str, str], ...] | None:
+        """Parse existing display-only ``symbol | explanation | unit`` rows."""
+        rows: list[tuple[str, str, str]] = []
+        for line in text.splitlines():
+            parts = tuple(part.strip() for part in line.split("|", maxsplit=2))
+            if len(parts) != 3:
+                return None
+            rows.append(parts)
+        return tuple(rows) or None
+
+    def _render_variable_rows(
+        self,
+        container: ttk.Frame,
+        section: FormulaSection,
+    ) -> bool:
+        """Present the page-owned variable text in aligned native columns."""
+        rows = self._variable_rows(section.text)
+        if rows is None:
+            return False
+        for row, (symbol, description, unit) in enumerate(rows, start=1):
+            pady = (SM if row == 1 else SM // 2, 0)
+            ttk.Label(
+                container,
+                text=symbol,
+                style="FormulaVariablesSymbol.TLabel",
+            ).grid(row=row, column=2, sticky="w", padx=(SM, SM), pady=pady)
+            ttk.Label(
+                container,
+                text=description,
+                style="FormulaVariablesText.TLabel",
+                wraplength=210,
+            ).grid(row=row, column=3, sticky="w", pady=pady)
+            ttk.Label(
+                container,
+                text=unit,
+                style="FormulaVariablesUnit.TLabel",
+            ).grid(row=row, column=4, sticky="e", padx=(SM, MD), pady=pady)
+        return True
+
+    def _render_formula_assets(
+        self,
+        container: ttk.Frame,
+        section: FormulaSection,
+        style_root: str,
+    ) -> bool:
+        """Render supplied complete equation artwork, with native text fallback."""
+        if not section.asset_names:
+            return False
+        rendered = False
+        for row, asset_name in enumerate(section.asset_names, start=1):
+            formula_image = AssetImageLoader.load(
+                container,
+                formula_asset_path(asset_name),
+                _FORMULA_ASSET_MAX_SIDE,
+                fit_mode="canvas",
+            )
+            if formula_image is None:
+                continue
+            self._formula_asset_images.append(formula_image)
+            ttk.Label(
+                container,
+                image=formula_image.rendered,
+                style=f"{style_root}Text.TLabel",
+            ).grid(
+                row=row,
+                column=2,
+                columnspan=3,
+                sticky="n",
+                padx=(SM, MD),
+                pady=(SM if row == 1 else SM // 2, 0),
+            )
+            rendered = True
+        return rendered
 
     def _render_mathtext_equations(
         self,
@@ -304,10 +438,11 @@ class FormulaReferencePanel(ttk.Frame):
                     style=f"{style_root}Text.TLabel",
                 ).grid(
                     row=row,
-                    column=1,
-                    sticky="w",
+                    column=2,
+                    columnspan=3,
+                    sticky="n",
                     padx=(SM, MD),
-                    pady=(SM if row == 1 else SM // 2, SM // 2),
+                    pady=(SM if row == 1 else SM // 2, 0),
                 )
                 rendered = True
             else:
@@ -319,10 +454,11 @@ class FormulaReferencePanel(ttk.Frame):
                     wraplength=260,
                 ).grid(
                     row=row,
-                    column=1,
-                    sticky="w",
+                    column=2,
+                    columnspan=3,
+                    sticky="ew",
                     padx=(SM, MD),
-                    pady=(SM if row == 1 else SM // 2, SM // 2),
+                    pady=(SM if row == 1 else SM // 2, 0),
                 )
         return rendered
 
@@ -381,12 +517,12 @@ class FormulaReferencePanel(ttk.Frame):
             return
 
         requested_width = sum(panel.winfo_reqwidth() for panel in panels)
-        requested_width += SM * (len(panels) - 1)
+        requested_width += MD * (len(panels) - 1)
         largest_panel = max(panel.winfo_reqwidth() for panel in panels)
 
         if width >= requested_width:
             columns = len(panels)
-        elif len(panels) > 1 and width >= (largest_panel * 2) + SM:
+        elif len(panels) > 1 and width >= (largest_panel * 2) + MD:
             columns = 2
         else:
             columns = 1
@@ -400,6 +536,17 @@ class FormulaReferencePanel(ttk.Frame):
                 row=row,
                 column=column,
                 sticky="nsew",
-                padx=(0 if column == 0 else SM, 0),
-                pady=(0 if row == 0 else SM, 0),
+                padx=(0 if column == 0 else MD, 0),
+                pady=(0 if row == 0 else MD, 0),
             )
+
+    @staticmethod
+    def _marker_state(role: FormulaSectionRole) -> str:
+        """Map reference roles to supplied standalone glyphs, never framed buttons."""
+        return {
+            "formula": "information",
+            "variables": "ready",
+            "substitution": "working",
+            "result": "success",
+            "note": "information",
+        }[role]

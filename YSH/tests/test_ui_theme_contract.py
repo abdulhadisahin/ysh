@@ -10,20 +10,21 @@ from ui.theme import colors
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_design_system_exposes_the_approved_semantic_palette() -> None:
-    """Phase 5A keeps final color decisions centralized rather than page-local."""
-    assert colors.NAVY == "#0B2F5B"
-    assert colors.DEEP_NAVY == "#062449"
-    assert colors.NAVY_TEXT == "#102A43"
-    assert colors.PIPE == "#00FFFF"
-    assert colors.TRANSFER == "#F47A16"
-    assert colors.DISCHARGE == "#1265D8"
-    assert colors.SUCTION == "#2600FF"
-    assert colors.APP_BACKGROUND == "#F5F8FC"
-    assert colors.SECONDARY_SURFACE == "#F1F5F9"
+def test_design_system_exposes_the_d243_semantic_palette() -> None:
+    """D243 keeps the navy / white / gold decisions centralized."""
+    assert colors.NAVY == "#102B46"
+    assert colors.DEEP_NAVY == "#091B2D"
+    assert colors.NAVY_TEXT == "#152B3F"
+    assert colors.GOLD == "#B58A2A"
+    assert colors.PIPE == colors.GOLD
+    assert colors.TRANSFER == colors.GOLD
+    assert colors.DISCHARGE == colors.NAVY
+    assert colors.SUCTION == "#35698F"
+    assert colors.APP_BACKGROUND == "#EEF2F5"
+    assert colors.SECONDARY_SURFACE == "#F4F6F8"
     assert colors.CARD_SURFACE == "#FFFFFF"
-    assert colors.BORDER == "#D5DEE9"
-    assert colors.STRONG_BORDER == "#B8C6D8"
+    assert colors.BORDER == "#D3DAE1"
+    assert colors.STRONG_BORDER == "#A9B7C4"
     assert colors.ERROR == "#E52B32"
     assert colors.TEXT_PRIMARY != colors.BACKGROUND
 
@@ -71,7 +72,7 @@ def test_theme_uses_navy_structure_and_native_input_state_treatment() -> None:
 
     assert 'style.configure("Header.TFrame", background=colors.NAVY)' in source
     assert 'style.configure("Ribbon.TFrame", background=colors.NAVY)' in source
-    assert "foreground=colors.HEADER_GROUP_TEXT" in source
+    assert "foreground=colors.GOLD" in source
     assert 'style.configure("Status.TFrame", background=colors.NAVY)' in source
     assert 'style.configure("YSH.TNotebook.Tab", background=colors.NAVY' in source
     assert 'style.map("TEntry", bordercolor=[("focus", colors.PRIMARY)' in source
@@ -174,14 +175,13 @@ def test_pipe_image_button_prototype_keeps_live_text_and_four_surface_states() -
     assert "Calculate Diameter" not in widget_source
 
 
-def test_pipe_button_v2_uses_independent_light_fills_and_colored_outlines() -> None:
-    """V2 keeps real rounded borders distinct from the light button interior."""
+def test_pipe_button_uses_navy_fill_with_a_restrained_gold_outline() -> None:
+    """The primary Pipe action follows the D243 command hierarchy."""
     page_source = (ROOT / "ui/pages/pipe_design_page.py").read_text(encoding="utf-8")
     widget_source = (ROOT / "ui/widgets/rounded_button.py").read_text(encoding="utf-8")
 
-    assert 'normal=(colors.PIPE, colors.PIPE_DEEP)' in page_source
-    assert 'hover=(colors.PIPE_ACTION_HOVER, colors.PIPE_DARK)' in page_source
-    assert 'pressed=(colors.PIPE_ACTION_PRESSED, colors.PIPE_DEEP)' in page_source
+    assert 'normal=(colors.NAVY, colors.GOLD)' in page_source
+    assert 'pressed=(colors.DEEP_NAVY, colors.GOLD)' in page_source
     assert "_surface_pixel" in widget_source
     assert "return fill" in widget_source
     assert "return border" in widget_source
@@ -195,8 +195,8 @@ def test_pipe_hybrid_naval_button_pilot_preserves_three_action_levels() -> None:
     page_source = (ROOT / "ui/pages/pipe_design_page.py").read_text(encoding="utf-8")
     colors_source = (ROOT / "ui/theme/colors.py").read_text(encoding="utf-8")
 
-    assert 'PIPE_ACTION_HOVER = "#00E6E6"' in colors_source
-    assert 'PIPE_ACTION_PRESSED = "#00BFC4"' in colors_source
+    assert 'PIPE_ACTION_HOVER = "#C79D3B"' in colors_source
+    assert 'PIPE_ACTION_PRESSED = "#96701F"' in colors_source
     assert 'normal=(colors.CARD_SURFACE, colors.STRONG_BORDER)' in page_source
     assert 'normal=(colors.FORMULA_SOFT, colors.FORMULA)' in page_source
     assert "focus_border=colors.FORMULA" in page_source
@@ -215,14 +215,13 @@ def test_pipe_formula_toggle_uses_only_the_optional_tertiary_factory() -> None:
     assert 'style="Secondary.TButton"' in formula_source
 
 
-def test_pipe_hybrid_primary_uses_compact_padding_and_dark_cyan_text() -> None:
-    """The solid cyan primary action keeps dark text and controlled dimensions."""
+def test_pipe_primary_uses_compact_padding_and_readable_navy_action_text() -> None:
+    """The navy primary action keeps light text and controlled dimensions."""
     styles_source = (ROOT / "ui/theme/styles.py").read_text(encoding="utf-8")
     page_source = (ROOT / "ui/pages/pipe_design_page.py").read_text(encoding="utf-8")
     widget_source = (ROOT / "ui/widgets/rounded_button.py").read_text(encoding="utf-8")
 
-    assert 'foreground=colors.PIPE_DARK' in styles_source
-    assert 'foreground=colors.ON_ACCENT' not in styles_source.split(
+    assert 'foreground=colors.ON_ACCENT' in styles_source.split(
         '"PipeRoundedPrimary.TButton"', 1
     )[1].split('"PipeRoundedNeutral.TButton"', 1)[0]
     assert "radius=7" in page_source
@@ -235,16 +234,16 @@ def test_pipe_hybrid_primary_uses_compact_padding_and_dark_cyan_text() -> None:
     assert "height = max(self.winfo_height(), self.winfo_reqheight(), 36)" not in widget_source
 
 
-def test_pipe_cyan_token_does_not_replace_other_module_or_action_semantics() -> None:
-    """The vivid Pipe identity stays isolated from Formula and semantic actions."""
+def test_d243_gold_token_replaces_legacy_purple_formula_and_suction_chrome() -> None:
+    """The shared D243 language avoids incompatible purple active controls."""
     colors_source = (ROOT / "ui/theme/colors.py").read_text(encoding="utf-8")
     styles_source = (ROOT / "ui/theme/styles.py").read_text(encoding="utf-8")
 
-    assert 'PIPE = "#00FFFF"' in colors_source
-    assert 'FORMULA = "#2600FF"' in colors_source
-    assert 'SUCTION = "#2600FF"' in colors_source
-    assert 'TRANSFER = "#F47A16"' in colors_source
-    assert 'DISCHARGE = "#1265D8"' in colors_source
+    assert 'PIPE = GOLD' in colors_source
+    assert 'FORMULA = GOLD_DARK' in colors_source
+    assert 'SUCTION = "#35698F"' in colors_source
+    assert "TRANSFER = GOLD" in colors_source
+    assert "DISCHARGE = NAVY" in colors_source
     for action_style in ("RoundedAdd.TButton", "RoundedEdit.TButton", "RoundedDelete.TButton"):
         assert action_style in styles_source
 
@@ -265,16 +264,16 @@ def test_module_rollout_uses_distinct_outlined_palettes_and_semantic_actions() -
         assert style in transfer or style in discharge or style in suction
 
 
-def test_suction_identity_uses_approved_blue_violet_without_recoloring_formula() -> None:
-    """Suction adopts its new identity while tertiary Formula remains semantic."""
+def test_suction_identity_uses_naval_blue_and_formula_uses_gold() -> None:
+    """Shared visual semantics no longer introduce purple controls."""
     rounded_source = (ROOT / "ui/widgets/rounded_button.py").read_text(encoding="utf-8")
     colors_source = (ROOT / "ui/theme/colors.py").read_text(encoding="utf-8")
 
-    assert 'SUCTION = "#2600FF"' in colors_source
-    assert 'FORMULA = "#2600FF"' in colors_source
+    assert 'SUCTION = "#35698F"' in colors_source
+    assert 'FORMULA = GOLD_DARK' in colors_source
     suction_palette = rounded_source.split("SUCTION_PRIMARY_PALETTE", 1)[1].split("ADD_BUTTON_PALETTE", 1)[0]
-    assert '"#2600FF"' in suction_palette
-    assert '"#7C3AED"' not in suction_palette
+    assert '"#35698F"' in suction_palette
+    assert '"#2600FF"' not in suction_palette
 
 
 def test_pipe_button_prototype_is_not_a_global_button_migration() -> None:

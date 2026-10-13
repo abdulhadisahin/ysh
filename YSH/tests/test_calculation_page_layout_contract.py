@@ -40,7 +40,7 @@ def test_transfer_layout_preserves_reference_crud_graph_and_estimate_paths() -> 
     """The regression page keeps its table, graph, and authoritative callbacks."""
     source = _page_source("transfer_pump_page.py")
     assert "section.reference_vessels" in source
-    assert "section.regression_summary" in source
+    assert "section.regression_chart" in source
     assert "section.estimate_results" in source
     assert "TransferPumpChart" in source
     for callback in ("self._add", "self._edit", "self._delete", "self._calculate"):

@@ -26,22 +26,22 @@ def apply_theme(root: tk.Misc) -> None:
     style.configure("HeaderUtility.TFrame", background=colors.NAVY)
     style.configure(
         "HeaderLogoPlate.TFrame",
-        background=colors.CARD_SURFACE,
-        bordercolor=colors.DIVIDER,
-        relief="solid",
-        borderwidth=1,
+        background=colors.NAVY,
+        bordercolor=colors.NAVY,
+        relief="flat",
+        borderwidth=0,
     )
     style.configure(
         "HeaderLogoPlate.TLabel",
-        background=colors.CARD_SURFACE,
+        background=colors.NAVY,
     )
     style.configure("Ribbon.TFrame", background=colors.NAVY)
     style.configure(
         "CommandGroup.TFrame",
         background=colors.NAVY,
-        bordercolor=colors.HEADER_GROUP_BORDER,
-        relief="solid",
-        borderwidth=1,
+        bordercolor=colors.NAVY,
+        relief="flat",
+        borderwidth=0,
     )
     style.configure(
         "CommandGroupCommands.TFrame",
@@ -50,7 +50,7 @@ def apply_theme(root: tk.Misc) -> None:
     style.configure(
         "CommandGroupTitle.TLabel",
         background=colors.NAVY,
-        foreground=colors.HEADER_GROUP_TEXT,
+        foreground=colors.GOLD,
         font=typography.SUBSECTION_TITLE,
     )
     style.configure("Sidebar.TFrame", background=colors.SURFACE)
@@ -58,12 +58,26 @@ def apply_theme(root: tk.Misc) -> None:
     style.configure("SidebarActions.TFrame", background=colors.SIDEBAR_SURFACE)
     style.configure("SidebarSearchLabel.TLabel", background=colors.SIDEBAR_SURFACE, foreground=colors.TEXT_SECONDARY, font=typography.MUTED)
     style.configure("Workspace.TFrame", background=colors.BACKGROUND)
+    style.configure("TableToolbar.TFrame", background=colors.CARD_SURFACE)
+    style.configure("EmptyState.TFrame", background=colors.SURFACE_ALT)
+    style.configure("EmptyState.TLabel", background=colors.SURFACE_ALT, foreground=colors.TEXT_MUTED, font=typography.MUTED)
+    style.configure("EmptyStateTitle.TLabel", background=colors.SURFACE_ALT, foreground=colors.NAVY, font=typography.BODY_BOLD)
+    style.configure("EmptyStateHelper.TLabel", background=colors.SURFACE_ALT, foreground=colors.TEXT_SECONDARY, font=typography.MUTED)
+    style.configure("Tooltip.TLabel", background=colors.DEEP_NAVY, foreground=colors.ON_ACCENT, font=typography.MUTED)
+    style.configure("StatusInformation.TLabel", background=colors.INFO_SURFACE, foreground=colors.INFO, font=typography.MUTED)
+    style.configure("StatusReady.TLabel", background=colors.SURFACE_ALT, foreground=colors.TEXT_SECONDARY, font=typography.MUTED)
+    style.configure("StatusWarning.TLabel", background=colors.WARNING_SURFACE, foreground=colors.WARNING, font=typography.MUTED)
+    style.configure("StatusCritical.TLabel", background=colors.CRITICAL_ENGINEERING_SURFACE, foreground=colors.CRITICAL_ENGINEERING, font=typography.MUTED)
+    style.configure("StatusError.TLabel", background=colors.ERROR_SURFACE, foreground=colors.ERROR, font=typography.MUTED)
+    style.configure("StatusSuccess.TLabel", background=colors.SUCCESS_SURFACE, foreground=colors.SUCCESS, font=typography.MUTED)
+    style.configure("StatusSaved.TLabel", background=colors.SUCCESS_SURFACE, foreground=colors.SUCCESS, font=typography.MUTED)
+    style.configure("StatusWorking.TLabel", background=colors.INFO_SURFACE, foreground=colors.INFO, font=typography.MUTED)
     style.configure("TLabel", background=colors.BACKGROUND, foreground=colors.TEXT_PRIMARY)
-    style.configure("EngineeringWarningPanel.TFrame", background="#FFF6DF", bordercolor="#D99B1C", relief="solid", borderwidth=1)
-    style.configure("EngineeringWarningTitle.TLabel", background="#FFF6DF", foreground="#8A5A00", font=typography.BODY_BOLD)
-    style.configure("EngineeringWarning.TLabel", background="#FFF6DF", foreground=colors.TEXT_PRIMARY, font=typography.BODY)
-    style.configure("EngineeringCriticalWarningTitle.TLabel", background="#FCE8E8", foreground="#9C2020", font=typography.BODY_BOLD)
-    style.configure("EngineeringCriticalWarning.TLabel", background="#FCE8E8", foreground=colors.TEXT_PRIMARY, font=typography.BODY)
+    style.configure("EngineeringWarningPanel.TFrame", background=colors.WARNING_SURFACE, bordercolor=colors.WARNING, relief="solid", borderwidth=1)
+    style.configure("EngineeringWarningTitle.TLabel", background=colors.WARNING_SURFACE, foreground="#8A5A00", font=typography.BODY_BOLD)
+    style.configure("EngineeringWarning.TLabel", background=colors.WARNING_SURFACE, foreground=colors.TEXT_PRIMARY, font=typography.BODY)
+    style.configure("EngineeringCriticalWarningTitle.TLabel", background=colors.CRITICAL_ENGINEERING_SURFACE, foreground=colors.CRITICAL_ENGINEERING, font=typography.BODY_BOLD)
+    style.configure("EngineeringCriticalWarning.TLabel", background=colors.CRITICAL_ENGINEERING_SURFACE, foreground=colors.TEXT_PRIMARY, font=typography.BODY)
     style.configure("TEntry", padding=(SM // 2, SM // 4), fieldbackground=colors.CARD_SURFACE, foreground=colors.TEXT_PRIMARY, bordercolor=colors.BORDER, insertcolor=colors.TEXT_PRIMARY)
     style.map("TEntry", bordercolor=[("focus", colors.PRIMARY), ("disabled", colors.DIVIDER)], fieldbackground=[("disabled", colors.SURFACE_ALT)])
     style.configure("TCombobox", padding=(SM // 2, SM // 4), fieldbackground=colors.CARD_SURFACE, foreground=colors.TEXT_PRIMARY, bordercolor=colors.BORDER)
@@ -90,25 +104,40 @@ def apply_theme(root: tk.Misc) -> None:
     style.configure("SurfaceCardTitle.TLabel", background=colors.CARD_SURFACE, foreground=colors.TEXT_SECONDARY, font=typography.SECTION_TITLE)
     style.configure("SurfaceCardContent.TFrame", background=colors.CARD_SURFACE)
     style.configure("PipePage.TFrame", background=colors.WORKSPACE_SURFACE)
-    style.configure("PipeInputCard.TFrame", background=colors.CARD_SURFACE, bordercolor=colors.PIPE_BORDER, relief="solid", borderwidth=1)
-    style.configure("PipeInputCardTitle.TLabel", background=colors.CARD_SURFACE, foreground=colors.PIPE_DARK, font=typography.SECTION_TITLE)
+    style.configure(
+        "PipeInputCard.TFrame",
+        background=colors.CARD_SURFACE,
+        bordercolor=colors.BORDER,
+        relief="solid",
+        borderwidth=1,
+    )
+    style.configure("PipeInputCardTitle.TLabel", background=colors.CARD_SURFACE, foreground=colors.NAVY, font=typography.SECTION_TITLE)
     style.configure("PipeInputCardContent.TFrame", background=colors.CARD_SURFACE)
-    style.configure("PipeResultCard.TFrame", background=colors.RESULT_SURFACE, bordercolor=colors.PIPE_BORDER, relief="solid", borderwidth=1)
-    style.configure("PipeResultAccent.TFrame", background=colors.PIPE, width=4)
-    style.configure("PipeResultCardTitle.TLabel", background=colors.RESULT_SURFACE, foreground=colors.PIPE_DARK, font=typography.SECTION_TITLE)
+    style.configure(
+        "PipeResultCard.TFrame",
+        background=colors.RESULT_SURFACE,
+        bordercolor=colors.PIPE_BORDER,
+        relief="solid",
+        borderwidth=1,
+    )
+    style.configure("PipeResultAccent.TFrame", background=colors.GOLD, width=4)
+    style.configure("PipeResultCardTitle.TLabel", background=colors.RESULT_SURFACE, foreground=colors.NAVY, font=typography.SECTION_TITLE)
     style.configure("PipeResultCardContent.TFrame", background=colors.RESULT_SURFACE)
     style.configure("PipeGroup.TFrame", background=colors.CARD_SURFACE, bordercolor=colors.DIVIDER, relief="solid", borderwidth=1)
-    style.configure("PipeGroupTitle.TLabel", background=colors.CARD_SURFACE, foreground=colors.TEXT_SECONDARY, font=typography.SUBSECTION_TITLE)
+    style.configure("PipeGroupTitle.TLabel", background=colors.CARD_SURFACE, foreground=colors.NAVY, font=typography.BODY_BOLD)
     style.configure("PipeField.TLabel", background=colors.CARD_SURFACE, foreground=colors.TEXT_PRIMARY, font=typography.BODY)
-    style.configure("PipeMetricLabel.TLabel", background=colors.RESULT_SURFACE, foreground=colors.TEXT_SECONDARY, font=typography.MUTED)
-    style.configure("PipeMetricValue.TLabel", background=colors.RESULT_SURFACE, foreground=colors.NAVY_TEXT, font=typography.DOMINANT_RESULT)
+    style.configure("PipeMetricLabel.TLabel", background=colors.RESULT_SURFACE, foreground=colors.TEXT_SECONDARY, font=typography.METRIC_LABEL)
+    style.configure("PipeMetricValue.TLabel", background=colors.RESULT_SURFACE, foreground=colors.NAVY, font=typography.DOMINANT_RESULT)
     style.configure("PipeMetricUnit.TLabel", background=colors.RESULT_SURFACE, foreground=colors.TEXT_MUTED, font=typography.BODY)
-    style.configure("PipeSupportingValue.TLabel", background=colors.RESULT_SURFACE, foreground=colors.NAVY_TEXT, font=typography.RESULT_TECHNICAL)
+    style.configure("PipeSupportingValue.TLabel", background=colors.RESULT_SURFACE, foreground=colors.NAVY, font=typography.RESULT_TECHNICAL)
+    style.configure("PipeSecondaryMetric.TLabel", background=colors.RESULT_SURFACE, foreground=colors.GOLD_DARK, font=typography.RESULT_SECONDARY)
+    style.configure("PipeReference.TLabel", background=colors.CARD_SURFACE, foreground=colors.TEXT_MUTED, font=typography.MUTED)
+    style.configure("PipeStage.TLabel", background=colors.WORKSPACE_SURFACE, foreground=colors.GOLD_DARK, font=typography.SUBSECTION_TITLE)
     _configure_card(style, "InformationCard.TLabelframe", colors.SURFACE_ALT, colors.BORDER, colors.TEXT_SECONDARY)
     _configure_card(style, "InputCard.TLabelframe", colors.CARD_SURFACE, colors.BORDER, colors.TEXT_SECONDARY)
     _configure_card(style, "CalculationCard.TLabelframe", colors.INFO_SURFACE, colors.BORDER, colors.TEXT_SECONDARY)
     _configure_card(style, "ResultCard.TLabelframe", colors.RESULT_SURFACE, colors.BORDER, colors.TEXT_SECONDARY)
-    _configure_card(style, "FormulaCard.TLabelframe", colors.SURFACE_ALT, colors.BORDER, colors.TEXT_SECONDARY)
+    _configure_card(style, "FormulaCard.TLabelframe", colors.FORMULA_SURFACE, colors.GOLD_BORDER, colors.NAVY)
     _configure_card(style, "WarningCard.TLabelframe", colors.WARNING_SURFACE, colors.WARNING, colors.WARNING)
     _configure_card(style, "ErrorCard.TLabelframe", colors.ERROR_SURFACE, colors.ERROR, colors.ERROR)
     _configure_card(style, "CriticalCard.TLabelframe", colors.CRITICAL_ENGINEERING_SURFACE, colors.CRITICAL_ENGINEERING, colors.CRITICAL_ENGINEERING)
@@ -121,20 +150,20 @@ def apply_theme(root: tk.Misc) -> None:
         colors.FORMULA,
         typography.FORMULA_EXPRESSION,
     )
-    _configure_formula_section(
-        style,
-        "FormulaVariables",
-        colors.SECONDARY_SOFT,
-        colors.SECONDARY,
-        typography.BODY,
+    _configure_formula_section(style, "FormulaVariables", colors.CARD_SURFACE, colors.NAVY, typography.BODY)
+    style.configure(
+        "FormulaVariablesSymbol.TLabel",
+        background=colors.CARD_SURFACE,
+        foreground=colors.NAVY,
+        font=typography.BODY_BOLD,
     )
-    _configure_formula_section(
-        style,
-        "FormulaSubstitution",
-        colors.PRIMARY_SOFT,
-        colors.PRIMARY_HOVER,
-        typography.BODY,
+    style.configure(
+        "FormulaVariablesUnit.TLabel",
+        background=colors.CARD_SURFACE,
+        foreground=colors.TEXT_MUTED,
+        font=typography.MUTED,
     )
+    _configure_formula_section(style, "FormulaSubstitution", colors.PRIMARY_SOFT, colors.NAVY, typography.BODY)
     _configure_formula_section(
         style,
         "FormulaResult",
@@ -150,8 +179,8 @@ def apply_theme(root: tk.Misc) -> None:
         typography.MUTED,
     )
     style.configure("PageHeader.TFrame", background=colors.BACKGROUND)
-    style.configure("PageTitle.TLabel", background=colors.BACKGROUND, foreground=colors.NAVY, font=typography.SECTION_TITLE)
-    style.configure("PageDescription.TLabel", background=colors.BACKGROUND, foreground=colors.TEXT_SECONDARY, font=typography.MUTED)
+    style.configure("PageTitle.TLabel", background=colors.BACKGROUND, foreground=colors.NAVY, font=typography.PAGE_TITLE)
+    style.configure("PageDescription.TLabel", background=colors.BACKGROUND, foreground=colors.TEXT_SECONDARY, font=typography.BODY)
     style.configure("Dialog.TFrame", background=colors.BACKGROUND)
     style.configure("DialogTitle.TLabel", background=colors.BACKGROUND, foreground=colors.TEXT_PRIMARY, font=typography.SECTION_TITLE)
     style.configure("DialogHint.TLabel", background=colors.BACKGROUND, foreground=colors.TEXT_SECONDARY, font=typography.MUTED)
@@ -167,10 +196,24 @@ def apply_theme(root: tk.Misc) -> None:
     _configure_result_metric(style, "ErrorResultMetric", colors.ERROR_SURFACE, colors.ERROR)
     _configure_result_metric(style, "CriticalResultMetric", colors.CRITICAL_ENGINEERING_SURFACE, colors.CRITICAL_ENGINEERING)
     _configure_result_metric(style, "UnavailableResultMetric", colors.RESULT_SURFACE, colors.DIVIDER, typography.BODY_BOLD)
-    _configure_result_metric(style, "TransferResultMetric", colors.TRANSFER_SOFT, colors.TRANSFER)
-    _configure_result_metric(style, "TransferSecondaryMetric", colors.RESULT_SURFACE, colors.TRANSFER, typography.RESULT_SECONDARY)
-    _configure_result_metric(style, "DischargeResultMetric", colors.DISCHARGE_SOFT, colors.DISCHARGE)
-    _configure_result_metric(style, "DischargeLossMetric", colors.RESULT_SURFACE, colors.DISCHARGE, typography.RESULT_SECONDARY)
+    _configure_result_metric(style, "TransferResultMetric", colors.GOLD_SOFT, colors.GOLD)
+    _configure_result_metric(style, "TransferSecondaryMetric", colors.RESULT_SURFACE, colors.GOLD, typography.RESULT_SECONDARY)
+    style.configure(
+        "TransferReference.TLabel",
+        background=colors.CARD_SURFACE,
+        foreground=colors.TEXT_MUTED,
+        font=typography.MUTED,
+    )
+    style.configure(
+        "TransferReferenceValue.TLabel",
+        background=colors.CARD_SURFACE,
+        foreground=colors.NAVY_TEXT,
+        font=typography.BODY_BOLD,
+    )
+    style.configure("TechnicalReference.TLabel", background=colors.CARD_SURFACE, foreground=colors.TEXT_MUTED, font=typography.MUTED)
+    style.configure("TechnicalReferenceValue.TLabel", background=colors.CARD_SURFACE, foreground=colors.NAVY_TEXT, font=typography.BODY_BOLD)
+    _configure_result_metric(style, "DischargeResultMetric", colors.GOLD_SOFT, colors.GOLD)
+    _configure_result_metric(style, "DischargeLossMetric", colors.RESULT_SURFACE, colors.GOLD, typography.RESULT_SECONDARY)
     _configure_result_metric(style, "SuctionResultMetric", colors.SUCTION_SOFT, colors.SUCTION)
     _configure_result_metric(style, "SuctionLossMetric", colors.RESULT_SURFACE, colors.SUCTION, typography.RESULT_SECONDARY)
     _configure_button(style, "Primary.TButton", colors.PRIMARY, colors.PRIMARY_HOVER, colors.ON_ACCENT)
@@ -179,12 +222,12 @@ def apply_theme(root: tk.Misc) -> None:
     _configure_button(style, "Warning.TButton", colors.WARNING, "#D9812F", colors.ON_ACCENT)
     _configure_button(style, "Danger.TButton", colors.DANGER, "#B8403D", colors.ON_ACCENT)
     _configure_button(style, "Neutral.TButton", colors.SURFACE_ALT, "#E6EEF1", colors.TEXT_PRIMARY)
-    _configure_button(style, "PrimaryCalculate.TButton", colors.PIPE, colors.PIPE_DEEP, colors.NAVY)
+    _configure_button(style, "PrimaryCalculate.TButton", colors.NAVY, colors.DEEP_NAVY, colors.ON_ACCENT)
     _configure_pipe_button_prototype(style)
     style.configure(
         "PipeRoundedPrimary.TButton",
         background=colors.CARD_SURFACE,
-        foreground=colors.PIPE_DARK,
+        foreground=colors.ON_ACCENT,
         borderwidth=0,
         focusthickness=0,
         padding=0,
@@ -195,8 +238,8 @@ def apply_theme(root: tk.Misc) -> None:
         "PipeRoundedPrimary.TButton",
         foreground=[
             ("disabled", "#7F9997"),
-            ("pressed", colors.PIPE_DEEP),
-            ("active", colors.PIPE_DARK),
+            ("pressed", colors.ON_ACCENT),
+            ("active", colors.ON_ACCENT),
         ],
     )
     style.configure(
@@ -216,7 +259,7 @@ def apply_theme(root: tk.Misc) -> None:
     style.configure(
         "PipeRoundedFormula.TButton",
         background=colors.CARD_SURFACE,
-        foreground="#2600FF",
+        foreground=colors.FORMULA,
         borderwidth=0,
         focusthickness=0,
         padding=0,
@@ -227,8 +270,8 @@ def apply_theme(root: tk.Misc) -> None:
         "PipeRoundedFormula.TButton",
         foreground=[
             ("disabled", colors.TEXT_MUTED),
-            ("pressed", "#1E00CC"),
-            ("active", "#2600FF"),
+            ("pressed", colors.PIPE_DEEP),
+            ("active", colors.FORMULA),
         ],
     )
     _configure_rounded_solid_button(style, "TransferRoundedPrimary.TButton")
@@ -239,16 +282,27 @@ def apply_theme(root: tk.Misc) -> None:
     _configure_rounded_outline_button(style, "RoundedDelete.TButton", "#B4232A")
     _configure_rounded_outline_button(style, "RoundedNeutral.TButton", colors.NAVY)
     _configure_rounded_outline_button(style, "RoundedClearAll.TButton", "#7A5A1B")
-    _configure_rounded_outline_button(style, "RoundedFormula.TButton", "#2600FF")
+    _configure_rounded_outline_button(style, "RoundedFormula.TButton", colors.FORMULA)
+    style.configure(
+        "HeaderCommand.TButton",
+        background=colors.NAVY,
+        foreground=colors.ON_ACCENT,
+        borderwidth=0,
+        focusthickness=0,
+        padding=0,
+        relief="flat",
+        font=typography.BODY_BOLD,
+    )
+    style.map("HeaderCommand.TButton", foreground=[("disabled", colors.HEADER_MUTED_TEXT)])
     _configure_button(style, "Transfer.Primary.TButton", colors.TRANSFER, "#D9690D", colors.ON_ACCENT)
-    _configure_button(style, "Discharge.Primary.TButton", colors.DISCHARGE, "#0D55B8", colors.ON_ACCENT)
-    _configure_button(style, "Suction.Primary.TButton", colors.SUCTION, "#1E00CC", colors.ON_ACCENT)
+    _configure_button(style, "Discharge.Primary.TButton", colors.NAVY, colors.DEEP_NAVY, colors.ON_ACCENT)
+    _configure_button(style, "Suction.Primary.TButton", colors.SUCTION, "#244B69", colors.ON_ACCENT)
     style.configure("TNotebook", background=colors.BACKGROUND, bordercolor=colors.BORDER, tabmargins=(0, 0, 0, 0))
     style.configure("TNotebook.Tab", background=colors.SURFACE_ALT, foreground=colors.TEXT_SECONDARY, padding=(14, 8), font=typography.BODY_BOLD)
     style.map("TNotebook.Tab", background=[("selected", colors.PRIMARY), ("active", colors.PRIMARY_SOFT)], foreground=[("selected", colors.ON_ACCENT), ("active", colors.PRIMARY_HOVER)])
     style.configure("YSH.TNotebook", background=colors.BACKGROUND, bordercolor=colors.BORDER, tabmargins=(0, 0, 0, 0))
     style.configure("YSH.TNotebook.Tab", background=colors.NAVY, foreground=colors.ON_ACCENT, padding=(16, 9), font=typography.BODY_BOLD)
-    style.map("YSH.TNotebook.Tab", background=[("active", colors.DEEP_NAVY)], foreground=[("active", colors.ON_ACCENT)])
+    style.map("YSH.TNotebook.Tab", background=[("selected", colors.DEEP_NAVY), ("active", colors.DEEP_NAVY)], foreground=[("selected", colors.ON_ACCENT), ("active", colors.ON_ACCENT)])
     style.configure("Data.Treeview", background=colors.SURFACE, fieldbackground=colors.SURFACE, foreground=colors.TEXT_PRIMARY, rowheight=28, bordercolor=colors.BORDER, font=typography.BODY)
     style.configure("Data.Treeview.Heading", background=colors.SURFACE_ALT, foreground=colors.TEXT_SECONDARY, font=typography.BODY_BOLD, relief="flat")
     style.map("Data.Treeview", background=[("selected", colors.SECONDARY)], foreground=[("selected", colors.ON_ACCENT)])
@@ -261,11 +315,21 @@ def apply_theme(root: tk.Misc) -> None:
         ("Suction.Treeview", colors.SUCTION),
     ):
         _configure_engineering_tree(style, tree_style, accent)
+    style.map(
+        "Transfer.Treeview",
+        background=[("selected", colors.GOLD_SOFT)],
+        foreground=[("selected", colors.NAVY_TEXT)],
+    )
+    style.map(
+        "Discharge.Treeview",
+        background=[("selected", colors.GOLD_SOFT)],
+        foreground=[("selected", colors.NAVY_TEXT)],
+    )
     style.configure("Vertical.TScrollbar", background=colors.BORDER, troughcolor=colors.APP_BACKGROUND, arrowsize=12)
     style.configure("Horizontal.TScrollbar", background=colors.BORDER, troughcolor=colors.APP_BACKGROUND, arrowsize=12)
     style.configure("Status.TFrame", background=colors.NAVY)
     style.configure("Status.TLabel", background=colors.NAVY, foreground=colors.ON_ACCENT)
-    style.configure("ChartSummary.TLabel", background=colors.BACKGROUND, foreground=colors.TEXT_SECONDARY, font=typography.MUTED)
+    style.configure("ChartSummary.TLabel", background=colors.CARD_SURFACE, foreground=colors.TEXT_SECONDARY, font=typography.MUTED)
 
 
 def _configure_button(style: ttk.Style, name: str, background: str, active: str, foreground: str) -> None:

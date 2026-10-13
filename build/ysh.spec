@@ -61,7 +61,7 @@ executable = EXE(
     debug=False,
     strip=False,
     upx=False,
-    icon=str(application_root / "resources" / "ysh.ico"),
+    icon=str(application_root / "resources" / "branding" / "d243_logo.ico"),
 )
 COLLECT(
     executable,

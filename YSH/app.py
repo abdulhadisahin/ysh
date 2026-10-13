@@ -32,7 +32,7 @@ from YSH.repositories.project_state_repository import ProjectStateRepository
 from YSH.ui.main_window import MainWindow
 from YSH.i18n.manager import LocalizationManager
 from YSH.paths import ApplicationPaths
-from YSH.ui.assets import ysh_icon_path
+from YSH.ui.assets import d243_icon_path
 
 
 def configure_logging(paths: ApplicationPaths) -> None:
@@ -138,7 +138,7 @@ class YSHApplication:
         """Apply the optional approved Windows icon without blocking startup."""
         if self._root is None:
             return
-        icon_path = ysh_icon_path(self._paths.resource_root)
+        icon_path = d243_icon_path(self._paths.resource_root)
         iconbitmap = getattr(self._root, "iconbitmap", None)
         if icon_path is None or not callable(iconbitmap):
             return
@@ -146,7 +146,7 @@ class YSHApplication:
             iconbitmap(default=str(icon_path))
         except tk.TclError:
             logging.getLogger(__name__).warning(
-                "Unable to apply optional YSH window icon: %s",
+                "Unable to apply optional D243 window icon: %s",
                 icon_path,
                 exc_info=True,
             )

@@ -9,6 +9,7 @@ from tkinter import ttk
 from core.engineering_context import fluid_label, line_role_label
 from engineering.warning_rules import EngineeringFinding, SOURCE_REGISTRY, WarningSeverity
 from ui.formatting import format_user_number
+from ui.widgets.engineering_components import StatusBadge
 
 
 _SEVERITY_ORDER = {
@@ -31,6 +32,7 @@ class EngineeringWarningPanel(ttk.Frame):
 
     def __init__(self, parent: tk.Misc, translate: Callable[[str], str]) -> None:
         super().__init__(parent, style="EngineeringWarningPanel.TFrame", padding=(10, 8))
+        self.columnconfigure(0, weight=1)
         self._translate = translate
         self._findings: tuple[EngineeringFinding, ...] = ()
 
@@ -54,14 +56,26 @@ class EngineeringWarningPanel(ttk.Frame):
 
     def _render_finding(self, row: int, finding: EngineeringFinding) -> None:
         critical = finding.severity is WarningSeverity.CRITICAL_WARNING
+        error = finding.severity is WarningSeverity.ERROR
         title_key = "warning.title.critical" if critical else "warning.title.engineering"
         title_style = "EngineeringCriticalWarningTitle.TLabel" if critical else "EngineeringWarningTitle.TLabel"
         body_style = "EngineeringCriticalWarning.TLabel" if critical else "EngineeringWarning.TLabel"
-        ttk.Label(self, text=self._translate(title_key), style=title_style).grid(
-            row=row * 2, column=0, sticky="w", pady=((0 if row == 0 else 8), 0)
+        icon_state = "error" if error else "critical" if critical else "warning"
+        StatusBadge(
+            self,
+            text=self._translate(title_key),
+            state=icon_state,
+            # A 34 px canvas renders a roughly 30 px status silhouette once
+            # the status-only transparent safety border is applied.
+            icon_size=34,
+            style=title_style,
+        ).grid(
+            row=row * 2, column=0, sticky="w", pady=((0 if row == 0 else 10), 0)
         )
-        ttk.Label(self, text=self._message(finding), style=body_style, wraplength=900).grid(
-            row=row * 2 + 1, column=0, sticky="w", pady=(2, 0)
+        ttk.Label(self, text=self._message(finding), style=body_style, wraplength=860).grid(
+            # Reserve a stable 40 px leading lane so the explanation aligns
+            # below the heading rather than beneath the status symbol.
+            row=row * 2 + 1, column=0, sticky="ew", padx=(40, 0), pady=(4, 0)
         )
 
     def _message(self, finding: EngineeringFinding) -> str:

@@ -14,12 +14,39 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_pipe_page_keeps_two_visual_engineering_stages_and_no_head_loss_inputs() -> None:
     """The presentation separates pipe sizing from wall thickness only."""
     source = (ROOT / "ui/pages/pipe_design_page.py").read_text(encoding="utf-8")
-    assert 'diameter_inputs.grid(row=0, column=0' in source
-    assert 'wall_inputs.grid(row=2, column=0' in source
+    assert 'text=self._translate("pipe.stage.diameter")' in source
+    assert 'text=self._translate("pipe.stage.wall")' in source
+    assert "self._diameter_stage_label.grid(" in source
+    assert "self._wall_stage_label.grid(" in source
     assert '"calculation.calculate_diameter"' in source
     assert '"calculation.calculate_wall_thickness"' in source
     for forbidden in ("Kinematic Viscosity", "Reynolds", "Friction Factor"):
         assert forbidden not in source
+
+
+def test_pipe_primary_actions_use_shared_visible_icon_plus_text_buttons() -> None:
+    """The final Pipe workflow keeps its commands explicit without icon-only actions."""
+    source = (ROOT / "ui/pages/pipe_design_page.py").read_text(encoding="utf-8")
+
+    diameter_action = source.split("self._diameter_button = RoundedImageButton", 1)[1].split(
+        "self._widgets.append(diameter_button)", 1
+    )[0]
+    wall_action = source.split("self._wall_button = RoundedImageButton", 1)[1].split(
+        "self._widgets.append(wall_button)", 1
+    )[0]
+    clear_action = source.split("self._clear_button = RoundedImageButton", 1)[1].split(
+        "self._widgets.append(clear_button)", 1
+    )[0]
+
+    assert 'text=self._translate("calculation.calculate_diameter")' in diameter_action
+    assert "command=self._calculate_diameter" in diameter_action
+    assert 'icon_name="calculate"' in diameter_action
+    assert 'text=self._translate("calculation.calculate_wall_thickness")' in wall_action
+    assert "command=self._calculate_wall" in wall_action
+    assert 'icon_name="calculate"' in wall_action
+    assert 'text=self._translate("common.clear")' in clear_action
+    assert "command=self._clear_user_state" in clear_action
+    assert 'icon_name="clear"' in clear_action
 
 
 class _FakeStringVar:

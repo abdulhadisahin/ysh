@@ -20,6 +20,7 @@ from ui.dialogs.local_loss_item_dialog import LocalLossItemDialog
 from ui.widgets.scrollable_treeview import ScrollableTreeview
 from ui.widgets.formula_view import FormulaReferencePanel, FormulaSection
 from ui.widgets.engineering_warning_panel import EngineeringWarningPanel
+from ui.widgets.engineering_components import EmptyState
 from ui.widgets.rounded_button import ADD_BUTTON_PALETTE, CLEAR_ALL_BUTTON_PALETTE, DELETE_BUTTON_PALETTE, EDIT_BUTTON_PALETTE, FORMULA_BUTTON_PALETTE, NEUTRAL_BUTTON_PALETTE, SUCTION_PRIMARY_PALETTE, create_rounded_button
 from ui.widgets.cards import CalculationCard, InputCard, ResultCard, ResultMetric, SectionHeader
 
@@ -154,6 +155,9 @@ class SuctionNPSHPage(ttk.Frame):
             self._tree.heading(column, text=label)
             self._tree.column(column, width=width, anchor="w")
         self._tree_container.grid(row=0, column=0, columnspan=4, sticky="nsew")
+        self._local_loss_empty_state = EmptyState(losses, "local_loss", "Lokal kayıp elemanı eklenmedi", "Dirsek, vana, süzgeç veya diğer elemanları ekleyerek lokal kayıp hesabını oluşturabilirsiniz.", "Ekle komutunu kullanın.", image_size=150)
+        self._local_loss_empty_state.grid(row=0, column=0, columnspan=4, sticky="nsew")
+        self._local_loss_empty_state.grid_remove()
         self._tree.bind("<Double-1>", self._edit_loss)
         self._tree.bind("<Return>", self._edit_loss)
         self._tree.bind("<Delete>", self._delete_loss)
@@ -200,6 +204,8 @@ class SuctionNPSHPage(ttk.Frame):
         self._enpy_metric.grid(row=0, column=0, sticky="ew")
         self._suction_metric = ResultMetric(results, self._translate("result.suction_head_loss"), self._suction_loss_summary, "m", normal_style_prefix="SuctionLossMetric")
         self._suction_metric.grid(row=1, column=0, sticky="ew", pady=(8, 0))
+        self._result_empty_state = EmptyState(results, "result", "Henüz sonuç üretilmedi", "Girdileri tamamlayın ve Hesapla komutunu çalıştırın.", image_size=145)
+        self._result_empty_state.grid(row=0, column=0, sticky="nsew")
         self._details_card = ttk.Frame(results, style="EngineeringDetails.TFrame", padding=(10, 8))
         self._details_card.columnconfigure(0, weight=1)
         self._details_card.columnconfigure(1, weight=1)
@@ -252,7 +258,7 @@ class SuctionNPSHPage(ttk.Frame):
         self._calculate_enpy_button.grid(row=0, column=1, sticky="w", padx=(8, 0))
         self._clear_button = create_rounded_button(actions, self._translate("common.clear"), self._clear, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE)
         self._clear_button.grid(row=0, column=2, sticky="w", padx=(8, 0))
-        self._formula_panel = FormulaReferencePanel(self, self._formula_sections, self._translate, self._create_formula_toggle)
+        self._formula_panel = FormulaReferencePanel(self, self._formula_sections, self._translate, self._create_formula_toggle, lambda: hasattr(self, "_last_loss") or hasattr(self, "_last_enpy"))
         self._formula_panel.grid(
             row=3, column=0, columnspan=3, sticky="ew", pady=(12, 0)
         )
@@ -260,11 +266,12 @@ class SuctionNPSHPage(ttk.Frame):
         self.bind("<Configure>", self._on_layout_configure, add="+")
         actions.bind("<Configure>", self._on_actions_configure, add="+")
         self.after_idle(self._reflow_layout)
+        self._sync_result_empty_state()
 
     @staticmethod
     def _create_formula_toggle(parent: tk.Misc, text: str, command: Callable[[], None]) -> ttk.Button:
         """Create the Suction-only rounded tertiary Formula toggle."""
-        return create_rounded_button(parent, text, command, style="RoundedFormula.TButton", palette=FORMULA_BUTTON_PALETTE)
+        return create_rounded_button(parent, text, command, style="RoundedFormula.TButton", palette=FORMULA_BUTTON_PALETTE, icon_name="formula", icon_size=36)
 
     def _on_layout_configure(self, event: tk.Event[tk.Misc]) -> None:
         """Reflow only after the live page viewport has a meaningful width."""
@@ -499,6 +506,8 @@ class SuctionNPSHPage(ttk.Frame):
             self._tree.delete(row)
         for identifier, item in self._items.items():
             self._tree.insert("", "end", iid=identifier, values=(item.name, item.quantity, item.k_coefficient, item.subtotal_k))
+        (self._tree_container.grid_remove if not self._items else self._tree_container.grid)()
+        (self._local_loss_empty_state.grid if not self._items else self._local_loss_empty_state.grid_remove)()
 
     def _add_loss(self) -> None:
         item = LocalLossItemDialog(self, translate=self._translate).show()
@@ -606,11 +615,11 @@ class SuctionNPSHPage(ttk.Frame):
         loss = getattr(self, "_last_loss", None)
         enpy = getattr(self, "_last_enpy", None)
         sections = [
-            FormulaSection("FORMULA", f"v = 4Q / (πD²)\nRe = vD / ν\nε = k / D\nf = {self._translate('formula.approved_ysh_moody_result')}\nKtotal = Σ(quantity × K)\nh_local = 6400 × Ktotal × Q² / D⁴\nh_pipe = 6.4 × 10⁶ × f × L × Q² / D⁵\nhe = h_pipe + h_local", "1. SUCTION HYDRAULICS", "formula"),
+            FormulaSection("FORMULA", f"v = 4Q / (πD²)\nRe = vD / ν\nε = k / D\nf = {self._translate('formula.approved_ysh_moody_result')}\nKtotal = Σ(quantity × K)\nh_local = 6400 × Ktotal × Q² / D⁴\nh_pipe = 6.4 × 10⁶ × f × L × Q² / D⁵\nhe = h_pipe + h_local", "1. SUCTION HYDRAULICS", "formula", ("local_loss", "pipe_friction_loss")),
             FormulaSection("VARIABLES", f"D | {self._translate('field.pipe_inside_diameter')} | mm\nQ | {self._translate('field.flow_rate')} | m³/h\nν | {self._translate('field.kinematic_viscosity')} | m²/s\nL | {self._translate('field.pipe_length')} | m\nk | {self._translate('field.roughness')} | mm\nKtotal | {self._translate('formula.total_local_loss_coefficient')} | −\nhe | {self._translate('result.suction_head_loss')} | m", "1. SUCTION HYDRAULICS", "variables"),
             FormulaSection("CURRENT SUBSTITUTION", self._translate("message.available_after_suction_calculation"), "1. SUCTION HYDRAULICS", "substitution"),
             FormulaSection("RESULT", self._translate("message.available_after_suction_calculation"), "1. SUCTION HYDRAULICS", "result"),
-            FormulaSection("FORMULA", f"ENPYm = PE/(ρg) − Pb/(ρg) − HEgeo − he\n{self._translate('result.npsh_margin')} = ENPYm − {self._translate('field.npsh_required')}", "2. ENPY / NPSH AVAILABLE", "formula"),
+            FormulaSection("FORMULA", f"ENPYm = PE/(ρg) − Pb/(ρg) − HEgeo − he\n{self._translate('result.npsh_margin')} = ENPYm − {self._translate('field.npsh_required')}", "2. ENPY / NPSH AVAILABLE", "formula", ("available_enpy",)),
             FormulaSection("VARIABLES", f"PE | {self._translate('field.suction_pressure')} | Pa\nPb | {self._translate('field.vapour_pressure')} | Pa\nρ | {self._translate('field.fluid_density')} | kg/m³\ng | {self._translate('formula.standard_gravity')} | m/s²\nHEgeo | {self._translate('field.static_suction_height')} | m\nENPYm | {self._translate('result.available_npsh')} | m", "2. ENPY / NPSH AVAILABLE", "variables"),
             FormulaSection("NOTE", self._translate("formula.suction_enpy_note"), "2. ENPY / NPSH AVAILABLE", "note"),
             FormulaSection("CURRENT SUBSTITUTION", self._translate("message.available_after_enpy_calculation"), "2. ENPY / NPSH AVAILABLE", "substitution"),
@@ -718,6 +727,15 @@ class SuctionNPSHPage(ttk.Frame):
         else:
             self._details_card.grid_remove()
             self._result_fallback.grid_remove()
+        self._sync_result_empty_state()
+
+    def _sync_result_empty_state(self) -> None:
+        """Keep validation/warnings primary and otherwise guide an empty result card."""
+        has_result = getattr(self, "_last_loss", None) is not None
+        has_message = bool(self._loss_status_messages or self._enpy_status_messages)
+        for metric in (self._enpy_metric, self._suction_metric):
+            (metric.grid if has_result or has_message else metric.grid_remove)()
+        (self._result_empty_state.grid_remove if has_result or has_message else self._result_empty_state.grid)()
 
     def _using_library_source(self) -> bool:
         """Return whether the active roughness source is the material library."""
@@ -752,6 +770,8 @@ class SuctionNPSHPage(ttk.Frame):
         messages = self._enpy_status_messages or self._loss_status_messages
         if not messages:
             self._message.set(self._translate("message.ready"))
+            if hasattr(self, "_result_empty_state"):
+                self._sync_result_empty_state()
             return
         self._message.set(
             "; ".join(
@@ -759,6 +779,8 @@ class SuctionNPSHPage(ttk.Frame):
                 for message in messages
             )
         )
+        if hasattr(self, "_result_empty_state"):
+            self._sync_result_empty_state()
 
     def _translator_proxy(self) -> object:
         """Expose the active translator to the shared semantic issue renderer."""
