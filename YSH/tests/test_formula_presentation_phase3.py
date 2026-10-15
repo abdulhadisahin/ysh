@@ -139,7 +139,7 @@ def test_pipe_formula_documents_staged_reference_and_dn_selection() -> None:
     for text in (
         "Qm³/s = Qm³/h / 3600",
         "σallow = Rp0.2 / B",
-        "s0 = (da × pc) / ((20 × σallow × w) + pc)",
+        "s0 = (da × pc) / ((20 × σallow × v) + pc)",
         "b = 0.4 × (da / R) × s0",
         "s = s0 + c + b",
         "formula.pipe_size_recommendation_note",
@@ -209,13 +209,13 @@ def test_discharge_formula_documents_the_complete_ysh_chain() -> None:
     """Discharge reference follows the implemented coefficient-form chain."""
     source = _source("ui/pages/discharge_head_loss_page.py")
     for text in (
-        "v = 4Q / (πD²)",
-        "Re = vD / ν",
-        "ε = k / D",
+        "V = 4Q / (πDi²)",
+        "Re = VDi / ν",
+        "k/Di = k / Di",
         "Ktotal = Σ(quantity × K)",
-        "h_local = 6400 × Ktotal × Q² / D⁴",
-        "h_pipe = 6.4 × 10⁶ × f × L × Q² / D⁵",
-        "H_system = Hgeo + h_total",
+        "hL = 6400 × Ktotal × Q² / Di⁴",
+        "hf = 6.4 × 10⁶ × f × L × Q² / Di⁵",
+        "Hs = Hgeo + hhat",
     ):
         assert text in source
 

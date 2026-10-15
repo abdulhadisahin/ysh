@@ -60,22 +60,17 @@ def test_variable_text_is_presented_as_aligned_native_rows_when_available() -> N
     assert "def _render_variable_rows" in source
 
 
-def test_pipe_discharge_and_suction_map_only_their_approved_static_equations() -> None:
-    """Context maps supplied art without moving any engineering computation to the UI."""
+def test_v2_pages_use_current_equation_text_without_legacy_artwork() -> None:
+    """V2 uses current text without moving any engineering computation to the UI."""
     pipe = _source("ui/pages/pipe_design_page.py")
     discharge = _source("ui/pages/discharge_head_loss_page.py")
     suction = _source("ui/pages/suction_npsh_page.py")
 
-    for asset_name in (
-        "pipe_diameter",
-        "allowable_stress",
-        "base_wall_thickness",
-        "bend_allowance",
-        "required_wall_thickness",
-    ):
-        assert f'("{asset_name}",)' in pipe
-    assert '("local_loss", "pipe_friction_loss")' in discharge
-    assert '("local_loss", "pipe_friction_loss")' in suction
-    assert '("available_enpy",)' in suction
+    # V2 text/MathText carries the approved symbols; legacy PNGs stay packaged.
+    for source in (pipe, discharge, suction):
+        formula = source.split("def _formula_sections", 1)[1].split("\n    def ", 1)[0]
+        assert '("local_loss", "pipe_friction_loss")' not in formula
+        assert '("base_wall_thickness",)' not in formula
+        assert '("available_enpy",)' not in formula
     assert "self._service.calculate" not in pipe.split("def _formula_sections", 1)[1].split("def _refresh_formula_panel", 1)[0]
     assert "self._service.calculate" not in discharge.split("def _formula_sections", 1)[1].split("def _calculate", 1)[0]

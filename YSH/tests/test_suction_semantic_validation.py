@@ -36,7 +36,7 @@ def test_suction_hydraulic_required_and_invalid_viscosity_are_semantic() -> None
         parse_engineering_float("invalid", field_name="Viscosity", field_key="field.kinematic_viscosity")
 
     assert render_validation_issue(diameter.value.issue, Translator("en")) == "Pipe Inside Diameter is required."
-    assert render_validation_issue(viscosity.value.issue, Translator("tr")) == "Kinematik Viskozite geçerli bir sayı olmalıdır."
+    assert render_validation_issue(viscosity.value.issue, Translator("tr")) == "Kinematik viskozite geçerli bir sayı olmalıdır."
 
 
 def test_suction_service_uses_semantic_roughness_validation() -> None:

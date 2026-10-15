@@ -12,7 +12,7 @@ from services.pipe_design_service import PipeDesignService
 
 
 ROOT = Path(__file__).resolve().parents[1]
-NOTE = "Kaynak Faktörü dikişsiz borular için 1 alınmıştır. (Türk Loydu)"
+NOTE = "Kaynak faktörü dikişsiz borular için 1 alınmıştır. (Türk Loydu)"
 
 
 def test_weld_factor_default_and_manual_value_reach_existing_formula(material_service: object, pipe_size_service: object, engineering_constant_service: object) -> None:

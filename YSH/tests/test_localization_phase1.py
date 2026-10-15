@@ -26,8 +26,8 @@ def test_turkish_lookup_preserves_symbols_and_approved_enpy_policy() -> None:
     translator = Translator("tr")
     assert translator.translate("page.suction.tab") == "Tulumba Emme Yük Kaybı ve ENPY"
     assert translator.translate("field.yield_strength") == "Akma Dayanımı Rp0,2"
-    assert translator.translate("result.available_npsh") == "Mevcut ENPY"
-    assert translator.translate("field.flow_rate") == "Debi"
+    assert translator.translate("result.available_npsh") == "Mevcut Net Pozitif Emme Yüksekliği"
+    assert translator.translate("field.flow_rate") == "Hacimsel debi"
 
 
 def test_missing_turkish_translation_falls_back_to_english() -> None:
@@ -107,7 +107,7 @@ def test_formula_headings_are_translated_without_altering_equations() -> None:
     ):
         assert key in source
     pipe = (ROOT / "ui/pages/pipe_design_page.py").read_text(encoding="utf-8")
-    assert "s0 = (da × pc) / ((20 × σallow × w) + pc)" in pipe
+    assert "s0 = (da × pc) / ((20 × σallow × v) + pc)" in pipe
 
 
 def test_language_infrastructure_does_not_depend_on_engineering_modules() -> None:
@@ -160,7 +160,7 @@ def test_runtime_validation_and_delete_catalogue_is_complete_in_turkish() -> Non
         assert key in TURKISH_MESSAGES
 
     translator = Translator("tr")
-    assert translator.translate("validation.required", field_name=translator.translate("field.flow_rate")) == "Debi gereklidir."
-    assert translator.translate("validation.valid_number", field_name=translator.translate("field.kinematic_viscosity")) == "Kinematik Viskozite geçerli bir sayı olmalıdır."
+    assert translator.translate("validation.required", field_name=translator.translate("field.flow_rate")) == "Hacimsel debi gereklidir."
+    assert translator.translate("validation.valid_number", field_name=translator.translate("field.kinematic_viscosity")) == "Kinematik viskozite geçerli bir sayı olmalıdır."
     assert translator.translate("validation.greater_than_zero", field_name=translator.translate("field.fuel_capacity")) == "Yakıt Kapasitesi sıfırdan büyük olmalıdır."
     assert translator.translate("validation.suction_loss_required") == "ENPY hesabından önce Emme Hattı Yük Kaybını hesaplayın."

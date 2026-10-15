@@ -76,9 +76,9 @@ def test_diameter_required_and_flow_invalid_render_in_both_languages() -> None:
 
     assert diameter.value.issue == ValidationIssue("required", "field.pipe_inside_diameter")
     assert render_validation_issue(diameter.value.issue, Translator("en")) == "Pipe Inside Diameter is required."
-    assert render_validation_issue(diameter.value.issue, Translator("tr")) == "Boru İç Çapı gereklidir."
+    assert render_validation_issue(diameter.value.issue, Translator("tr")) == "Boru iç çapı gereklidir."
     assert flow.value.issue == ValidationIssue("valid_number", "field.flow_rate")
-    assert render_validation_issue(flow.value.issue, Translator("tr")) == "Debi geçerli bir sayı olmalıdır."
+    assert render_validation_issue(flow.value.issue, Translator("tr")) == "Hacimsel debi geçerli bir sayı olmalıdır."
 
 
 @pytest.mark.parametrize(

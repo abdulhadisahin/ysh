@@ -314,16 +314,16 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         """Show canonical YSH coefficient formulas from the current result."""
         result=getattr(self,"_last_result",None)
         sections=[
-            FormulaSection("FORMULA", f"v = 4Q / (πD²)\nRe = vD / ν\nε = k / D\nf = {self._translate('formula.approved_ysh_moody_result')}", self._translate("formula.stage.flow_and_friction"), "formula"),
-            FormulaSection("VARIABLES", f"v | {self._translate('result.flow_velocity')} | m/s\nRe | {self._translate('result.reynolds_number')} | −\nD | {self._translate('field.pipe_inside_diameter')} | mm\nQ | {self._translate('field.flow_rate')} | m³/h\nν | {self._translate('field.kinematic_viscosity')} | m²/s\nk | {self._translate('field.roughness')} | mm\nε | {self._translate('result.relative_roughness')} | −\nf | {self._translate('result.friction_factor')} | −", self._translate("formula.stage.flow_and_friction"), "variables"),
+            FormulaSection("FORMULA", f"V = 4Q / (πDi²)\nRe = VDi / ν\nk/Di = k / Di\nf = {self._translate('formula.approved_ysh_moody_result')}", self._translate("formula.stage.flow_and_friction"), "formula"),
+            FormulaSection("VARIABLES", f"V | {self._translate('result.flow_velocity')} | m/s\nRe | {self._translate('result.reynolds_number')} | −\nDi | {self._translate('field.pipe_inside_diameter')} | mm\nQ | {self._translate('field.flow_rate')} | m³/h\nν | {self._translate('field.kinematic_viscosity')} | m²/s\nk | {self._translate('field.roughness')} | mm\nk/Di | {self._translate('result.relative_roughness')} | −\nf | {self._translate('result.friction_factor')} | −", self._translate("formula.stage.flow_and_friction"), "variables"),
             FormulaSection("CURRENT SUBSTITUTION", self._translate("message.available_after_calculation"), self._translate("formula.stage.flow_and_friction"), "substitution"),
             FormulaSection("RESULT", self._translate("message.available_after_calculation"), self._translate("formula.stage.flow_and_friction"), "result"),
-            FormulaSection("FORMULA", "Ktotal = Σ(quantity × K)\nh_local = 6400 × Ktotal × Q² / D⁴\nh_pipe = 6.4 × 10⁶ × f × L × Q² / D⁵", self._translate("formula.stage.hydraulic_losses"), "formula", ("local_loss", "pipe_friction_loss")),
-            FormulaSection("VARIABLES", f"Ktotal | {self._translate('formula.total_local_loss_coefficient')} | −\nK | {self._translate('field.local_loss_k')} | −\nL | {self._translate('field.pipe_length')} | m\nh_local | {self._translate('result.local_loss')} | m\nh_pipe | {self._translate('result.pipe_friction_loss')} | m", self._translate("formula.stage.hydraulic_losses"), "variables"),
+            FormulaSection("FORMULA", "Ktotal = Σ(quantity × K)\nhL = 6400 × Ktotal × Q² / Di⁴\nhf = 6.4 × 10⁶ × f × L × Q² / Di⁵", self._translate("formula.stage.hydraulic_losses"), "formula"),
+            FormulaSection("VARIABLES", f"Ktotal | {self._translate('formula.total_local_loss_coefficient')} | −\nK | {self._translate('field.local_loss_k')} | −\nL | {self._translate('field.pipe_length')} | m\nhL | {self._translate('result.local_loss')} | m\nhf | {self._translate('result.pipe_friction_loss')} | m", self._translate("formula.stage.hydraulic_losses"), "variables"),
             FormulaSection("CURRENT SUBSTITUTION", self._translate("message.available_after_calculation"), self._translate("formula.stage.hydraulic_losses"), "substitution"),
             FormulaSection("RESULT", self._translate("message.available_after_calculation"), self._translate("formula.stage.hydraulic_losses"), "result"),
-            FormulaSection("FORMULA", "h_total = h_pipe + h_local\nH_system = Hgeo + h_total", self._translate("formula.stage.system_manometric_head"), "formula"),
-            FormulaSection("VARIABLES", f"h_total | {self._translate('result.total_hydraulic_loss')} | m\nHgeo | {self._translate('field.geodetic_head')} | m\nH_system | {self._translate('result.system_manometric_head')} | m", self._translate("formula.stage.system_manometric_head"), "variables"),
+            FormulaSection("FORMULA", "hhat = hf + hL\nHs = Hgeo + hhat", self._translate("formula.stage.system_manometric_head"), "formula"),
+            FormulaSection("VARIABLES", f"hhat | {self._translate('result.total_hydraulic_loss')} | m\nHgeo | {self._translate('field.geodetic_head')} | m\nHs | {self._translate('result.system_manometric_head')} | m", self._translate("formula.stage.system_manometric_head"), "variables"),
             FormulaSection("CURRENT SUBSTITUTION", self._translate("message.available_after_calculation"), self._translate("formula.stage.system_manometric_head"), "substitution"),
             FormulaSection("RESULT", self._translate("message.available_after_calculation"), self._translate("formula.stage.system_manometric_head"), "result"),
         ]
@@ -332,12 +332,12 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         flow_stage = self._translate("formula.stage.flow_and_friction")
         loss_stage = self._translate("formula.stage.hydraulic_losses")
         system_stage = self._translate("formula.stage.system_manometric_head")
-        sections[2] = FormulaSection("CURRENT SUBSTITUTION", f"f = {format_user_number(result.friction_factor)}\nRe = {format_user_number(result.reynolds_number)}\nε = {format_user_number(result.relative_roughness)}", flow_stage, "substitution")
+        sections[2] = FormulaSection("CURRENT SUBSTITUTION", f"f = {format_user_number(result.friction_factor)}\nRe = {format_user_number(result.reynolds_number)}\nk/Di = {format_user_number(result.relative_roughness)}", flow_stage, "substitution")
         sections[3] = FormulaSection("RESULT", f"{self._translate('result.friction_factor')} f = {format_user_number(result.friction_factor)}", flow_stage, "result")
-        sections[6] = FormulaSection("CURRENT SUBSTITUTION", f"Ktotal = {format_user_number(result.local_loss_coefficient_total)}\nh_local = {format_user_number(result.local_loss_m)} m\nh_pipe = {format_user_number(result.pipe_friction_loss_m)} m", loss_stage, "substitution")
-        sections[7] = FormulaSection("RESULT", f"{self._translate('result.total_hydraulic_loss')} h_total = {format_user_number(result.total_hydraulic_loss_m)} m", loss_stage, "result")
-        sections[10] = FormulaSection("CURRENT SUBSTITUTION",f"h_total = h_pipe + h_local\nHgeo = {self._fields['h'].get()} m\nH_system = Hgeo + h_total", system_stage, "substitution")
-        sections[11] = FormulaSection("RESULT",f"{self._translate('result.total_hydraulic_loss')} h_total = {format_user_number(result.total_hydraulic_loss_m)} m\n{self._translate('result.system_manometric_head')} H_system = {format_user_number(result.system_head_m)} m", system_stage, "result")
+        sections[6] = FormulaSection("CURRENT SUBSTITUTION", f"Ktotal = {format_user_number(result.local_loss_coefficient_total)}\nhL = {format_user_number(result.local_loss_m)} m\nhf = {format_user_number(result.pipe_friction_loss_m)} m", loss_stage, "substitution")
+        sections[7] = FormulaSection("RESULT", f"{self._translate('result.total_hydraulic_loss')} hhat = {format_user_number(result.total_hydraulic_loss_m)} m", loss_stage, "result")
+        sections[10] = FormulaSection("CURRENT SUBSTITUTION",f"hhat = hf + hL\nHgeo = {self._fields['h'].get()} m\nHs = Hgeo + hhat", system_stage, "substitution")
+        sections[11] = FormulaSection("RESULT",f"{self._translate('result.total_hydraulic_loss')} hhat = {format_user_number(result.total_hydraulic_loss_m)} m\n{self._translate('result.system_manometric_head')} Hs = {format_user_number(result.system_head_m)} m", system_stage, "result")
         return sections
     def _calculate(self)->None:
         try:
