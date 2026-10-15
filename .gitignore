@@ -7,3 +7,6 @@ dist/
 build/pyinstaller/
 YSH/database/*.db
 database/*.db
+
+.venv/
+.venv314/
