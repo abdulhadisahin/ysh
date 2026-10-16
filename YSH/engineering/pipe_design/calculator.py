@@ -35,5 +35,25 @@ class PipeDesignCalculator:
         return result
     def calculate_wall_thickness(self,value:WallThicknessInput)->WallThicknessResult:
         """Calculate approved allowable stress, base thickness, bend, and final thickness."""
-        validate_wall_input(value);sigma=value.yield_strength_mpa/value.safety_factor;s0=(value.outside_diameter_mm*value.design_pressure_bar)/((20*sigma*value.weld_factor)+value.design_pressure_bar);bend=0.0 if not value.bend_allowance_enabled else .4*(value.outside_diameter_mm/value.bend_radius_mm)*s0
-        return WallThicknessResult(sigma,s0,bend,value.corrosion_allowance_mm,s0+value.corrosion_allowance_mm+bend)
+        validate_wall_input(value)
+        sigma = value.yield_strength_mpa / value.safety_factor
+        return wall_from_stress(
+            value.outside_diameter_mm, value.design_pressure_bar, sigma,
+            value.weld_factor, value.corrosion_allowance_mm,
+            value.bend_allowance_enabled, value.bend_radius_mm,
+        )
+
+
+def wall_from_stress(
+    outside_diameter_mm: float, design_pressure_bar: float, allowable_stress_mpa: float,
+    weld_factor: float, corrosion_allowance_mm: float, bend_enabled: bool,
+    bend_radius_mm: float | None,
+) -> WallThicknessResult:
+    """Shared legacy arithmetic for validated dimensions and allowable stress.
+
+    This function introduces no classification rule or factor. Callers own input
+    validation; operation order exactly matches the pre-V2 implementation.
+    """
+    s0 = (outside_diameter_mm * design_pressure_bar) / ((20 * allowable_stress_mpa * weld_factor) + design_pressure_bar)
+    bend = 0.0 if not bend_enabled else .4 * (outside_diameter_mm / bend_radius_mm) * s0
+    return WallThicknessResult(allowable_stress_mpa, s0, bend, corrosion_allowance_mm, s0 + corrosion_allowance_mm + bend)
