@@ -132,6 +132,15 @@ class YSHApplication:
         if localization is not None:
             window_options["localization"] = localization
         self._main_window = MainWindow(**window_options)
+        if hasattr(self._main_window, "set_system_context_service"):
+            from services.system_context_service import SystemContextService
+            from repositories.system_repository import SystemRepository
+            from repositories.circuit_repository import CircuitRepository
+            from repositories.fluid_repository import FluidRepository
+            self._main_window.set_system_context_service(SystemContextService(
+                SystemRepository(self._library_database),
+                CircuitRepository(self._library_database),
+                FluidRepository(self._library_database)))
         self._root.mainloop()
 
     def _apply_window_icon(self) -> None:

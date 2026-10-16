@@ -56,6 +56,18 @@ class ScrollablePageHost(ttk.Notebook):
         """Return the viewport belonging to the selected calculation tab."""
         return self._hosts.get(self.select())
 
+    def set_page_enabled(self, page_key: str, enabled: bool) -> None:
+        """Keep inapplicable modules visible and preserve their cached page values."""
+        host = self._page_keys.get(page_key)
+        if host is None:
+            return
+        if not enabled and self.select() == str(host):
+            for candidate in self.tabs():
+                if candidate != str(host) and self.tab(candidate, "state") == "normal":
+                    self.select(candidate)
+                    break
+        self.tab(host, state="normal" if enabled else "disabled")
+
     def _on_tab_changed(self, _event: tk.Event[tk.Misc]) -> None:
         """Switch wheel ownership to the newly active tab."""
         self._activate_current_host()

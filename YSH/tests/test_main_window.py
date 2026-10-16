@@ -273,6 +273,7 @@ def test_main_window_initializes_projects_tree(monkeypatch: object) -> None:
         lambda *args, **kwargs: _DummyWidget(*args, **kwargs),
     )
     monkeypatch.setattr(main_window_module, "ProjectSummary", lambda *args, **kwargs: _DummyWidget(*args, **kwargs))
+    monkeypatch.setattr(main_window_module, "SystemContextPanel", lambda *args, **kwargs: _DummyWidget(*args, **kwargs))
     monkeypatch.setattr(main_window_module, "StatusBar", lambda *args, **kwargs: _DummyWidget(*args, **kwargs))
     monkeypatch.setattr(main_window_module, "ScrollablePageHost", lambda *args, **kwargs: _DummyWidget(*args, **kwargs))
     monkeypatch.setattr(main_window_module, "ScrollableTreeview", _DummyScrollableTreeview)

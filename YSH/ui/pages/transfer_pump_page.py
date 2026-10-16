@@ -8,7 +8,9 @@ from collections.abc import Callable, Sequence
 from tkinter import messagebox, ttk
 from uuid import UUID
 from dataclasses import replace
-from engineering.transfer_pump.v2_models import TransferPumpMode, TransferPumpEmpiricalInput
+from engineering.transfer_pump.v2_models import TransferPumpMode, TransferPumpEmpiricalInput, PumpIntegrationContext
+from services.system_context_integration import pump_context
+from engineering.system_context import SystemContext
 from engineering.transfer_pump.v2_state import TransferPumpPageState
 from ui.pages.transfer_pump_design import TransferPumpDesignPanel
 
@@ -681,7 +683,8 @@ class TransferPumpPage(ttk.LabelFrame):
             )
             assert source_capacity is not None
             typed_result = self._service.calculate_v2(TransferPumpEmpiricalInput(
-                source_capacity=source_capacity, capacity_input_mode=mode))
+                source_capacity=source_capacity, capacity_input_mode=mode,
+                context=pump_context(PumpIntegrationContext(), getattr(self, "_project_context", None))))
             resolution, result = typed_result.resolution, typed_result.estimate
             self._empirical_v2_result = typed_result
         except ValidationError as error:
@@ -704,6 +707,11 @@ class TransferPumpPage(ttk.LabelFrame):
         self._mark_dirty()
         self._refresh_chart()
         self._refresh_formula_panel()
+
+    def set_project_context(self, context: SystemContext) -> None:
+        """Retain project identity for future calculations, preserving cached results."""
+        self._project_context = context
+        self._design_panel._project_context = context
 
     def _formula_steps(self) -> tuple:
         """Only the active calculation mode supplies the primary explanation."""

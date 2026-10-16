@@ -81,13 +81,14 @@ class TransferPumpDesignPanel(ttk.Frame):
     def calculate(self) -> None:
         """Parse/validate and delegate to the pure design path; no regression/library reads."""
         try:
+            from services.system_context_integration import pump_context
             def number(key: str, optional: bool = False) -> float | None:
                 return parse_engineering_float(self._fields[key].get(), field_name=key,
                     field_key=f'transfer.design.{key}', allow_empty=optional)
             self._last_result = self._service.calculate_v2(TransferPumpDesignInput(
                 transfer_volume_m3=number('volume'), target_transfer_time_h=number('target_time'),
                 selected_pump_capacity_m3_h=number('pump_capacity', True),
-                context=self._state.context, volume_source=self._state.volume_source,
+                context=pump_context(self._state.context, getattr(self, "_project_context", None)), volume_source=self._state.volume_source,
                 target_time_source=self._state.target_time_source))
             self._error.set('')
             self._render()

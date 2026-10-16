@@ -506,3 +506,21 @@ MESSAGES.update(
  'engineering.pc': 'Design pressure',
  'formula2.precomputed': 'Stored calculation result'}
 )
+
+# Optional project context and application module scope.
+MESSAGES.update(
+{'context.title': 'System Definition (optional)',
+ 'context.system': 'System',
+ 'context.circuit': 'Circuit',
+ 'context.fluid': 'Fluid',
+ 'context.none.system': 'No system selected',
+ 'context.none.circuit': 'No circuit selected (optional)',
+ 'context.none.fluid': 'No fluid selected (optional)',
+ 'context.source_missing': 'Source missing / unavailable',
+ 'context.inactive': 'Source inactive',
+ 'context.invalid_circuit': 'Circuit does not belong to selected system',
+ 'context.invalid_selection': 'Select a valid context or clear the unavailable selection.',
+ 'context.legacy': 'Undefined system: all existing modules remain available.',
+ 'context.module.fuel_only': 'This module is available for the Fuel system. This is application '
+                             'scope behavior.'}
+)

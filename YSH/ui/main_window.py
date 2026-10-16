@@ -52,6 +52,9 @@ from ui.widgets.project_summary import ProjectSummary
 from ui.widgets.status_bar import StatusBar
 from ui.widgets.scrollable_frame import ScrollableFrame
 from ui.widgets.scrollable_page_host import ScrollablePageHost
+from ui.widgets.system_context_panel import SystemContextPanel
+from engineering.system_context import SystemContext
+from services.system_context_service import SystemContextService
 from ui.widgets.scrollable_treeview import ScrollableTreeview
 from ui.widgets.engineering_components import EmptyState
 from ui.assets import d243_main_logo_path, ysh_ship_bottom_left_path, ysh_ship_top_right_path
@@ -118,6 +121,10 @@ class MainWindow:
         self._suction_npsh_service = suction_npsh_service
         self._project_persistence_service = project_persistence_service
         self._localization = localization
+        from engineering.system_context import SystemContext
+        from services.system_context_service import SystemContextService
+        self._system_context = SystemContext()
+        self._system_context_service = SystemContextService()
         self._localizable_components: list[object] = []
         self._translate = (
             localization.translate if localization is not None else Translator().translate
@@ -283,6 +290,15 @@ class MainWindow:
 
         self._page_host = ScrollablePageHost(content)
         self._page_host.grid(row=0, column=0, sticky="nsew")
+        if getattr(self, "_system_context_service", None) is not None:
+            self._context_panel = SystemContextPanel(
+                content, self._system_context_service, self._translate,
+                self._change_system_context)
+            self._context_panel.grid(row=0, column=0, sticky="ew")
+            self._page_host.grid(row=1, column=0, sticky="nsew")
+            content.rowconfigure(0, weight=0)
+            content.rowconfigure(1, weight=1)
+            self.register_localizable(self._context_panel)
         if self._pipe_design_service is not None:
             self._pipe_design_page = self._add_scrollable_page("pipe_design", self._translate("page.pipe.tab"),lambda parent:PipeDesignPage(parent,self._pipe_design_service, self._translate))
             self._pipe_design_page.set_dirty_callback(self._mark_workspace_dirty)
@@ -580,15 +596,13 @@ class MainWindow:
         self._sidebar_refresh.configure(text=self._translate("action.refresh"))
         self._refresh_menu_texts()
         self._refresh_notebook_tab_titles()
+        if hasattr(self, "_system_context"):
+            MainWindow._apply_system_context(self, self._system_context)
 
     def _refresh_notebook_tab_titles(self) -> None:
         """Update existing tab captions without changing selected notebook state."""
-        page_titles = {
-            "pipe_design": "page.pipe.tab",
-            "transfer_pump": "page.transfer.tab",
-            "discharge_head_loss": "page.discharge.tab",
-            "suction_npsh": "page.suction.tab",
-        }
+        from engineering.module_registry import MODULES
+        page_titles = {module.code.value: module.name_key for module in MODULES}
         selected_tab = self._page_host.select()
         for page_name in getattr(self, "_pages", {}):
             self._page_host.set_page_title(page_name, self._translate(page_titles[page_name]))
@@ -613,6 +627,8 @@ class MainWindow:
             transfer = transfer_to_dict(self._pipe_sources.state)
         if transfer is not None:
             state["pipe_transfer"] = transfer
+        if hasattr(self, "_system_context"):
+            state["system_context"] = self._system_context.to_payload()
         return state
 
     def _load_all_page_states(self, state: dict[str, object]) -> None:
@@ -621,6 +637,8 @@ class MainWindow:
             raise ValidationError(ValidationIssue("project_state_unsupported"))
         from engineering.pipe_design.transfer_serialization import transfer_from_workspace
         transfer = transfer_from_workspace(state)
+        from engineering.system_context import SystemContext
+        context = SystemContext.from_workspace(state)
         for key, page in self._pages.items(): page.load_state(dict(state.get(key, {})))
         if hasattr(self, "_pipe_sources"):
             self._pipe_sources.load(transfer)
@@ -628,6 +646,8 @@ class MainWindow:
             for page in self._pages.values():
                 if hasattr(page, "set_transfer_state"):
                     page.set_transfer_state(transfer)
+        if hasattr(self, "_system_context") or "system_context" in state:
+            MainWindow._apply_system_context(self, context)
 
     def _clear_all_pages(self) -> None:
         """Restore clean/default state on every primary calculation page."""
@@ -636,6 +656,9 @@ class MainWindow:
         if hasattr(self, "_pipe_sources"):
             from engineering.pipe_design.transfer import PipeTransferProjectState
             self._pipe_sources.load(PipeTransferProjectState())
+        if hasattr(self, "_system_context"):
+            from engineering.system_context import SystemContext
+            MainWindow._apply_system_context(self, SystemContext())
 
     def _attach_dirty_callbacks(self) -> None:
         """Route page edits to optional project dirty tracking."""
@@ -1171,8 +1194,43 @@ class MainWindow:
                          if selection.selection_id == source_id), None)
         selection = prepare_discharge_source(
             self._pipe_design_service, state, previous, manual_material=manual_material)
+        context = getattr(self, "_system_context", None)
+        if context is not None:
+            from services.system_context_integration import contextualize_selection
+            selection = contextualize_selection(selection, context, previous)
         self._pipe_sources.publish(selection)
         if hasattr(self, "_pipe_design_page"):
             self._pipe_design_page._formula_selection = selection
         self._mark_workspace_dirty()
         return selection.selection_id
+
+    def set_system_context_service(self, service: SystemContextService) -> None:
+        """Attach the composed Phase 4 catalogs after initial window construction."""
+        self._system_context_service = service
+        if hasattr(self, "_context_panel"):
+            self._context_panel.set_service(service)
+        MainWindow._apply_system_context(self, self._system_context)
+
+    def _change_system_context(self, context: SystemContext) -> None:
+        MainWindow._apply_system_context(self, context)
+        self._mark_workspace_dirty()
+
+    def _apply_system_context(self, context: SystemContext) -> None:
+        """Update metadata/navigation only; page inputs and results are untouched."""
+        from engineering.module_registry import module_availability
+        self._system_context = context
+        service = getattr(self, "_system_context_service", None)
+        availability = service.availability(context) if service else module_availability(context)
+        host = getattr(self, "_page_host", None)
+        notices = []
+        for item in availability:
+            if host is not None and hasattr(host, "set_page_enabled"):
+                host.set_page_enabled(item.definition.code.value, item.enabled)
+            if item.reason_key:
+                notices.append(self._translate(item.definition.name_key) + ": " + self._translate(item.reason_key))
+        if hasattr(self, "_context_panel"):
+            self._context_panel.load(context)
+            self._context_panel.set_module_notice("\n".join(notices))
+        page = getattr(self, "_transfer_pump_page", None)
+        if page is not None and hasattr(page, "set_project_context"):
+            page.set_project_context(context)

@@ -520,3 +520,21 @@ MESSAGES.update(
  'engineering.pc': 'Tasarım basıncı',
  'formula2.precomputed': 'Kaydedilmiş hesap sonucu'}
 )
+
+# Optional project context and application module scope.
+MESSAGES.update(
+{'context.title': 'Sistem Tanımı (isteğe bağlı)',
+ 'context.system': 'Sistem',
+ 'context.circuit': 'Devre',
+ 'context.fluid': 'Akışkan',
+ 'context.none.system': 'Sistem seçilmedi',
+ 'context.none.circuit': 'Devre seçilmedi (isteğe bağlı)',
+ 'context.none.fluid': 'Akışkan seçilmedi (isteğe bağlı)',
+ 'context.source_missing': 'Kaynak bulunamadı / kullanılamıyor',
+ 'context.inactive': 'Kaynak etkin değil',
+ 'context.invalid_circuit': 'Devre seçili sisteme ait değil',
+ 'context.invalid_selection': 'Geçerli bir bağlam seçin veya bulunamayan seçimi temizleyin.',
+ 'context.legacy': 'Sistem tanımsız: mevcut tüm modüller kullanılabilir.',
+ 'context.module.fuel_only': 'Bu modül Yakıt sistemi için kullanılabilir. Bu bir uygulama kapsamı '
+                             'kararıdır.'}
+)
