@@ -3,7 +3,7 @@
 from i18n.terminology import terminology_messages
 
 MESSAGES = {
-    "app.title": "YSH",
+    "app.title": "D243",
     "app.subtitle": "Fuel System Engineering",
     "app.workspace": "Engineering Calculation Workspace",
     "app.language": "Language",
@@ -672,3 +672,5 @@ MESSAGES.update(
  'history.stage.design': 'Transfer design',
  'history.stage.empirical': 'Empirical reference estimate'}
 )
+
+MESSAGES.update({"pipe.bend_mode.NO_BEND": 'No bend', "formula2.no_bend": 'b = 0 — No bend; bend allowance is not applied'})

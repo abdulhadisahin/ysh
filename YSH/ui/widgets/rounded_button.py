@@ -365,7 +365,8 @@ class RoundedImageButton(ttk.Button):
             self._horizontal_padding,
             self._vertical_padding,
         )
-        return (width, max(height, self._minimum_height or 0))
+        icon_height = self._icon_image.rendered.height() + 12 if self._icon_image else 0
+        return (width, max(height, icon_height, self._minimum_height or 0))
 
     @staticmethod
     def _surface_dimensions_from_content(

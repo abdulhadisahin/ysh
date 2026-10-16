@@ -61,7 +61,7 @@ def test_shell_uses_local_asset_hooks_without_network_dependencies() -> None:
 
 def test_identity_text_and_optional_asset_hooks_are_safe() -> None:
     """Identity strings localize while missing optional imagery remains harmless."""
-    assert MESSAGES["app.title"] == "YSH"
+    assert MESSAGES["app.title"] == "D243"
     assert MESSAGES["app.subtitle"] == "Fuel System Engineering"
     assert MESSAGES["app.workspace"] == "Engineering Calculation Workspace"
     assert TR_MESSAGES["app.title"] == "D243"

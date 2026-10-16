@@ -133,6 +133,6 @@ def render_step(panel: object, step: FormulaStep, row: int) -> None:
                 for c, value in enumerate(cells):
                     body.columnconfigure(c, weight=1 if c == 1 else 0)
                     ttk.Label(body, text=value, wraplength=420 if c == 1 else 180,
-                              justify="left").grid(row=r, column=c, sticky="nw", padx=(0, 12), pady=3)
+                              justify="left").grid(row=r, column=c, sticky="nw", padx=(0, 12), pady=4)
         else:
             ttk.Label(body, text=section.text, wraplength=720, justify="left").grid(sticky="ew")

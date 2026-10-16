@@ -28,6 +28,7 @@ class AssetImageLoader:
     ``None`` so commands and layouts remain fully usable without it.
     """
 
+    CACHE_LIMIT = 128
     _cache: dict[tuple[str, str, int, str, int, int, float], LoadedImage] = {}
 
     @staticmethod
@@ -75,11 +76,11 @@ class AssetImageLoader:
 
         Composite D243 button assets are not mere glyphs: their navy tile,
         gold keyline, and soft outer treatment are part of the approved visual
-        composition.  A threshold of one keeps anti-aliased and translucent
-        edge pixels, while eight percent in-memory breathing room prevents a
+        composition.  A threshold of eight excludes imperceptible outer canvas pixels,
+        while five percent breathing room retains the frame and prevents a
         rendered tile from being cropped at its own output edge.
         """
-        return cls._visible_content(rgba, alpha_threshold=1, padding_percent=8)
+        return cls._visible_content(rgba, alpha_threshold=8, padding_percent=5)
 
     @staticmethod
     def _silhouette_safe(rgba: object) -> object:
@@ -139,7 +140,7 @@ class AssetImageLoader:
         # ``full_asset_safe`` owns its conservative threshold and margin so
         # callers cannot accidentally crop a composite tile through defaults.
         if fit_mode == "full_asset_safe":
-            alpha_threshold, padding_percent = 1, 8
+            alpha_threshold, padding_percent = 8, 5
         key = (str(interpreter), str(path.resolve()), target_size, fit_mode, alpha_threshold, padding_percent, cls._dpi_scale(master))
         cached = cls._cache.get(key)
         if cached is not None:
@@ -168,4 +169,6 @@ class AssetImageLoader:
             return None
         loaded = LoadedImage(source=source, rendered=rendered)
         cls._cache[key] = loaded
+        if len(cls._cache) > cls.CACHE_LIMIT:
+            del cls._cache[next(iter(cls._cache))]
         return loaded

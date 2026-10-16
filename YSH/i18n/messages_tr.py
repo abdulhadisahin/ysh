@@ -687,3 +687,5 @@ MESSAGES.update(
  'history.stage.design': 'Transfer tasarımı',
  'history.stage.empirical': 'Ampirik referans tahmini'}
 )
+
+MESSAGES.update({"pipe.bend_mode.NO_BEND": 'Bükme yok', "formula2.no_bend": 'b = 0 — Bükme yok; bükme ilavesi uygulanmaz'})

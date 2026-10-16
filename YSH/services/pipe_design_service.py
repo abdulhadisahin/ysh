@@ -75,6 +75,7 @@ class PipeDesignService:
                 result.trace["diameter_input"] = asdict(diameter)
             if wall is not None:
                 result.trace["wall_input"] = asdict(wall)
+                result.trace["bend_state"] = wall.bend_state.value
                 result.wall_thickness=self._calculator.calculate_wall_thickness(wall)
         except ValidationError:
             raise

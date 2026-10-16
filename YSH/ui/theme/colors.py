@@ -10,7 +10,7 @@ DEEP_NAVY = "#091B2D"
 NAVY_TEXT = "#152B3F"
 WHITE = "#FFFFFF"
 # Gold is an accent and action cue, never a severity signal.
-GOLD = "#B58A2A"
+GOLD = "#D8BC78"
 GOLD_DARK = "#7B5A17"
 GOLD_SOFT = "#FBF6E9"
 GOLD_BORDER = "#D8C18D"
@@ -25,8 +25,8 @@ PIPE_HOVER_SOFT = "#F5EBCF"
 PIPE_PRESSED_SOFT = "#E9D9AD"
 PIPE_BORDER = GOLD_BORDER
 PIPE_DISABLED = "#E2D7BB"
-PIPE_ACTION_HOVER = "#C79D3B"
-PIPE_ACTION_PRESSED = "#96701F"
+PIPE_ACTION_HOVER = "#163957"
+PIPE_ACTION_PRESSED = "#091B2D"
 # Transfer now follows the shared D243 product accent rather than retaining a
 # competing module-orange visual system.
 TRANSFER = GOLD

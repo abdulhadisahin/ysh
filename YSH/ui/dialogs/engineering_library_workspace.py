@@ -49,6 +49,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         self._choice_cache={};self._row_map={}
         self.columnconfigure(0,weight=1);self.rowconfigure(1,weight=1)
         top=ttk.Frame(self,padding=10);top.grid(row=0,column=0,sticky='ew')
+        for column in range(3): top.columnconfigure(column, weight=1)
         self._group_box=ttk.Combobox(top,textvariable=self._group,state='readonly',width=28)
         self._group_box.grid(row=0,column=0,sticky='ew',padx=(0,8))
         self._category_box=ttk.Combobox(top,textvariable=self._category,state='readonly',width=30)
@@ -74,7 +75,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         scrollbar.grid(row=0,column=1,sticky='ns');self._tree.configure(yscrollcommand=scrollbar.set)
         for key in ('name','value','ownership','active'): self._tree.column(key,width=130,stretch=True)
         self._tree.bind('<<TreeviewSelect>>',self._select_record)
-        scroll=ScrollableFrame(panes);self._body=scroll.content
+        scroll=ScrollableFrame(panes);scroll.set_wheel_active(True);self._body=scroll.content
         self._body.columnconfigure(1,weight=1)
         panes.add(listing,weight=3);panes.add(scroll,weight=2)
         actions=ttk.Frame(self,padding=10);actions.grid(row=2,column=0,sticky='ew')

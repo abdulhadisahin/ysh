@@ -41,7 +41,7 @@ def test_d243_automatic_bend_radius_uses_authoritative_da(code: str, expected: f
 
 
 def test_supported_bend_modes_are_stable_and_legacy_default_is_3d() -> None:
-    assert [mode.label for mode in BEND_RADIUS_MODES] == ["1.5D", "2D", "3D", "5D", "10D", "Manuel"]
+    assert [mode.label for mode in BEND_RADIUS_MODES] == ["Bükme yok", "1.5D", "2D", "3D", "5D", "10D", "Manuel"]
     assert DEFAULT_BEND_RADIUS_MODE == "D3"
     assert bend_radius_mode(None).code == "D3"
     assert bend_radius_mode("MANUAL").is_manual

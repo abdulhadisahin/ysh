@@ -16,33 +16,43 @@ except ImportError:  # pragma: no cover - protects source launches missing Pillo
 from ui.theme import colors
 
 
-class CanvasBackgroundWatermark:
-    """Draw a non-interactive watermark below a Canvas window item.
+def watermark_size(source_size: tuple[int, int], viewport: tuple[int, int]) -> tuple[int, int]:
+    """Fit the complete emblem inside its reserved region, preserving its ratio."""
+    sw, sh = source_size
+    width, height = viewport
+    if min(sw, sh, width, height) <= 1:
+        return (0, 0)
+    ratio = min(max(1, width - 24) / sw, max(1, height - 24) / sh, 480 / max(sw, sh))
+    return (max(1, round(sw * ratio)), max(1, round(sh * ratio)))
 
-    Unlike the retired foreground-label approach, this renders as a Canvas
-    image below the page content window.  It therefore cannot receive focus,
-    intercept clicks, or change the stacking order of engineering controls.
+
+class CanvasBackgroundWatermark:
+    """Draw only in a reserved decoration canvas, never below opaque controls.
+
+    The scroll host owns a separate background region beside the form. This
+    solves opaque child-window occlusion without lifting images over inputs.
     """
 
-    # Temporary diagnostic setting: render the approved watermark at full
-    # opacity so Windows verification can distinguish alpha from layering.
-    OPACITY = 1.0
-    WIDTH_FRACTION = 0.52
+    OPACITY = 0.14
     CENTER_X = 0.5
     CENTER_Y = 0.5
+    CACHE_LIMIT = 6
 
     def __init__(self, canvas: tk.Canvas, source_path: Path | None) -> None:
+        """Defer image loading until a visible viewport has usable dimensions."""
         self._canvas = canvas
         self._source_path = source_path
-        self._image: ImageTk.PhotoImage | None = None
-        self._active_width = 0
-        self._item: int | None = None
+        self._source = None
+        self._image = None
+        self._cache: dict[tuple[int, int], object] = {}
+        self._pending = None
+        self._item = None
         if source_path is None or not source_path.is_file() or Image is None or ImageTk is None:
             return
         self._item = canvas.create_image(0, 0, anchor="center", state="hidden")
         canvas.tag_lower(self._item)
         canvas.bind("<Configure>", self._on_canvas_configure, add="+")
-        canvas.after_idle(self._refresh)
+        self._pending = canvas.after_idle(self._refresh)
 
     @property
     def item_id(self) -> int | None:
@@ -50,40 +60,43 @@ class CanvasBackgroundWatermark:
         return self._item
 
     def _on_canvas_configure(self, _event: tk.Event[tk.Misc]) -> None:
-        self._refresh()
+        if self._pending is None:
+            self._pending = self._canvas.after_idle(self._refresh)
 
     def _refresh(self) -> None:
-        if self._item is None or self._source_path is None or Image is None or ImageTk is None:
+        self._pending = None
+        if self._item is None or Image is None or ImageTk is None:
             return
-        canvas_width = self._canvas.winfo_width()
-        canvas_height = self._canvas.winfo_height()
-        width = max(1, round(canvas_width * self.WIDTH_FRACTION))
-        if width == self._active_width:
-            self._position_in_workspace(canvas_width, canvas_height)
+        width, height = self._canvas.winfo_width(), self._canvas.winfo_height()
+        if min(width, height) <= 1:
             return
         try:
-            with Image.open(self._source_path) as source_file:
-                image = source_file.convert("RGBA")
-            height = max(1, round(image.height * (width / image.width)))
-            image = image.resize((width, height), Image.Resampling.LANCZOS)
-            alpha = image.getchannel("A").point(lambda value: round(value * self.OPACITY))
-            image.putalpha(alpha)
-            self._image = ImageTk.PhotoImage(image, master=self._canvas)
+            if self._source is None:
+                with Image.open(self._source_path) as source_file:
+                    self._source = source_file.convert("RGBA")
+            # Quantized bounds prevent a resize image for every single pixel.
+            size = watermark_size(self._source.size, (width // 8 * 8, height // 8 * 8))
+            if min(size) <= 0:
+                return
+            image = self._cache.get(size)
+            if image is None:
+                rgba = self._source.resize(size, Image.Resampling.LANCZOS)
+                alpha = rgba.getchannel("A").point(lambda value: round(value * self.OPACITY))
+                rgba.putalpha(alpha)
+                image = ImageTk.PhotoImage(rgba, master=self._canvas)
+                self._cache[size] = image
+                if len(self._cache) > self.CACHE_LIMIT:
+                    del self._cache[next(iter(self._cache))]
+            self._image = image
         except (OSError, tk.TclError):
             return
-        self._active_width = width
         self._canvas.itemconfigure(self._item, image=self._image, state="normal")
-        self._position_in_workspace(canvas_width, canvas_height)
-        self._canvas.tag_lower(self._item)
+        self._position_in_workspace(width, height)
 
     def _position_in_workspace(self, canvas_width: int, canvas_height: int) -> None:
-        """Keep the decorative emblem centered in the engineering viewport."""
-        if self._item is not None:
-            self._canvas.coords(
-                self._item,
-                round(canvas_width * self.CENTER_X),
-                round(canvas_height * self.CENTER_Y),
-            )
+        """Keep the complete decorative emblem inside its own viewport."""
+        self._canvas.coords(self._item, round(canvas_width * self.CENTER_X),
+                            round(canvas_height * self.CENTER_Y))
 
 
 class WorkspaceWatermark(tk.Label):

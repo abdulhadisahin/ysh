@@ -15,7 +15,7 @@ def test_design_system_exposes_the_d243_semantic_palette() -> None:
     assert colors.NAVY == "#102B46"
     assert colors.DEEP_NAVY == "#091B2D"
     assert colors.NAVY_TEXT == "#152B3F"
-    assert colors.GOLD == "#B58A2A"
+    assert colors.GOLD == "#D8BC78"
     assert colors.PIPE == colors.GOLD
     assert colors.TRANSFER == colors.GOLD
     assert colors.DISCHARGE == colors.NAVY
@@ -195,8 +195,8 @@ def test_pipe_hybrid_naval_button_pilot_preserves_three_action_levels() -> None:
     page_source = (ROOT / "ui/pages/pipe_design_page.py").read_text(encoding="utf-8")
     colors_source = (ROOT / "ui/theme/colors.py").read_text(encoding="utf-8")
 
-    assert 'PIPE_ACTION_HOVER = "#C79D3B"' in colors_source
-    assert 'PIPE_ACTION_PRESSED = "#96701F"' in colors_source
+    assert 'PIPE_ACTION_HOVER = "#163957"' in colors_source
+    assert 'PIPE_ACTION_PRESSED = "#091B2D"' in colors_source
     assert 'normal=(colors.CARD_SURFACE, colors.STRONG_BORDER)' in page_source
     assert 'normal=(colors.FORMULA_SOFT, colors.FORMULA)' in page_source
     assert "focus_border=colors.FORMULA" in page_source

@@ -23,7 +23,7 @@ class SystemContextPanel(ttk.LabelFrame):
         for column, key in enumerate(self._values):
             self.columnconfigure(column, weight=1)
             self._labels[key] = ttk.Label(self)
-            self._labels[key].grid(row=0, column=column, sticky="w")
+            self._labels[key].grid(row=0, column=column, sticky="w", pady=(0, 4))
             combo = ttk.Combobox(self, textvariable=self._values[key], state="readonly", width=24)
             combo.grid(row=1, column=column, sticky="ew", padx=(0, 8))
             combo.bind("<<ComboboxSelected>>", self._select)

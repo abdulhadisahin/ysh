@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Any
+from core.bend_radius import BendState
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
@@ -44,6 +45,10 @@ class WallThicknessInput:
     corrosion_allowance_mm: float
     bend_allowance_enabled: bool = False
     bend_radius_mm: float | None = None
+    @property
+    def bend_state(self) -> BendState:
+        """Expose the saved boolean as an explicit state without changing arithmetic."""
+        return BendState.BEND_APPLIES if self.bend_allowance_enabled else BendState.NO_BEND
     def to_dict(self)->dict[str,object]: """Serialize this input.""";return asdict(self)
     @classmethod
     def from_dict(cls,data:dict[str,object])->"WallThicknessInput": """Deserialize this input.""";return cls(float(data["outside_diameter_mm"]),float(data["design_pressure_bar"]),None if data.get("yield_strength_mpa") is None else float(data["yield_strength_mpa"]),float(data["safety_factor"]),float(data["weld_factor"]),float(data["corrosion_allowance_mm"]),bool(data.get("bend_allowance_enabled",False)),None if data.get("bend_radius_mm") is None else float(data["bend_radius_mm"]))

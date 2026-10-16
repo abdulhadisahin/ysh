@@ -163,7 +163,7 @@ def test_pipe_active_and_unconfigured_steps_are_honest(bend,rules) -> None:
     assert steps['pipe.actual_velocity'].result_value==result.actual_velocity_m_s
     assert ('pipe.minimum' in steps)==rules and ('pipe.tolerance' in steps)==rules
     if not bend:
-        assert steps['pipe.b'].formula_text=='b = 0' and steps['pipe.b'].result_value==0
+        assert steps['pipe.b'].formula_text=='formula2.no_bend' and steps['pipe.b'].result_value==0
     assert all(s.classification is CalculationClassification.ENGINEERING_CALCULATION for s in steps.values())
 
 

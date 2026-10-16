@@ -38,8 +38,11 @@ class CalculationHistoryWindow(tk.Toplevel):
         self._tree.grid(row=0,column=0,sticky='nsew')
         scrollbar=ttk.Scrollbar(frame,orient='vertical',command=self._tree.yview)
         scrollbar.grid(row=0,column=1,sticky='ns');self._tree.configure(yscrollcommand=scrollbar.set)
+        horizontal=ttk.Scrollbar(frame,orient='horizontal',command=self._tree.xview)
+        horizontal.grid(row=1,column=0,sticky='ew');self._tree.configure(xscrollcommand=horizontal.set)
         for key in ('date','module','stage','summary','state'):
-            self._tree.column(key,width=180 if key!='summary' else 380,stretch=True)
+            self._tree.column(key,width=220 if key=='date' else 180 if key!='summary' else 380,
+                              minwidth=180 if key=='date' else 120,stretch=True)
         scroll=ScrollableFrame(panes);self._body=scroll.content;self._body.columnconfigure(0,weight=1)
         scroll.set_wheel_active(True)
         panes.add(frame,weight=1);panes.add(scroll,weight=3)

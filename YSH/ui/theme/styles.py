@@ -196,8 +196,8 @@ def apply_theme(root: tk.Misc) -> None:
     _configure_result_metric(style, "ErrorResultMetric", colors.ERROR_SURFACE, colors.ERROR)
     _configure_result_metric(style, "CriticalResultMetric", colors.CRITICAL_ENGINEERING_SURFACE, colors.CRITICAL_ENGINEERING)
     _configure_result_metric(style, "UnavailableResultMetric", colors.RESULT_SURFACE, colors.DIVIDER, typography.BODY_BOLD)
-    _configure_result_metric(style, "TransferResultMetric", colors.GOLD_SOFT, colors.GOLD)
-    _configure_result_metric(style, "TransferSecondaryMetric", colors.RESULT_SURFACE, colors.GOLD, typography.RESULT_SECONDARY)
+    _configure_result_metric(style, "TransferResultMetric", colors.GOLD_SOFT, colors.GOLD_DARK)
+    _configure_result_metric(style, "TransferSecondaryMetric", colors.RESULT_SURFACE, colors.GOLD_DARK, typography.RESULT_SECONDARY)
     style.configure(
         "TransferReference.TLabel",
         background=colors.CARD_SURFACE,
@@ -212,8 +212,8 @@ def apply_theme(root: tk.Misc) -> None:
     )
     style.configure("TechnicalReference.TLabel", background=colors.CARD_SURFACE, foreground=colors.TEXT_MUTED, font=typography.MUTED)
     style.configure("TechnicalReferenceValue.TLabel", background=colors.CARD_SURFACE, foreground=colors.NAVY_TEXT, font=typography.BODY_BOLD)
-    _configure_result_metric(style, "DischargeResultMetric", colors.GOLD_SOFT, colors.GOLD)
-    _configure_result_metric(style, "DischargeLossMetric", colors.RESULT_SURFACE, colors.GOLD, typography.RESULT_SECONDARY)
+    _configure_result_metric(style, "DischargeResultMetric", colors.GOLD_SOFT, colors.GOLD_DARK)
+    _configure_result_metric(style, "DischargeLossMetric", colors.RESULT_SURFACE, colors.GOLD_DARK, typography.RESULT_SECONDARY)
     _configure_result_metric(style, "SuctionResultMetric", colors.SUCTION_SOFT, colors.SUCTION)
     _configure_result_metric(style, "SuctionLossMetric", colors.RESULT_SURFACE, colors.SUCTION, typography.RESULT_SECONDARY)
     _configure_button(style, "Primary.TButton", colors.PRIMARY, colors.PRIMARY_HOVER, colors.ON_ACCENT)
@@ -294,7 +294,7 @@ def apply_theme(root: tk.Misc) -> None:
         font=typography.BODY_BOLD,
     )
     style.map("HeaderCommand.TButton", foreground=[("disabled", colors.HEADER_MUTED_TEXT)])
-    _configure_button(style, "Transfer.Primary.TButton", colors.TRANSFER, "#D9690D", colors.ON_ACCENT)
+    _configure_button(style, "Transfer.Primary.TButton", colors.NAVY, colors.DEEP_NAVY, colors.ON_ACCENT)
     _configure_button(style, "Discharge.Primary.TButton", colors.NAVY, colors.DEEP_NAVY, colors.ON_ACCENT)
     _configure_button(style, "Suction.Primary.TButton", colors.SUCTION, "#244B69", colors.ON_ACCENT)
     style.configure("TNotebook", background=colors.BACKGROUND, bordercolor=colors.BORDER, tabmargins=(0, 0, 0, 0))

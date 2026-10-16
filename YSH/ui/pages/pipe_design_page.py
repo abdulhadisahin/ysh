@@ -13,6 +13,7 @@ from core.bend_radius import (
     DEFAULT_BEND_RADIUS_MODE,
     automatic_bend_radius_mm,
     bend_radius_mode,
+    bend_mode_from_state,
 )
 from core.engineering_context import LINE_ROLES, warning_fluid_for_circuit
 from engineering.warning_rules import evaluate_velocity
@@ -102,7 +103,7 @@ class PipeDesignPage(ttk.Frame):
         self._wall_bend = tk.StringVar(value="—")
         self._fields = {key: tk.StringVar() for key in ("q","v","da","pc","rp","sf","wf","c","r")}
         self._bend = tk.BooleanVar()
-        self._bend_mode = tk.StringVar(value=DEFAULT_BEND_RADIUS_MODE)
+        self._bend_mode = tk.StringVar(value="NO_BEND")
         self._bend_mode_labels: dict[str, str] = {}
         self._bend_mode_codes: dict[str, str] = {}
         self._manual_bend_radius_mm = ""
@@ -268,18 +269,18 @@ class PipeDesignPage(ttk.Frame):
                 for key,value in fields.items():
                     if key in self._fields:self._fields[key].set(str(value))
             self._bend.set(bool(state.get("bend_enabled",False)))
-            self._select_bend_mode(
-                state.get("bend_mode") if isinstance(state.get("bend_mode"), str) else None,
-                preserve_manual=False,
-            )
+            saved_mode = state.get("bend_mode") if isinstance(state.get("bend_mode"), str) else None
+            legacy_radius = fields.get("r", "") if isinstance(fields, dict) else ""
             saved_manual_radius = state.get("manual_bend_radius_mm")
+            if saved_manual_radius is None and saved_mode in (None, "MANUAL"):
+                saved_manual_radius = legacy_radius
             self._manual_bend_radius_mm = (
                 str(saved_manual_radius) if isinstance(saved_manual_radius, (str, int, float)) else ""
             )
-            if self._selected_bend_mode_code() == "MANUAL":
-                self._fields["r"].set(self._manual_bend_radius_mm or self._fields["r"].get())
-            else:
-                self._refresh_automatic_bend_radius()
+            self._select_bend_mode(
+                bend_mode_from_state(saved_mode, self._bend.get(), radius_present=legacy_radius not in (None, "")),
+                preserve_manual=False,
+            )
             saved_standard = state.get("pipe_standard_code")
             standard_missing = isinstance(saved_standard, str) and bool(saved_standard.strip()) and not self._select_pipe_standard(saved_standard)
             if not isinstance(saved_standard, str) or not saved_standard.strip():
@@ -327,7 +328,7 @@ class PipeDesignPage(ttk.Frame):
             self._select_pipe_standard(None)
             self._select_circuit(None)
             self._select_line_role(None)
-            self._bend.set(False);self._select_bend_mode(None, preserve_manual=False);self._manual_bend_radius_mm="";self._source.set(self._t("message.material_source"));self._material.set("");self._message.set(self._t("message.ready"));self._diameter_result={};self._diameter_warning_velocity_m_s=None;self._diameter_warning_codes=[];self._wall_result={};self._formula_text="";self._manual_da_override=False;self._corrosion_allowance_override=False;self._load_defaults();self._set_source_mode()
+            self._bend.set(False);self._select_bend_mode("NO_BEND", preserve_manual=False);self._manual_bend_radius_mm="";self._source.set(self._t("message.material_source"));self._material.set("");self._message.set(self._t("message.ready"));self._diameter_result={};self._diameter_warning_velocity_m_s=None;self._diameter_warning_codes=[];self._wall_result={};self._formula_text="";self._manual_da_override=False;self._corrosion_allowance_override=False;self._load_defaults();self._set_source_mode()
         finally:self._suppress_dirty=False
         self._update_diameter_summary()
         self._update_wall_summary()
@@ -642,15 +643,6 @@ class PipeDesignPage(ttk.Frame):
         self._material_box.grid(row=7, column=1, sticky="w", padx=(SM, 0), pady=3)
         self._material_box.bind("<<ComboboxSelected>>", lambda _: self._load_selected_material())
 
-        self._bend_check = ttk.Checkbutton(
-            allowance_group,
-            text=self._translate("result.bend_allowance"),
-            variable=self._bend,
-        )
-        bend_check = self._bend_check
-        bend_check.grid(row=8, column=0, columnspan=2, sticky="w", pady=(SM, 0))
-        self._widgets.append(bend_check)
-
         self._table_89_button = ttk.Button(
             allowance_group, text="Türk Loydu Tablo 8.9", command=self._open_table_8_9
         )
@@ -904,7 +896,6 @@ class PipeDesignPage(ttk.Frame):
         for label, key in zip(self._wall_group_labels, ("pipe.group.material_pipe", "pipe.group.design_conditions", "pipe.group.allowances_bend")): label.configure(text=self._translate(key))
         for label, key, suffix in self._field_labels.values():
             label.configure(text=f"{self._translate(key)}{suffix}")
-        self._bend_check.configure(text=self._translate("result.bend_allowance"))
         self._bend_mode_label.configure(text=self._translate("field.bend_radius"))
         self._bend_convention_label.configure(text=self._translate("pipe.bend_radius_convention"))
         self._diameter_button.configure(text=self._translate("calculation.calculate_diameter"))
@@ -994,13 +985,16 @@ class PipeDesignPage(ttk.Frame):
         """Set a mode and apply its deterministic R ownership rule."""
         mode = bend_radius_mode(code)
         previous = bend_radius_mode(getattr(self, "_last_bend_mode", DEFAULT_BEND_RADIUS_MODE))
-        if preserve_manual and mode.is_manual and not previous.is_manual:
+        if preserve_manual and previous.is_manual:
             self._manual_bend_radius_mm = self._fields["r"].get()
         self._bend_mode.set(getattr(self, "_bend_mode_labels", {}).get(mode.code, mode.code))
         self._last_bend_mode = mode.code
+        bend = self.__dict__.get("_bend")
+        if bend is not None:
+            bend.set(mode.applies)
         entry = getattr(self, "_bend_radius_entry", None)
         if entry is not None:
-            entry.configure(state="normal" if mode.is_manual else "readonly")
+            entry.configure(state="normal" if mode.is_manual else "readonly" if mode.applies else "disabled")
         if mode.is_manual:
             if self._manual_bend_radius_mm:
                 self._fields["r"].set(self._manual_bend_radius_mm)
@@ -1013,6 +1007,9 @@ class PipeDesignPage(ttk.Frame):
 
     def _refresh_automatic_bend_radius(self) -> None:
         """Refresh a read-only automatic R from the current authoritative da."""
+        if self._selected_bend_mode_code() == "NO_BEND":
+            self._fields["r"].set("")
+            return
         if self._selected_bend_mode_code() == "MANUAL" or "r" not in self._fields:
             return
         try:

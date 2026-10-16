@@ -71,7 +71,7 @@ def test_optional_watermark_renderer_is_nonfocusable_and_preserves_wheel_routing
 
 
 def test_calculation_pages_use_only_a_canvas_background_watermark() -> None:
-    """The optional watermark stays below the content window and cannot obstruct controls."""
+    """The reserved decoration region cannot be obscured by or obstruct controls."""
     host = _source("ui/widgets/scrollable_page_host.py")
     frame = _source("ui/widgets/scrollable_frame.py")
     watermark = _source("ui/widgets/workspace_watermark.py")
@@ -82,5 +82,5 @@ def test_calculation_pages_use_only_a_canvas_background_watermark() -> None:
     assert "canvas.create_image" in watermark
     assert "canvas.tag_lower(self._item)" in watermark
     canvas_section = watermark.split("class CanvasBackgroundWatermark", 1)[1].split("class WorkspaceWatermark", 1)[0]
-    assert "OPACITY = 1.0" in canvas_section
+    assert "OPACITY = 0.14" in canvas_section
     assert "self.place(" not in canvas_section

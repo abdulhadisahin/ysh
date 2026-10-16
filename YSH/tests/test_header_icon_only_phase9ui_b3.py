@@ -57,8 +57,8 @@ def test_canvas_watermark_is_optional_below_content_and_never_receives_events() 
     watermark = _source("ui/widgets/workspace_watermark.py")
 
     assert "host.set_background_watermark(d243_watermark_logo_path())" in host
-    assert "OPACITY = 1.0" in watermark
-    assert "WIDTH_FRACTION = 0.52" in watermark
+    assert "OPACITY = 0.14" in watermark
+    assert "def watermark_size" in watermark
     assert "canvas.tag_lower(self._item)" in watermark
     canvas_section = watermark.split("class CanvasBackgroundWatermark", 1)[1].split("class WorkspaceWatermark", 1)[0]
     assert "tag_bind" not in canvas_section

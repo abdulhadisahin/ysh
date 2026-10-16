@@ -41,7 +41,7 @@ def legacy_pipe_steps(result: PipeDesignCalculationResult) -> tuple[FormulaStep,
                  values(("da", "outside_diameter_mm", "mm"), ("pc", "design_pressure_bar", "bar"),
                         ("v", "weld_factor", "")) + (stress,), 2),
             step("pipe.b", "b", wall.bend_allowance_mm, "mm",
-                 ("b = 0.4 × (da / R) × s0" if raw["bend_allowance_enabled"] else "b = 0")
+                 ("b = 0.4 × (da / R) × s0" if raw["bend_allowance_enabled"] else "formula2.no_bend")
                  if "bend_allowance_enabled" in raw else "formula2.precomputed",
                  values(("da", "outside_diameter_mm", "mm"), ("R", "bend_radius_mm", "mm")) + (base,)
                  if raw.get("bend_allowance_enabled") else (), 3),
