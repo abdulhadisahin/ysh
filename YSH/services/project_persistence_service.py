@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from uuid import UUID
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from engineering.pipe_design.transfer import PipeTransferProjectState
 
 from core.project import Project
 from repositories.project_state_repository import ProjectStateRepository
@@ -41,6 +44,12 @@ class ProjectPersistenceService:
         """Save a version-1 workspace for the active project."""
         if self._active_project is None:
             raise ValidationError(ValidationIssue("project_selection_required"))
+        # Existing pages export only their own keys. Preserve the opt-in namespace
+        # when those pages save, including future namespace versions kept opaque.
+        if "pipe_transfer" not in state:
+            previous = self._states.get(self._active_project.id) or {}
+            if "pipe_transfer" in previous:
+                state = {**state, "pipe_transfer": previous["pipe_transfer"]}
         state["schema_version"] = 1
         self._states.save(self._active_project.id, state)
         self._is_dirty = False
@@ -82,3 +91,14 @@ class ProjectPersistenceService:
         self._projects.delete_project(project_id)
         if self._active_project is not None and self._active_project.id == project_id:
             self.close()
+
+    def save_with_pipe_transfer(self, state: dict[str, object], transfer: PipeTransferProjectState) -> None:
+        """Persist explicit transfer state through the existing project JSON row."""
+        from engineering.pipe_design.transfer_serialization import NAMESPACE, transfer_to_dict
+        self.save({**state, NAMESPACE: transfer_to_dict(transfer)})
+
+    def open_with_pipe_transfer(self, project_id: UUID) -> tuple[Project, dict[str, object], PipeTransferProjectState]:
+        """Restore typed state; legacy projects default to independent manual input."""
+        from engineering.pipe_design.transfer_serialization import transfer_from_workspace
+        project, state = self.open(project_id)
+        return project, state, transfer_from_workspace(state)

@@ -1,6 +1,9 @@
 """Calculation-first service for pump discharge head loss."""
 from __future__ import annotations
 from uuid import UUID
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from engineering.pipe_design.transfer import PipeInputState
 from core.local_loss_item import LocalLossItem
 from engineering.head_loss.calculator import DischargeHeadLossCalculator
 from engineering.head_loss.models import DischargeHeadLossInput,DischargeHeadLossResult
@@ -16,3 +19,15 @@ class DischargeHeadLossService:
             roughness_mm=material.roughness_mm
         if roughness_mm is None:raise ValidationError(ValidationIssue("required","field.roughness"))
         result=self._calculator.calculate(DischargeHeadLossInput(inside_diameter_mm,flow_rate_m3h,kinematic_viscosity_m2s,pipe_length_m,roughness_mm,geodetic_head_m,local_loss_items));result.metadata["roughness_source"]="material" if material_id else "manual";return result
+
+    def calculate_with_pipe(
+        self, pipe_input: PipeInputState, *, kinematic_viscosity_m2s: float,
+        pipe_length_m: float, roughness_mm: float | None, geodetic_head_m: float,
+        local_loss_items: list[LocalLossItem], material_id: UUID | None = None,
+    ) -> DischargeHeadLossResult:
+        """Consume applied/manual Di and Q only; material roughness stays explicit."""
+        diameter, flow = pipe_input.used_values.hydraulic_values()
+        result = self.calculate(diameter, flow, kinematic_viscosity_m2s, pipe_length_m,
+                                roughness_mm, geodetic_head_m, local_loss_items, material_id)
+        result.metadata["pipe_transfer"] = pipe_input.trace()
+        return result

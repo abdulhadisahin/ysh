@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from engineering.pipe_design.validation import _positive
 from engineering.pipe_design.rules import (
@@ -119,6 +119,15 @@ class PipeSelection:
     fluid_id: UUID | None = None
     system_id: UUID | None = None
     circuit_id: UUID | None = None
+
+    selection_id: UUID = field(default_factory=uuid4)
+    revision: int = 1
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.selection_id, UUID):
+            raise TypeError("selection_id must be a UUID")
+        if type(self.revision) is not int or self.revision < 1:
+            raise ValueError("revision must be a positive integer")
 
     @property
     def nominal_diameter(self) -> str | None:

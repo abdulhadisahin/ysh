@@ -81,6 +81,7 @@ class PipeDesignService:
         self, value: PipeDesignV2Input, *,
         pipe_metadata: Mapping[UUID, PipeSizeMetadata] | None = None,
         source_references: Mapping[UUID, SourceReference] | None = None,
+        previous_selection: PipeSelection | None = None,
     ) -> PipeSelection:
         """Opt in to V2 using real rows from one explicitly selected standard.
 
@@ -129,4 +130,8 @@ class PipeDesignService:
             if value.stress_rule.mode is StressMode.LEGACY_RP02 and strength is None:
                 strength = material.yield_strength_mpa
             value = replace(value, yield_strength_mpa=strength, provenance=provenance)
-        return PipeDesignV2Calculator().calculate(value, tuple(candidates))
+        result = PipeDesignV2Calculator().calculate(value, tuple(candidates))
+        if previous_selection is not None:
+            from engineering.pipe_design.transfer import revise_selection
+            result = revise_selection(previous_selection, result)
+        return result
