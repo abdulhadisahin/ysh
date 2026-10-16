@@ -141,6 +141,11 @@ class YSHApplication:
                 SystemRepository(self._library_database),
                 CircuitRepository(self._library_database),
                 FluidRepository(self._library_database)))
+        if hasattr(self._main_window, "set_library_service_factory"):
+            def library_factory() -> object:
+                from services.engineering_library_service import EngineeringLibraryService
+                return EngineeringLibraryService(self._library_database)
+            self._main_window.set_library_service_factory(library_factory)
         self._root.mainloop()
 
     def _apply_window_icon(self) -> None:

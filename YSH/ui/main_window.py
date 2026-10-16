@@ -744,21 +744,33 @@ class MainWindow:
 
     def _open_material_library(self) -> None:
         """Open the service-backed material-library editor."""
+        if callable(getattr(self, "_library_service_factory", None)):
+            self._open_engineering_library("materials")
+            return
         if self._material_service is not None:
             MaterialLibraryDialog(self._root, self._material_service, translate=self._translate, localization_owner=self)
 
     def _open_pipe_size_library(self) -> None:
         """Open the service-backed pipe-size-library editor."""
+        if callable(getattr(self, "_library_service_factory", None)):
+            self._open_engineering_library("pipe_standards")
+            return
         if self._pipe_size_service is not None:
             PipeSizeLibraryDialog(self._root, self._pipe_size_service, translate=self._translate, localization_owner=self)
 
     def _open_constants_library(self) -> None:
         """Open the service-backed engineering-constants editor."""
+        if callable(getattr(self, "_library_service_factory", None)):
+            self._open_engineering_library("constants")
+            return
         if self._engineering_constant_service is not None:
             ConstantsLibraryDialog(self._root, self._engineering_constant_service, translate=self._translate, localization_owner=self)
 
     def _open_corrosion_allowance_circuit_library(self) -> None:
         """Open the editable D243 circuit/corrosion-allowance library."""
+        if callable(getattr(self, "_library_service_factory", None)):
+            self._open_engineering_library("corrosion")
+            return
         if self._corrosion_allowance_circuit_service is not None:
             CorrosionAllowanceCircuitLibraryDialog(self._root, self._corrosion_allowance_circuit_service, translate=self._translate, localization_owner=self)
 
@@ -1203,6 +1215,36 @@ class MainWindow:
             self._pipe_design_page._formula_selection = selection
         self._mark_workspace_dirty()
         return selection.selection_id
+
+    def set_library_service_factory(self, factory: Callable[[], object]) -> None:
+        """Register deferred library composition without reading any dataset."""
+        self._library_service_factory = factory
+
+    def refresh_library_context_choices(self) -> None:
+        """Refresh master choices after an explicit library refresh/close, preserving project truth."""
+        service = getattr(self, "_system_context_service", None)
+        if service is not None:
+            try:
+                service.reload()
+                MainWindow._apply_system_context(self, self._system_context)
+            except Exception:
+                LOGGER.exception("Unable to refresh library context choices")
+                messagebox.showerror(self._translate("library2.title"),
+                                     self._translate("library2.error.storage"), parent=self._root)
+
+    def _open_engineering_library(self, category: str) -> None:
+        """Reuse a single modeless workspace behind the existing Library commands."""
+        from ui.dialogs.engineering_library_workspace import EngineeringLibraryWorkspace
+        from services.engineering_library_service import LibraryError
+        window = getattr(self, "_library_window", None)
+        if window is not None and window.winfo_exists():
+            window.show_category(category)
+            return
+        try:
+            self._library_window = EngineeringLibraryWorkspace(
+                self._root, self._library_service_factory(), self._translate, self, category)
+        except LibraryError as error:
+            messagebox.showerror(self._translate("library2.title"), self._translate(error.key), parent=self._root)
 
     def set_system_context_service(self, service: SystemContextService) -> None:
         """Attach the composed Phase 4 catalogs after initial window construction."""
