@@ -11,3 +11,15 @@ class SuctionNPSHInput:
 class SuctionNPSHResult:
     """Suction-line results, ENPY available, and semantic warnings."""
     suction_line_loss_m:float;suction_pressure_head_m:float;vapour_pressure_head_m:float;enpym_available_m:float;npsh_margin_m:float|None;messages:list[str]=field(default_factory=list);warnings:list[ValidationIssue]=field(default_factory=list);metadata:dict[str,object]=field(default_factory=dict)
+
+
+@dataclass(frozen=True, slots=True)
+class ENPYInput:
+    """ENPY inputs in Pa/kg/m³/m, independent of a hydraulic recalculation."""
+
+    suction_line_loss_m: float
+    suction_pressure_pa: float
+    vapour_pressure_pa: float
+    density_kg_m3: float
+    static_suction_height_m: float
+    npsh_required_m: float | None = None
