@@ -146,6 +146,11 @@ class YSHApplication:
                 from services.engineering_library_service import EngineeringLibraryService
                 return EngineeringLibraryService(self._library_database)
             self._main_window.set_library_service_factory(library_factory)
+        if hasattr(self._main_window, "set_snapshot_history_service"):
+            from services.snapshot_history_service import SnapshotHistoryService
+            from repositories.calculation_repository import CalculationRepository
+            self._main_window.set_snapshot_history_service(
+                SnapshotHistoryService(CalculationRepository(self._project_database)))
         self._root.mainloop()
 
     def _apply_window_icon(self) -> None:

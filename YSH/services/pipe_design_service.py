@@ -59,7 +59,7 @@ class PipeDesignService:
         result=PipeDesignCalculationResult(trace={"module_identifier":"pipe_design","module_version":"1","manual_input":manual_input,"constants":self.get_current_constants()})
         try:
             if material_id is not None and wall is not None:
-                material=self._materials.get_material(material_id);self._materials.validate_required_properties(material,"yield_strength_mpa");wall.yield_strength_mpa=material.yield_strength_mpa;result.trace["material"]={"id":str(material.id),"designation":material.designation}
+                material=self._materials.get_material(material_id);self._materials.validate_required_properties(material,"yield_strength_mpa");wall.yield_strength_mpa=material.yield_strength_mpa;result.trace["material"]={"id":str(material.id),"designation":material.designation,"standard":material.standard,"source":material.source,"yield_strength_mpa":material.yield_strength_mpa}
             if diameter is not None:
                 selected_standard = standard_code or PipeSizeService.DEFAULT_STANDARD_CODE
                 sizes = self._pipe_sizes.get_pipe_sizes_for_standard(

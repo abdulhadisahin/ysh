@@ -706,6 +706,7 @@ class MainWindow:
 
         project_menu = tk.Menu(menu_bar, tearoff=False)
         project_menu.add_command(label=self._translate("menu.project.refresh"), command=self._refresh_projects)
+        project_menu.add_command(label=self._translate("history.title"), command=self._open_calculation_history)
         self._project_menu = project_menu
         menu_bar.add_cascade(label=self._translate("menu.project"), menu=project_menu)
 
@@ -736,6 +737,7 @@ class MainWindow:
         self._library_menu.entryconfigure(2, label=self._translate("menu.library.engineering_constants"))
         self._library_menu.entryconfigure(3, label=self._translate("menu.library.corrosion_allowance_circuits"))
         self._project_menu.entryconfigure(0, label=self._translate("menu.project.refresh"))
+        self._project_menu.entryconfigure(1, label=self._translate("history.title"))
         self._help_menu.entryconfigure(0, label=self._translate("menu.help.about"))
         self._root.configure(menu=self._menu_bar)
         update = getattr(self._root, "update_idletasks", None)
@@ -1219,6 +1221,46 @@ class MainWindow:
     def set_library_service_factory(self, factory: Callable[[], object]) -> None:
         """Register deferred library composition without reading any dataset."""
         self._library_service_factory = factory
+
+    def set_snapshot_history_service(self, service: object) -> None:
+        """Attach successful-result listeners without reading project history."""
+        from engineering.module_registry import ModuleCode
+        self._snapshot_history = service
+        for code,page in self._pages.items():
+            def listener(stage,result,selection,findings,module=ModuleCode(code)):
+                MainWindow._capture_calculation(self,module,stage,result,selection,findings)
+            page._snapshot_listener = listener
+            if code == 'transfer_pump' and hasattr(page,'_design_panel'):
+                page._design_panel._snapshot_listener = listener
+
+    def _capture_calculation(self, module: object, stage: str, result: object,
+                             selection: object, findings: tuple) -> None:
+        """History failure never enters a page's engineering-error/invalidation path."""
+        from engineering.snapshots.builders import build_snapshot
+        try:
+            project = getattr(self,'_active_project',None)
+            snapshot = build_snapshot(module,stage,result,context=self._system_context,
+                                      project_id=project.id if project else None,
+                                      selection=selection,findings=findings)
+            self._snapshot_history.append(snapshot)
+        except Exception:
+            LOGGER.exception('Calculation succeeded but snapshot capture/persistence failed')
+            messagebox.showerror(self._translate('history.title'),
+                                 self._translate('history.persistence_failed'),parent=self._root)
+
+    def _open_calculation_history(self) -> None:
+        """Open lazily; readonly history is independent from current editable page fields."""
+        service=getattr(self,'_snapshot_history',None)
+        if service is None:
+            messagebox.showinfo(self._translate('history.title'),self._translate('history.unavailable'),parent=self._root)
+            return
+        window=getattr(self,'_history_window',None)
+        if window is not None and window.winfo_exists():
+            window.refresh();window.deiconify();window.lift()
+            return
+        from ui.dialogs.calculation_history import CalculationHistoryWindow
+        self._history_window=CalculationHistoryWindow(self._root,service,
+            lambda:self._active_project.id if self._active_project else None,self._translate,self)
 
     def refresh_library_context_choices(self) -> None:
         """Refresh master choices after an explicit library refresh/close, preserving project truth."""

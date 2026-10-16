@@ -619,6 +619,9 @@ class SuctionNPSHPage(ttk.Frame):
         self._mark_dirty()
         self._refresh_formula_panel()
 
+        from services.snapshot_events import notify_success
+        notify_success(self,"hydraulics",result)
+
     def _calculate_enpy(self) -> None:
         """Calculate ENPY using the current valid suction-line loss only."""
         loss = getattr(self, "_last_loss", None)
@@ -653,6 +656,9 @@ class SuctionNPSHPage(ttk.Frame):
         self._formula.set("")
         self._mark_dirty()
         self._refresh_formula_panel()
+
+        from services.snapshot_events import notify_success
+        notify_success(self,"enpy",result)
 
     def _formula_steps(self) -> tuple:
         """Explain stored stages without reading the current entry controls."""

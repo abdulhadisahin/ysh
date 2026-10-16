@@ -1233,6 +1233,8 @@ class PipeDesignPage(ttk.Frame):
             self._refresh_diameter_warning_message()
             self._evaluate_velocity_warning()
             self._refresh_formula_panel()
+            from services.snapshot_events import notify_success
+            notify_success(self,"diameter",result,selection=getattr(self,"_formula_selection",None))
         except ValidationError as error:
             self._diameter_result = {}
             self._diameter_warning_velocity_m_s = None
@@ -1277,6 +1279,8 @@ class PipeDesignPage(ttk.Frame):
             self._update_wall_summary()
             self._message.set(f"Et kalınlığı: {format_user_number(result.wall_thickness.final_wall_thickness_mm)} mm")
             self._refresh_formula_panel()
+            from services.snapshot_events import notify_success
+            notify_success(self,"wall",result,selection=getattr(self,"_formula_selection",None))
         except ValidationError as error:self._message.set(render_validation_issue(error.issue, self._translator_proxy()))
         except ValueError as error:self._message.set(f"Error: {error}")
 

@@ -708,6 +708,9 @@ class TransferPumpPage(ttk.LabelFrame):
         self._refresh_chart()
         self._refresh_formula_panel()
 
+        from services.snapshot_events import notify_success
+        notify_success(self,"empirical",typed_result)
+
     def set_project_context(self, context: SystemContext) -> None:
         """Retain project identity for future calculations, preserving cached results."""
         self._project_context = context

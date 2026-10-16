@@ -654,3 +654,36 @@ MESSAGES.update(
  'library2.field.corrosion_circuit_id': 'Korozyon Devresi',
  'library2.field.default_corrosion_allowance_mm': 'Korozyon Artımı (mm)'}
 )
+
+# Immutable calculation history.
+MESSAGES.update(
+{'history.title': 'Hesap Geçmişi',
+ 'history.date': 'Hesap Tarihi',
+ 'history.module': 'Modül',
+ 'history.stage': 'Hesap / Mod',
+ 'history.summary': 'Sonuç Özeti',
+ 'history.state': 'Kayıt',
+ 'history.readonly': 'Tarihsel hesap — salt okunurdur. Güncel girdileri değiştirmez.',
+ 'history.frozen': 'Bu hesapta kullanılan değerler ve kaynak bilgisi hesap anında dondurulmuştur.',
+ 'history.session': 'Proje seçilmedi: bu kayıtlar yalnızca bu oturumda saklanır; kalıcı proje '
+                    'geçmişi değildir.',
+ 'history.latest': 'Modüldeki son kayıt',
+ 'history.historical': 'Tarihsel kayıt',
+ 'history.legacy': 'Eski kayıt',
+ 'history.incomplete': 'Eksik tarihsel veri: yalnızca eski kayıtta bulunan bilgiler gösterilir. '
+                       'Güncel kütüphaneden tamamlanmaz.',
+ 'history.evidence': 'Bu hesapta kullanılan dondurulmuş veriler',
+ 'history.details': 'Ham verileri aç / kapat',
+ 'history.persistence_failed': 'Hesap başarılı; tarihsel kayıt saklanamadı. Güncel hesap sonucu '
+                               'korunmuştur.',
+ 'history.invalid_record': 'Tarihsel kayıt okunamadı veya snapshot sürümü desteklenmiyor. Güncel '
+                           'verilerle yeniden oluşturulmadı.',
+ 'history.unavailable': 'Tarihçe servisi bu oturumda kullanılamıyor.',
+ 'history.stage.diameter': 'Boru çapı',
+ 'history.stage.wall': 'Et kalınlığı',
+ 'history.stage.selection': 'Boru V2 seçimi',
+ 'history.stage.hydraulics': 'Hidrolik hesap',
+ 'history.stage.enpy': 'Emme + ENPY',
+ 'history.stage.design': 'Transfer tasarımı',
+ 'history.stage.empirical': 'Ampirik referans tahmini'}
+)

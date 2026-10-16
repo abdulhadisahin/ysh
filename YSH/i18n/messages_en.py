@@ -639,3 +639,36 @@ MESSAGES.update(
  'library2.field.corrosion_circuit_id': 'Corrosion Circuit',
  'library2.field.default_corrosion_allowance_mm': 'Corrosion Allowance (mm)'}
 )
+
+# Immutable calculation history.
+MESSAGES.update(
+{'history.title': 'Calculation History',
+ 'history.date': 'Calculation Date',
+ 'history.module': 'Module',
+ 'history.stage': 'Stage / Mode',
+ 'history.summary': 'Result Summary',
+ 'history.state': 'Record',
+ 'history.readonly': 'Historical calculation — read-only. Current inputs are unchanged.',
+ 'history.frozen': 'Used values and source metadata were frozen at calculation time.',
+ 'history.session': 'No project selected: these records are session-only, not durable project '
+                    'history.',
+ 'history.latest': 'Latest record in module',
+ 'history.historical': 'Historical record',
+ 'history.legacy': 'Legacy record',
+ 'history.incomplete': 'Incomplete history: only data present in this legacy record is shown. '
+                       'Current library data is not substituted.',
+ 'history.evidence': 'Frozen evidence used in this calculation',
+ 'history.details': 'Show / hide raw evidence',
+ 'history.persistence_failed': 'Calculation succeeded; history could not be saved. The current '
+                               'result remains available.',
+ 'history.invalid_record': 'History could not be read or its snapshot version is unsupported. It '
+                           'was not reconstructed from current data.',
+ 'history.unavailable': 'History service is unavailable in this session.',
+ 'history.stage.diameter': 'Pipe diameter',
+ 'history.stage.wall': 'Wall thickness',
+ 'history.stage.selection': 'V2 pipe selection',
+ 'history.stage.hydraulics': 'Hydraulics',
+ 'history.stage.enpy': 'Suction + ENPY',
+ 'history.stage.design': 'Transfer design',
+ 'history.stage.empirical': 'Empirical reference estimate'}
+)

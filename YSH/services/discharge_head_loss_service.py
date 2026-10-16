@@ -38,8 +38,12 @@ class DischargeHeadLossService:
         from dataclasses import fields, replace
         from engineering.head_loss.v2_models import DischargeV2Result
         roughness = value.roughness_mm
+        used_material = None
         if value.material_id is not None:
-            roughness = self._materials.get_material(value.material_id).roughness_mm
+            material = self._materials.get_material(value.material_id)
+            roughness = material.roughness_mm
+            used_material = {"id":str(value.material_id),"designation":getattr(material,"designation",None),
+                             "standard":getattr(material,"standard",None),"source":getattr(material,"source",None),"roughness_mm":roughness}
             if roughness is None:
                 raise ValidationError(ValidationIssue("material_roughness_missing"))
         result = self.calculate_with_pipe(
@@ -51,6 +55,8 @@ class DischargeHeadLossService:
         )
         used = replace(value, roughness_mm=roughness)
         result.metadata["roughness_source"] = "material" if value.material_id else "manual"
+        if used_material is not None:
+            result.metadata["used_material"] = used_material
         diameter, flow = value.pipe_input.used_values.hydraulic_values()
         return DischargeV2Result(
             **{field.name: getattr(result, field.name) for field in fields(result)},

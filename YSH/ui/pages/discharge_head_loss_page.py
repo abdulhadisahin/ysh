@@ -412,6 +412,8 @@ class DischargeHeadLossPage(ttk.LabelFrame):
             self._render_result()
             self._mark_dirty()
             self._refresh_formula_panel()
+            from services.snapshot_events import notify_success
+            notify_success(self,"hydraulics",result)
         except ValidationError as error:self._set_semantic_messages([error.issue])
         except Exception:
             logging.getLogger(__name__).exception("Discharge head-loss calculation failed")

@@ -93,6 +93,8 @@ class TransferPumpDesignPanel(ttk.Frame):
             self._error.set('')
             self._render()
             self._changed()
+            from services.snapshot_events import notify_success
+            notify_success(self,"design",self._last_result)
         except ValidationError as error:
             proxy = type('TranslatorProxy', (), {'translate':self._translate})()
             self._error.set(render_validation_issue(error.issue, proxy))
