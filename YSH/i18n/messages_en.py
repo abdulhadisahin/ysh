@@ -385,3 +385,27 @@ MESSAGES.update({
     "discharge.pipe.no_available": 'No usable Pipe Design result is available yet.',
     "discharge.pipe.select_source": 'Select the Pipe Design result to use.',
 })
+
+# Phase 10: real sizing and reference estimation are distinct engineering concepts.
+MESSAGES.update({
+    'transfer.mode.DESIGN': 'Design Capacity',
+    'transfer.mode.EMPIRICAL': 'Empirical Capacity Estimate',
+    'transfer.mode.help.DESIGN': 'Required capacity from transfer volume and target time. No default design margin is applied.',
+    'transfer.mode.help.EMPIRICAL': 'Estimated capacity from reference-vessel data; not a design requirement, classification approval or manufacturer selection.',
+    'transfer.design.inputs': 'Design Inputs',
+    'transfer.design.results': 'Design Results',
+    'transfer.design.volume': 'Transfer volume Vtransfer (m³)',
+    'transfer.design.target_time': 'Target transfer time tdef (h)',
+    'transfer.design.pump_capacity': 'Selected pump capacity Qtulumba (m³/h, optional)',
+    'transfer.design.required_flow': 'Required transfer capacity Qgerekli',
+    'transfer.design.transfer_time': 'Transfer time ttransfer',
+    'transfer.design.status.NO_SELECTED_PUMP': 'Required capacity calculated; no actual pump capacity entered.',
+    'transfer.design.status.ADEQUATE': 'Entered pump capacity meets the required capacity.',
+    'transfer.design.status.PUMP_CAPACITY_BELOW_REQUIRED': 'Entered pump capacity is below the required capacity.',
+    'page.transfer.description': 'Design capacity calculation and separate empirical capacity estimation',
+    'section.new_vessel': 'EMPIRICAL ESTIMATE / VESSEL INPUT',
+    'section.estimate_results': 'EMPIRICAL ESTIMATE RESULTS',
+    'result.required_capacity_12h': '12-hour comparison capacity Q12',
+    'transfer.q12_note': 'Q12 is only a mathematical 12-hour comparison; not a regression estimate, required target time or classification requirement.',
+    'formula.regression_model_note': 'The model is an empirical estimate derived from saved reference-vessel data, not a Türk Loydu formula or required design capacity.',
+})

@@ -399,3 +399,27 @@ MESSAGES.update({
     "discharge.pipe.no_available": 'Henüz kullanılabilir Boru Tasarımı sonucu yok.',
     "discharge.pipe.select_source": 'Kullanılacak Boru Tasarımı sonucunu seçin.',
 })
+
+# Phase 10: real sizing and reference estimation are distinct engineering concepts.
+MESSAGES.update({
+    'transfer.mode.DESIGN': 'Tasarım Kapasitesi',
+    'transfer.mode.EMPIRICAL': 'Ampirik Kapasite Tahmini',
+    'transfer.mode.help.DESIGN': 'Transfer hacmi ve hedef süreye göre gerekli kapasite. Varsayılan tasarım marjı uygulanmaz.',
+    'transfer.mode.help.EMPIRICAL': 'Referans gemi verilerine göre tahmini kapasite; tasarım gereksinimi, klas onayı veya üretici seçimi değildir.',
+    'transfer.design.inputs': 'Tasarım Girdileri',
+    'transfer.design.results': 'Tasarım Sonuçları',
+    'transfer.design.volume': 'Transfer hacmi Vtransfer (m³)',
+    'transfer.design.target_time': 'Hedef transfer süresi tdef (h)',
+    'transfer.design.pump_capacity': 'Seçili tulumba kapasitesi Qtulumba (m³/h, isteğe bağlı)',
+    'transfer.design.required_flow': 'Gerekli transfer kapasitesi Qgerekli',
+    'transfer.design.transfer_time': 'Transfer süresi ttransfer',
+    'transfer.design.status.NO_SELECTED_PUMP': 'Gerekli kapasite hesaplandı; gerçek tulumba kapasitesi girilmedi.',
+    'transfer.design.status.ADEQUATE': 'Girilen tulumba kapasitesi gerekli kapasiteyi karşılıyor.',
+    'transfer.design.status.PUMP_CAPACITY_BELOW_REQUIRED': 'Girilen tulumba kapasitesi gerekli kapasitenin altında.',
+    'page.transfer.description': 'Tasarım kapasitesi hesabı ve ayrı ampirik kapasite tahmini',
+    'section.new_vessel': 'AMPİRİK TAHMİN / GEMİ GİRDİSİ',
+    'section.estimate_results': 'AMPİRİK TAHMİN SONUÇLARI',
+    'result.required_capacity_12h': '12 saatlik karşılaştırma kapasitesi Q12',
+    'transfer.q12_note': 'Q12 yalnızca 12 saatlik matematiksel karşılaştırmadır; regresyon tahmini değildir ve zorunlu hedef süre veya klas şartı oluşturmaz.',
+    'formula.regression_model_note': 'Model, kayıtlı referans gemi verilerinden türetilen ampirik tahmindir; Türk Loydu formülü veya zorunlu tasarım kapasitesi değildir.',
+})

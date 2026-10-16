@@ -7,6 +7,10 @@ import logging
 from collections.abc import Callable, Sequence
 from tkinter import messagebox, ttk
 from uuid import UUID
+from dataclasses import replace
+from engineering.transfer_pump.v2_models import TransferPumpMode, TransferPumpEmpiricalInput
+from engineering.transfer_pump.v2_state import TransferPumpPageState
+from ui.pages.transfer_pump_design import TransferPumpDesignPanel
 
 from core.pump_reference import PumpReference
 from ui.formatting import format_user_number
@@ -50,6 +54,9 @@ class TransferPumpPage(ttk.LabelFrame):
         super().__init__(parent, text=self._translate("page.transfer.tab"), padding=12)
         self._service = service
         self._constants = constant_service
+        self._calculation_mode = TransferPumpMode.DESIGN
+        self._method = tk.StringVar()
+        self._method_explanation = tk.StringVar()
         self._capacity = tk.StringVar()
         self._capacity_mode = tk.StringVar(value=CAPACITY_MODE_VOLUME)
         self._capacity_mode_codes: dict[str, str] = {}
@@ -69,6 +76,8 @@ class TransferPumpPage(ttk.LabelFrame):
         self._build()
         self._load_capacity_modes()
         self.refresh()
+        self._load_calculation_modes()
+        self._show_calculation_mode()
         self._suppress_dirty = False
         self._capacity.trace_add("write", self._invalidate_estimate)
         self._capacity_mode.trace_add("write", self._on_capacity_mode_change)
@@ -76,12 +85,22 @@ class TransferPumpPage(ttk.LabelFrame):
 
     def _build(self) -> None:
         self.columnconfigure(0, weight=1)
+        heading = ttk.Frame(self)
+        heading.grid(row=0, column=0, sticky="ew")
+        heading.columnconfigure(0, weight=1)
         self._header = SectionHeader(
-            self,
+            heading,
             self._translate("page.transfer.title"),
             self._translate("page.transfer.description"),
         )
         self._header.grid(row=0, column=0, sticky="ew", pady=(0, 6))
+        self._method_box = ttk.Combobox(heading, textvariable=self._method, state="readonly", width=36)
+        self._method_box.grid(row=1, column=0, sticky="w", pady=(0,6))
+        self._method_box.bind("<<ComboboxSelected>>", self._choose_calculation_mode)
+        ttk.Label(heading, textvariable=self._method_explanation, wraplength=900).grid(
+            row=2, column=0, sticky="w", pady=(0,8))
+        self._design_panel = TransferPumpDesignPanel(self, self._service, self._translate, self._design_changed)
+        self._design_panel.grid(row=1, column=0, sticky="ew")
         upper = ttk.Frame(self)
         upper.grid(row=1, column=0, sticky="ew")
         self._upper = upper
@@ -260,7 +279,7 @@ class TransferPumpPage(ttk.LabelFrame):
             self._chart_card, textvariable=self._message, wraplength=680, style="Info.TLabel"
         )
         self._model_message.grid(row=1, column=0, sticky="w", pady=(8, 0))
-        self._formula_panel = FormulaReferencePanel(self, self._formula_sections, self._translate, self._create_formula_toggle, lambda: bool(getattr(self, "_estimate_result", None)))
+        self._formula_panel = FormulaReferencePanel(self, self._formula_sections, self._translate, self._create_formula_toggle, self._has_active_result)
         self._formula_panel.grid(row=3, column=0, sticky="ew", pady=(8, 0))
         self._responsive_layout_mode = ""
         self._upper.bind("<Configure>", self._on_upper_configure, add="+")
@@ -318,6 +337,9 @@ class TransferPumpPage(ttk.LabelFrame):
         self._render_status()
         self._render_estimate()
         self._formula_panel.refresh_texts()
+        self._design_panel.refresh_texts()
+        self._load_calculation_modes()
+        self._show_calculation_mode()
         self.after_idle(self._reflow_layout)
 
     def _on_upper_configure(self, event: tk.Event[tk.Misc]) -> None:
@@ -474,6 +496,7 @@ class TransferPumpPage(ttk.LabelFrame):
         try:
             self._capacity.set("")
             self.__dict__.pop("_estimate_result", None)
+            self.__dict__.pop("_empirical_v2_result", None)
             self.__dict__.pop("_estimate_capacity_m3", None)
             self.__dict__.pop("_capacity_resolution", None)
             self.__dict__.pop("_capacity_resolution", None)
@@ -498,6 +521,7 @@ class TransferPumpPage(ttk.LabelFrame):
         """Discard a stale estimate after the proposed fuel capacity changes."""
         if not self._suppress_dirty:
             self.__dict__.pop("_estimate_result", None)
+            self.__dict__.pop("_empirical_v2_result", None)
             self.__dict__.pop("_estimate_capacity_m3", None)
             self._clear_estimate_summary()
             self._sync_result_empty_state()
@@ -511,30 +535,41 @@ class TransferPumpPage(ttk.LabelFrame):
         return {
             "capacity": self._capacity.get(),
             "capacity_input_mode": self._selected_capacity_mode(),
+            "transfer_v2": replace(self._design_panel.form_state(), mode=self._calculation_mode).to_payload(),
         }
 
     def load_state(self, state: dict[str, object]) -> None:
         """Restore saved estimate input and informational message."""
+        method_state = TransferPumpPageState.from_page_payload(state)
         self._suppress_dirty = True
         try:
+            self._calculation_mode = method_state.mode
+            self._design_panel.load(method_state)
             saved_mode = state.get("capacity_input_mode")
             mode = saved_mode if saved_mode in {CAPACITY_MODE_VOLUME, CAPACITY_MODE_MASS} else CAPACITY_MODE_VOLUME
             self._capacity_mode.set(self._capacity_mode_labels[mode])
             self._capacity.set(str(state.get("capacity", "")))
             self.__dict__.pop("_estimate_result", None)
+            self.__dict__.pop("_empirical_v2_result", None)
             self.__dict__.pop("_estimate_capacity_m3", None)
             self.__dict__.pop("_capacity_resolution", None)
             self._clear_estimate_summary()
             self._update_capacity_input_presentation()
             self.refresh()
+            self._load_calculation_modes()
+            self._show_calculation_mode()
         finally:
             self._suppress_dirty = False
 
     def clear_state(self) -> None:
-        """Clear only the current estimate while preserving reference ships."""
+        """Clear both project-owned modes while preserving reference ships."""
         self._suppress_dirty = True
         try:
             self._clear()
+            self._design_panel.load(TransferPumpPageState())
+            self._calculation_mode = TransferPumpMode.DESIGN
+            self._load_calculation_modes()
+            self._show_calculation_mode()
         finally:
             self._suppress_dirty = False
 
@@ -577,6 +612,7 @@ class TransferPumpPage(ttk.LabelFrame):
         """Open the service-backed reference dialog in add mode."""
         if PumpReferenceDialog(self, self._service._references, translate=self._translate).show() is not None:
             self.__dict__.pop("_estimate_result", None)
+            self.__dict__.pop("_empirical_v2_result", None)
             self.__dict__.pop("_estimate_capacity_m3", None)
             self._clear_estimate_summary()
             self.refresh()
@@ -600,6 +636,7 @@ class TransferPumpPage(ttk.LabelFrame):
             return "break"
         if PumpReferenceDialog(self, self._service._references, item, translate=self._translate).show() is not None:
             self.__dict__.pop("_estimate_result", None)
+            self.__dict__.pop("_empirical_v2_result", None)
             self.__dict__.pop("_estimate_capacity_m3", None)
             self._clear_estimate_summary()
             self.refresh()
@@ -617,6 +654,7 @@ class TransferPumpPage(ttk.LabelFrame):
         ):
             self._service._references.delete_reference(UUID(selected[0]))
             self.__dict__.pop("_estimate_result", None)
+            self.__dict__.pop("_empirical_v2_result", None)
             self.__dict__.pop("_estimate_capacity_m3", None)
             self.refresh()
             self._mark_dirty()
@@ -642,9 +680,10 @@ class TransferPumpPage(ttk.LabelFrame):
                 field_key=("field.fuel_capacity_mass" if mode == CAPACITY_MODE_MASS else "field.fuel_capacity"),
             )
             assert source_capacity is not None
-            resolution, result = self._service.calculate_from_capacity_input(
-                mode, source_capacity
-            )
+            typed_result = self._service.calculate_v2(TransferPumpEmpiricalInput(
+                source_capacity=source_capacity, capacity_input_mode=mode))
+            resolution, result = typed_result.resolution, typed_result.estimate
+            self._empirical_v2_result = typed_result
         except ValidationError as error:
             self._set_semantic_messages([error.issue])
             return
@@ -668,6 +707,8 @@ class TransferPumpPage(ttk.LabelFrame):
 
     def _formula_sections(self) -> list[FormulaSection]:
         """Display the available model and optional latest estimate substitution."""
+        if getattr(self, "_calculation_mode", TransferPumpMode.EMPIRICAL) is TransferPumpMode.DESIGN:
+            return self._design_panel.formula_sections()
         model_result=getattr(self,"_model_result",None)
         sections = [
             FormulaSection("FORMULA", "Qpump = m × Vfuel + b\nm = Σ((Vfuel − V̄fuel)(Qpump − Q̄pump)) / Σ(Vfuel − V̄fuel)²\nb = Q̄pump − m × V̄fuel", "1. LINEAR REGRESSION MODEL", "formula"),
@@ -731,6 +772,7 @@ class TransferPumpPage(ttk.LabelFrame):
     def _clear(self) -> None:
         """Clear estimate input and result text."""
         self.__dict__.pop("_estimate_result", None)
+        self.__dict__.pop("_empirical_v2_result", None)
         self.__dict__.pop("_estimate_capacity_m3", None)
         self.__dict__.pop("_capacity_resolution", None)
         self._clear_estimate_summary()
@@ -877,3 +919,31 @@ class TransferPumpPage(ttk.LabelFrame):
     def _translator_proxy(self) -> object:
         """Expose the page translation callable to the shared issue renderer."""
         return type("TranslatorProxy", (), {"translate": self._translate})()
+
+    def _load_calculation_modes(self) -> None:
+        self._method_box.configure(values=tuple(self._translate(f"transfer.mode.{mode.value}")
+                                               for mode in TransferPumpMode))
+        self._method_box.current(0 if self._calculation_mode is TransferPumpMode.DESIGN else 1)
+
+    def _choose_calculation_mode(self, _event: object = None) -> None:
+        self._calculation_mode = (TransferPumpMode.DESIGN if self._method_box.current() == 0
+                                  else TransferPumpMode.EMPIRICAL)
+        self._show_calculation_mode()
+        self._mark_dirty()
+
+    def _show_calculation_mode(self) -> None:
+        design = self._calculation_mode is TransferPumpMode.DESIGN
+        (self._design_panel.grid if design else self._design_panel.grid_remove)()
+        for group in (self._upper, self._analysis):
+            (group.grid_remove if design else group.grid)()
+        self._method_explanation.set(self._translate(f"transfer.mode.help.{self._calculation_mode.value}"))
+        self._refresh_formula_panel()
+
+    def _design_changed(self) -> None:
+        self._mark_dirty()
+        self._refresh_formula_panel()
+
+    def _has_active_result(self) -> bool:
+        if self._calculation_mode is TransferPumpMode.DESIGN:
+            return getattr(self._design_panel, "_last_result", None) is not None
+        return bool(getattr(self, "_estimate_result", None))

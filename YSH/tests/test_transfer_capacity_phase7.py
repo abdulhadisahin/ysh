@@ -80,7 +80,7 @@ def test_tonne_and_equivalent_volume_use_the_same_unchanged_regression_path() ->
 def test_transfer_page_contract_keeps_source_units_q12_and_regression_separate() -> None:
     source = (ROOT / "ui/pages/transfer_pump_page.py").read_text(encoding="utf-8")
     assert '"capacity_input_mode": self._selected_capacity_mode()' in source
-    assert "calculate_from_capacity_input" in source
+    assert "TransferPumpEmpiricalInput" in source and "calculate_v2" in source
     assert '"result.required_capacity_12h"' in source
     assert 'FormulaSection("FORMULA", "Q12 = V / 12"' in source
     assert 'FormulaSection("FORMULA", "V = M / ρ"' in source
