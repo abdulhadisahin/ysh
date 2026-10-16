@@ -9,6 +9,8 @@ from pathlib import Path
 from uuid import uuid4
 
 from database.base_database import BaseDatabase
+from database.migrations import migrate
+from database.library_v5 import create_v5_schema
 from database.en_10220_pipe_size_seed import (
     EN_10220_DESCRIPTION,
     EN_10220_STANDARD,
@@ -21,18 +23,24 @@ from paths import ApplicationPaths
 class LibraryDatabase(BaseDatabase):
     """Creates and migrates the per-user editable engineering library."""
 
-    SCHEMA_VERSION = 4
+    SCHEMA_VERSION = 5
 
     def __init__(self, database_path: Path | None = None) -> None:
         super().__init__(database_path or ApplicationPaths().libraries_database_path)
 
     def create_schema(self, connection: sqlite3.Connection) -> None:
-        """Create the final schema or migrate an earlier runtime library safely."""
-        connection.execute("CREATE TABLE IF NOT EXISTS schema_version (version INTEGER NOT NULL)")
-        version_row = connection.execute("SELECT version FROM schema_version").fetchone()
-        version = 0 if version_row is None else int(version_row["version"])
-        connection.executescript(
-            """
+        """Upgrade legacy libraries through ordered, atomic migrations."""
+        migrate(connection, database="libraries", latest=self.SCHEMA_VERSION, steps={
+            1: self._create_base_tables,
+            2: self._prepare_pipe_schema,
+            3: self._prepare_pipe_schema,
+            4: self._prepare_corrosion_schema,
+            5: create_v5_schema,
+        })
+
+    @staticmethod
+    def _create_base_tables(connection: sqlite3.Connection) -> None:
+        statements = """
             CREATE TABLE IF NOT EXISTS materials (
               id TEXT PRIMARY KEY, name TEXT NOT NULL, designation TEXT NOT NULL COLLATE NOCASE UNIQUE,
               standard TEXT NOT NULL DEFAULT '', yield_strength_mpa REAL, roughness_mm REAL NOT NULL,
@@ -47,20 +55,24 @@ class LibraryDatabase(BaseDatabase):
               fuel_capacity_m3 REAL NOT NULL, pump_capacity_m3h REAL NOT NULL,
               description TEXT NOT NULL DEFAULT '', source TEXT NOT NULL,
               created_at TEXT NOT NULL, modified_at TEXT NOT NULL);
-            """
-        )
+        """
+        for statement in statements.split(";"):
+            if statement.strip():
+                connection.execute(statement)
+
+    def _prepare_pipe_schema(self, connection: sqlite3.Connection) -> None:
+        """Retain the legacy pipe copy/transform migration and verified seeds."""
+        self._create_base_tables(connection)
         self._create_pipe_standards_table(connection)
         self._seed_en_10220_standard(connection)
         if self._pipe_sizes_table_exists(connection) and not self._pipe_sizes_are_standard_aware(connection):
             self._migrate_pipe_sizes_to_standard_identity(connection)
         self._create_pipe_sizes_table(connection)
         self._seed_en_10220_pipe_sizes(connection)
+
+    def _prepare_corrosion_schema(self, connection: sqlite3.Connection) -> None:
         self._create_corrosion_allowance_circuits_table(connection)
         self._seed_corrosion_allowance_circuits(connection)
-        if version_row is None:
-            connection.execute("INSERT INTO schema_version (version) VALUES (?)", (self.SCHEMA_VERSION,))
-        elif version < self.SCHEMA_VERSION:
-            connection.execute("UPDATE schema_version SET version=?", (self.SCHEMA_VERSION,))
 
     @staticmethod
     def _pipe_sizes_table_exists(connection: sqlite3.Connection) -> bool:

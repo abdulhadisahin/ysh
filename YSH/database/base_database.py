@@ -25,6 +25,8 @@ class BaseDatabase(ABC):
         """Create the database file and its schema when they do not exist."""
         self._database_path.parent.mkdir(parents=True, exist_ok=True)
         with self.connection() as connection:
+            # Serialize schema inspection/upgrades and include DDL in the transaction.
+            connection.execute("BEGIN IMMEDIATE")
             self.create_schema(connection)
 
     @contextmanager

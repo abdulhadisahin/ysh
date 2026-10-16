@@ -23,7 +23,7 @@ def test_fresh_library_creates_and_seeds_the_en_10220_standard(
         version = connection.execute("SELECT version FROM schema_version").fetchone()["version"]
     standard = pipe_size_service.get_standard_by_code(EN_10220_STANDARD_CODE)
 
-    assert version == 4
+    assert version == 5
     assert "standard_id" in columns
     assert standard.display_name == "EN 10220"
     assert pipe_size_service.get_pipe_sizes_for_standard(standard.id)

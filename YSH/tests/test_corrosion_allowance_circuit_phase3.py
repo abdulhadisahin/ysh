@@ -27,7 +27,7 @@ def test_phase3_schema_seeds_exact_editable_d243_defaults(library_database: Libr
         table = connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='corrosion_allowance_circuits'").fetchone()
     values = {item.code: item.default_corrosion_allowance_mm for item in circuit_service.get_active_circuits()}
 
-    assert version == 4
+    assert version == 5
     assert table is not None
     assert values == {"FUEL": 1.0, "SEA_WATER": 3.0, "BOILER_BLOWDOWN": 1.5}
 
