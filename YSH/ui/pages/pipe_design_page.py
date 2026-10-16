@@ -183,6 +183,7 @@ class PipeDesignPage(ttk.Frame):
 
     def _on_part2_change(self,*_args:object)->None:
         if not self._suppress_dirty:
+            self.__dict__.pop("_formula_selection", None)
             self._wall_result = {}
             self._formula_text = ""
             self._message.set(self._t("message.ready"))
@@ -251,6 +252,9 @@ class PipeDesignPage(ttk.Frame):
         }
     def load_state(self,state:dict[str,object])->None:
         """Restore saved page state without marking the workspace dirty."""
+        self.__dict__.pop("_diameter_formula_result", None)
+        self.__dict__.pop("_wall_formula_result", None)
+        self.__dict__.pop("_formula_selection", None)
         try:
             self._source_selection_id = UUID(str(state["pipe_selection_id"])) if state.get("pipe_selection_id") else None
         except (ValueError, TypeError):
@@ -753,6 +757,7 @@ class PipeDesignPage(ttk.Frame):
             self._translate,
             self._create_formula_toggle,
             lambda: bool(self._diameter_result or self._wall_result),
+            step_provider=self._formula_steps,
         )
         self._formula_panel.grid(row=3, column=0, sticky="ew", pady=(10, 0))
         self._responsive_layout_mode = ""
@@ -1220,6 +1225,7 @@ class PipeDesignPage(ttk.Frame):
                 self._message.set(self._t("validation.unexpected_error"));return
             assert result.diameter is not None
             self._diameter_result = result.diameter.to_dict()
+            self._diameter_formula_result = result
             self._notify_pipe_selection()
             self._diameter_warning_velocity_m_s = diameter_input.design_velocity_mps
             self._diameter_warning_codes = self._warning_codes_from_result()
@@ -1266,6 +1272,7 @@ class PipeDesignPage(ttk.Frame):
                 return
             assert result.wall_thickness is not None
             self._wall_result = result.wall_thickness.to_dict()
+            self._wall_formula_result = result
             self._notify_pipe_selection()
             self._update_wall_summary()
             self._message.set(f"Et kalınlığı: {format_user_number(result.wall_thickness.final_wall_thickness_mm)} mm")
@@ -1294,6 +1301,28 @@ class PipeDesignPage(ttk.Frame):
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             return None
         return float(value) if math.isfinite(value) and value > 0 else None
+
+    def _formula_steps(self) -> tuple:
+        """Explain cached service results; saved legacy output needs no live fields."""
+        from engineering.formula.pipe import legacy_pipe_steps
+        from engineering.pipe_design.models import PipeDesignCalculationResult, PipeDiameterResult, WallThicknessResult
+        steps = []
+        if self._diameter_result:
+            cached = getattr(self, "_diameter_formula_result", None)
+            if cached is None or cached.diameter.to_dict() != self._diameter_result:
+                cached = PipeDesignCalculationResult(diameter=PipeDiameterResult.from_dict(self._diameter_result))
+            steps.extend(legacy_pipe_steps(cached))
+        if self._wall_result:
+            cached = getattr(self, "_wall_formula_result", None)
+            if cached is None or cached.wall_thickness.to_dict() != self._wall_result:
+                cached = PipeDesignCalculationResult(wall_thickness=WallThicknessResult.from_dict(self._wall_result))
+            steps.extend(legacy_pipe_steps(cached))
+        selection = getattr(self, "_formula_selection", None)
+        if self._diameter_result and selection is not None:
+            from engineering.formula.pipe import selection_geometry_steps
+            steps = [s for s in steps if s.step_id != "pipe.Di"]
+            steps.extend(selection_geometry_steps(selection))
+        return tuple(steps)
 
     def _formula_sections(self) -> list[FormulaSection]:
         """Return static pipe reference plus any stored current calculation audit."""
@@ -1471,6 +1500,7 @@ class PipeDesignPage(ttk.Frame):
         self._source_removed = removed
 
     def _notify_pipe_selection(self) -> None:
+        self.__dict__.pop("_formula_selection", None)
         listener = getattr(self, "_selection_listener", None)
         if not callable(listener):
             return

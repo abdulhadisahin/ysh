@@ -275,7 +275,7 @@ class SuctionNPSHPage(ttk.Frame):
         self._calculate_enpy_button.grid(row=0, column=1, sticky="w", padx=(8, 0))
         self._clear_button = create_rounded_button(actions, self._translate("common.clear"), self._clear, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE)
         self._clear_button.grid(row=0, column=2, sticky="w", padx=(8, 0))
-        self._formula_panel = FormulaReferencePanel(self, self._formula_sections, self._translate, self._create_formula_toggle, lambda: hasattr(self, "_last_loss") or hasattr(self, "_last_enpy"))
+        self._formula_panel = FormulaReferencePanel(self, self._formula_sections, self._translate, self._create_formula_toggle, lambda: hasattr(self, "_last_loss") or hasattr(self, "_last_enpy"), step_provider=self._formula_steps)
         self._formula_panel.grid(
             row=3, column=0, columnspan=3, sticky="ew", pady=(12, 0)
         )
@@ -653,6 +653,17 @@ class SuctionNPSHPage(ttk.Frame):
         self._formula.set("")
         self._mark_dirty()
         self._refresh_formula_panel()
+
+    def _formula_steps(self) -> tuple:
+        """Explain stored stages without reading the current entry controls."""
+        from engineering.formula.discharge import hydraulic_steps
+        from engineering.formula.suction import suction_steps
+        from engineering.suction_npsh.v2_models import SuctionV2Result, SuctionV2LossResult
+        enpy = getattr(self, "_last_enpy", None)
+        loss = getattr(self, "_last_loss", None)
+        if isinstance(enpy, SuctionV2Result):
+            return suction_steps(enpy)
+        return hydraulic_steps(loss) if isinstance(loss, SuctionV2LossResult) else ()
 
     def _formula_sections(self) -> list[FormulaSection]:
         """Return static suction/ENPY reference and stored-result substitutions."""

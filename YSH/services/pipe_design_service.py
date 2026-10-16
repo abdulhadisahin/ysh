@@ -70,7 +70,12 @@ class PipeDesignService:
                 if not sizes:
                     result.diameter.warnings = ["selected_standard_empty"]
                 result.warnings.extend(result.diameter.warnings)
-            if wall is not None:result.wall_thickness=self._calculator.calculate_wall_thickness(wall)
+            from dataclasses import asdict
+            if diameter is not None:
+                result.trace["diameter_input"] = asdict(diameter)
+            if wall is not None:
+                result.trace["wall_input"] = asdict(wall)
+                result.wall_thickness=self._calculator.calculate_wall_thickness(wall)
         except ValidationError:
             raise
         except (ValueError, LookupError):

@@ -48,7 +48,7 @@ class SuctionNPSHCalculator:
             warnings.append(ValidationIssue("npsh_below_required"))
         return SuctionNPSHResult(
             value.suction_line_loss_m, pe, pb, enpy, margin, [], warnings,
-            {"formula": "ENPYm = PE/(rho*g) - Pb/(rho*g) - HEgeo - he"},
+            {"formula": "ENPYm = PE/(rho*g) - Pb/(rho*g) - HEgeo - he", "gravity_m_s2": g},
         )
 
     @staticmethod

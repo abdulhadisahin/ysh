@@ -279,7 +279,7 @@ class TransferPumpPage(ttk.LabelFrame):
             self._chart_card, textvariable=self._message, wraplength=680, style="Info.TLabel"
         )
         self._model_message.grid(row=1, column=0, sticky="w", pady=(8, 0))
-        self._formula_panel = FormulaReferencePanel(self, self._formula_sections, self._translate, self._create_formula_toggle, self._has_active_result)
+        self._formula_panel = FormulaReferencePanel(self, self._formula_sections, self._translate, self._create_formula_toggle, self._has_active_result, step_provider=self._formula_steps)
         self._formula_panel.grid(row=3, column=0, sticky="ew", pady=(8, 0))
         self._responsive_layout_mode = ""
         self._upper.bind("<Configure>", self._on_upper_configure, add="+")
@@ -704,6 +704,15 @@ class TransferPumpPage(ttk.LabelFrame):
         self._mark_dirty()
         self._refresh_chart()
         self._refresh_formula_panel()
+
+    def _formula_steps(self) -> tuple:
+        """Only the active calculation mode supplies the primary explanation."""
+        from engineering.formula.transfer import design_steps, empirical_steps
+        if self._calculation_mode is TransferPumpMode.DESIGN:
+            result = getattr(self._design_panel, "_last_result", None)
+            return design_steps(result) if result is not None else ()
+        result = getattr(self, "_empirical_v2_result", None)
+        return empirical_steps(result) if result is not None else ()
 
     def _formula_sections(self) -> list[FormulaSection]:
         """Display the available model and optional latest estimate substitution."""

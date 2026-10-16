@@ -104,6 +104,7 @@ class FormulaReferencePanel(ttk.Frame):
         translate: Callable[[str], str] | None = None,
         toggle_button_factory: FormulaToggleFactory | None = None,
         content_available: Callable[[], bool] | None = None,
+        step_provider: Callable[[], tuple] | None = None,
     ) -> None:
         """Create a collapsed panel backed by a page-owned section provider."""
         super().__init__(parent)
@@ -111,6 +112,7 @@ class FormulaReferencePanel(ttk.Frame):
         self._section_provider = section_provider
         self._translate = translate or (lambda key: key)
         self._content_available = content_available
+        self._step_provider = step_provider
         self._expanded = False
         button_factory = toggle_button_factory or self._create_default_toggle
         self._toggle = button_factory(
@@ -199,6 +201,14 @@ class FormulaReferencePanel(ttk.Frame):
                 "Önce hesaplama yapın. Formül, değişkenler ve yerine koyma adımları burada gösterilecektir.",
                 image_size=190,
             ).grid(row=0, column=0, sticky="ew", pady=SM)
+            return
+        provider = getattr(self, "_step_provider", None)
+        steps = provider() if provider is not None else ()
+        if steps:
+            from engineering.formula.models import ordered_steps
+            from ui.widgets.formula_steps import render_step
+            for row, step in enumerate(ordered_steps(steps)):
+                render_step(self, step, row)
             return
         for row, block in enumerate(self._blocks()):
             self._render_block(block, row)

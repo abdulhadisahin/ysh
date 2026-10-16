@@ -1172,5 +1172,7 @@ class MainWindow:
         selection = prepare_discharge_source(
             self._pipe_design_service, state, previous, manual_material=manual_material)
         self._pipe_sources.publish(selection)
+        if hasattr(self, "_pipe_design_page"):
+            self._pipe_design_page._formula_selection = selection
         self._mark_workspace_dirty()
         return selection.selection_id

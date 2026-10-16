@@ -100,7 +100,7 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         self._result_empty_state=EmptyState(results,"result","Henüz sonuç üretilmedi","Girdileri tamamlayın ve Hesapla komutunu çalıştırın.",image_size=145);self._result_empty_state.grid(row=1,column=0,columnspan=2,sticky="nsew");self._result_metrics=(self._total_loss_metric,self._system_metric,self._system_relation,losses_metrics,self._supporting_metrics)
         self._warning_panel=EngineeringWarningPanel(results,self._translate);self._warning_panel.grid(row=6,column=0,columnspan=2,sticky="ew",pady=(8,0));self._warning_panel.set_findings(())
         ttk.Label(self,textvariable=self._message,wraplength=1000).grid(row=3,column=0,sticky="w",pady=(8,0))
-        self._formula_panel=FormulaReferencePanel(self,self._formula_sections,self._translate,self._create_formula_toggle,lambda:hasattr(self,"_last_result"));self._formula_panel.grid(row=4,column=0,sticky="ew",pady=(10,0))
+        self._formula_panel=FormulaReferencePanel(self,self._formula_sections,self._translate,self._create_formula_toggle,lambda:hasattr(self,"_last_result"),step_provider=self._formula_steps);self._formula_panel.grid(row=4,column=0,sticky="ew",pady=(10,0))
         self._responsive_layout_mode=""
         self._workspace.bind("<Configure>",self._on_workspace_configure,add="+")
         self._loss_actions.bind("<Configure>",self._on_action_configure,add="+")
@@ -355,6 +355,13 @@ class DischargeHeadLossPage(ttk.LabelFrame):
                 self._pipe_source_panel.reset_choice()
             self._pipe_source_panel.render()
             self._sync_pipe_fields()
+    def _formula_steps(self) -> tuple:
+        """Adapt the exact applied V2 result only when the view is requested."""
+        from engineering.formula.discharge import hydraulic_steps
+        from engineering.head_loss.v2_models import DischargeV2Result
+        result = getattr(self, "_last_result", None)
+        return hydraulic_steps(result) if isinstance(result, DischargeV2Result) else ()
+
     def _formula_sections(self)->list[FormulaSection]:
         """Show canonical YSH coefficient formulas from the current result."""
         result=getattr(self,"_last_result",None)
