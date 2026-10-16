@@ -354,3 +354,27 @@ MESSAGES = {
 # Shared engineering terms also serve future report-facing consumers.
 
 MESSAGES.update(terminology_messages("en"))
+
+
+# Phase 8 discharge pipe source controls; stable keys, localized presentation.
+MESSAGES.update({
+    "discharge.pipe.section": 'Pipe source',
+    "discharge.pipe.manual": 'Enter manual values',
+    "discharge.pipe.linked": 'Use Pipe Design result',
+    "discharge.pipe.link": 'Link selected source',
+    "discharge.pipe.publish": 'Create / refresh source',
+    "discharge.pipe.update": 'Update',
+    "discharge.pipe.keep": 'Keep current values',
+    "discharge.pipe.kept": 'Current values retained',
+    "discharge.pipe.revision": 'Revision',
+    "discharge.pipe.help": 'Complete Pipe Design inputs, explicitly create or refresh a source, then select and link it. Discharge calculates only with Calculate.',
+    "discharge.pipe.select_source": 'Select a Pipe Design source first.',
+    "discharge.pipe.unavailable": 'The selected source has no applicable pipe.',
+    "discharge.pipe.provisional": 'Source engineering rule verification is incomplete.',
+    "discharge.pipe.status.MANUAL": 'Manual',
+    "discharge.pipe.status.LINKED_SYNCED": 'Linked · Up to date',
+    "discharge.pipe.status.LINKED_STALE": 'Linked · Pipe Design result changed',
+    "discharge.pipe.status.LINKED_SOURCE_MISSING": 'Linked Pipe Design result not found',
+    "discharge.pipe.status.LINKED_SOURCE_DIFFERENT": 'Linked source identity differs',
+    "discharge.pipe.status.LINKED_SOURCE_UNAVAILABLE": 'Linked source has no applicable pipe',
+})

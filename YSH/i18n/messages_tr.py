@@ -368,3 +368,27 @@ MESSAGES.update({
     "warning.npsh.message": MESSAGES["result.available_npsh"] + ", "
         + MESSAGES["field.npsh_required"] + " değerini karşılamamaktadır.",
 })
+
+
+# Phase 8 discharge pipe source controls; stable keys, localized presentation.
+MESSAGES.update({
+    "discharge.pipe.section": 'Boru Kaynağı',
+    "discharge.pipe.manual": 'Manuel değer gir',
+    "discharge.pipe.linked": 'Boru Tasarımı sonucunu kullan',
+    "discharge.pipe.link": 'Seçili kaynağa bağla',
+    "discharge.pipe.publish": 'Kaynak oluştur / yenile',
+    "discharge.pipe.update": 'Güncelle',
+    "discharge.pipe.keep": 'Mevcut değeri koru',
+    "discharge.pipe.kept": 'Mevcut değerler korundu',
+    "discharge.pipe.revision": 'Revizyon',
+    "discharge.pipe.help": 'Boru Tasarımı girdilerini tamamlayın, kaynağı açıkça oluşturun veya yenileyin; ardından seçip bağlayın. Basma hesabı yalnızca Hesapla ile çalışır.',
+    "discharge.pipe.select_source": 'Önce kullanılacak Boru Tasarımı kaynağını seçin.',
+    "discharge.pipe.unavailable": 'Seçili kaynakta uygulanabilir bir boru bulunamadı.',
+    "discharge.pipe.provisional": 'Kaynak mühendislik kural doğrulaması tamamlanmamıştır.',
+    "discharge.pipe.status.MANUAL": 'Manuel',
+    "discharge.pipe.status.LINKED_SYNCED": 'Bağlı · Güncel',
+    "discharge.pipe.status.LINKED_STALE": 'Bağlı · Boru Tasarımı sonucu değişti',
+    "discharge.pipe.status.LINKED_SOURCE_MISSING": 'Bağlı Boru Tasarımı sonucu bulunamadı',
+    "discharge.pipe.status.LINKED_SOURCE_DIFFERENT": 'Bağlı kaynak kimliği farklı',
+    "discharge.pipe.status.LINKED_SOURCE_UNAVAILABLE": 'Bağlı kaynakta uygulanabilir boru bulunamadı',
+})

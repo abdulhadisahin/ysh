@@ -9,6 +9,10 @@ from collections.abc import Callable
 from pathlib import Path
 from tkinter import messagebox, ttk
 from uuid import UUID
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from engineering.pipe_design.v2_models import PipeSelection
 
 from core.constants import (
     WINDOW_HEIGHT,
@@ -288,6 +292,10 @@ class MainWindow:
             self._discharge_head_loss_page = self._add_scrollable_page("discharge_head_loss", self._translate("page.discharge.tab"),lambda parent:DischargeHeadLossPage(parent,self._discharge_head_loss_service,self._engineering_constant_service,self._material_service, self._translate))
         if self._suction_npsh_service is not None and self._engineering_constant_service is not None:
             self._suction_npsh_page = self._add_scrollable_page("suction_npsh", self._translate("page.suction.tab"),lambda parent:SuctionNPSHPage(parent,self._suction_npsh_service,self._material_service,self._engineering_constant_service, self._translate))
+
+        discharge = getattr(self, "_discharge_head_loss_page", None)
+        if discharge is not None and hasattr(self, "_pipe_design_page"):
+            discharge.set_source_factory(self._prepare_discharge_source)
 
         self._pages = {key: getattr(self, attribute) for key, attribute in (("pipe_design", "_pipe_design_page"), ("transfer_pump", "_transfer_pump_page"), ("discharge_head_loss", "_discharge_head_loss_page"), ("suction_npsh", "_suction_npsh_page")) if hasattr(self, attribute)}
         self.register_localizable(self._project_summary)
@@ -583,19 +591,27 @@ class MainWindow:
 
     def _export_all_page_states(self) -> dict[str, object]:
         """Collect page-owned persistence contracts into one V1 workspace."""
-        return {
+        state = {
             "schema_version": 1,
             **{
                 key: page.export_state()
                 for key, page in getattr(self, "_pages", {}).items()
             },
         }
+        discharge = getattr(self, "_pages", {}).get("discharge_head_loss")
+        if discharge is not None and hasattr(discharge, "export_transfer_state"):
+            state["pipe_transfer"] = discharge.export_transfer_state()
+        return state
 
     def _load_all_page_states(self, state: dict[str, object]) -> None:
         """Restore each registered page only after state validation succeeds."""
         if state.get("schema_version") != 1:
             raise ValidationError(ValidationIssue("project_state_unsupported"))
         for key, page in self._pages.items(): page.load_state(dict(state.get(key, {})))
+        discharge = self._pages.get("discharge_head_loss")
+        if discharge is not None and hasattr(discharge, "set_transfer_state"):
+            from engineering.pipe_design.transfer_serialization import transfer_from_workspace
+            discharge.set_transfer_state(transfer_from_workspace(state))
 
     def _clear_all_pages(self) -> None:
         """Restore clean/default state on every primary calculation page."""
@@ -1115,3 +1131,14 @@ class MainWindow:
             return
         self._on_close()
         self._root.destroy()
+
+    def _prepare_discharge_source(
+        self, previous: PipeSelection | None = None,
+    ) -> PipeSelection:
+        """Bridge an explicit Basma source action to the existing Pipe Design service."""
+        from services.discharge_source_adapter import prepare_discharge_source
+        page = self._pipe_design_page
+        return prepare_discharge_source(
+            self._pipe_design_service, page.export_state(), previous,
+            manual_material=not page._using_library_source(),
+        )
