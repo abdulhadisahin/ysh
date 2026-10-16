@@ -378,3 +378,10 @@ MESSAGES.update({
     "discharge.pipe.status.LINKED_SOURCE_DIFFERENT": 'Linked source identity differs',
     "discharge.pipe.status.LINKED_SOURCE_UNAVAILABLE": 'Linked source has no applicable pipe',
 })
+
+# Phase 9 automatic discovery; no technical registry steps in normal UI.
+MESSAGES.update({
+    "discharge.pipe.help": 'Complete Pipe Design. Available results are listed automatically; choose Pipe Design mode to use one.',
+    "discharge.pipe.no_available": 'No usable Pipe Design result is available yet.',
+    "discharge.pipe.select_source": 'Select the Pipe Design result to use.',
+})

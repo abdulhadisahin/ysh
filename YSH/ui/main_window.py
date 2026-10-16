@@ -293,9 +293,15 @@ class MainWindow:
         if self._suction_npsh_service is not None and self._engineering_constant_service is not None:
             self._suction_npsh_page = self._add_scrollable_page("suction_npsh", self._translate("page.suction.tab"),lambda parent:SuctionNPSHPage(parent,self._suction_npsh_service,self._material_service,self._engineering_constant_service, self._translate))
 
-        discharge = getattr(self, "_discharge_head_loss_page", None)
-        if discharge is not None and hasattr(self, "_pipe_design_page"):
-            discharge.set_source_factory(self._prepare_discharge_source)
+        from services.pipe_source_discovery import PipeSourceDiscovery
+        self._pipe_sources = PipeSourceDiscovery()
+        for page in (getattr(self, "_discharge_head_loss_page", None),
+                     getattr(self, "_suction_npsh_page", None)):
+            if page is not None:
+                page.attach_pipe_sources(self._pipe_sources)
+        if hasattr(self, "_pipe_design_page"):
+            self._pipe_design_page.set_pipe_selection_listener(
+                self._publish_pipe_selection, self._pipe_sources.remove)
 
         self._pages = {key: getattr(self, attribute) for key, attribute in (("pipe_design", "_pipe_design_page"), ("transfer_pump", "_transfer_pump_page"), ("discharge_head_loss", "_discharge_head_loss_page"), ("suction_npsh", "_suction_npsh_page")) if hasattr(self, attribute)}
         self.register_localizable(self._project_summary)
@@ -598,25 +604,38 @@ class MainWindow:
                 for key, page in getattr(self, "_pages", {}).items()
             },
         }
-        discharge = getattr(self, "_pages", {}).get("discharge_head_loss")
-        if discharge is not None and hasattr(discharge, "export_transfer_state"):
-            state["pipe_transfer"] = discharge.export_transfer_state()
+        transfer = None
+        for page in getattr(self, "_pages", {}).values():
+            if hasattr(page, "export_transfer_state"):
+                transfer = page.export_transfer_state()
+        if hasattr(self, "_pipe_sources"):
+            from engineering.pipe_design.transfer_serialization import transfer_to_dict
+            transfer = transfer_to_dict(self._pipe_sources.state)
+        if transfer is not None:
+            state["pipe_transfer"] = transfer
         return state
 
     def _load_all_page_states(self, state: dict[str, object]) -> None:
         """Restore each registered page only after state validation succeeds."""
         if state.get("schema_version") != 1:
             raise ValidationError(ValidationIssue("project_state_unsupported"))
+        from engineering.pipe_design.transfer_serialization import transfer_from_workspace
+        transfer = transfer_from_workspace(state)
         for key, page in self._pages.items(): page.load_state(dict(state.get(key, {})))
-        discharge = self._pages.get("discharge_head_loss")
-        if discharge is not None and hasattr(discharge, "set_transfer_state"):
-            from engineering.pipe_design.transfer_serialization import transfer_from_workspace
-            discharge.set_transfer_state(transfer_from_workspace(state))
+        if hasattr(self, "_pipe_sources"):
+            self._pipe_sources.load(transfer)
+        else:
+            for page in self._pages.values():
+                if hasattr(page, "set_transfer_state"):
+                    page.set_transfer_state(transfer)
 
     def _clear_all_pages(self) -> None:
         """Restore clean/default state on every primary calculation page."""
         for page in getattr(self, "_pages", {}).values():
             page.clear_state()
+        if hasattr(self, "_pipe_sources"):
+            from engineering.pipe_design.transfer import PipeTransferProjectState
+            self._pipe_sources.load(PipeTransferProjectState())
 
     def _attach_dirty_callbacks(self) -> None:
         """Route page edits to optional project dirty tracking."""
@@ -1142,3 +1161,16 @@ class MainWindow:
             self._pipe_design_service, page.export_state(), previous,
             manual_material=not page._using_library_source(),
         )
+
+    def _publish_pipe_selection(
+        self, state: dict[str, object], manual_material: bool, source_id: UUID | None,
+    ) -> UUID:
+        """Publish from a normal successful Pipe Design action, never from discovery/redraw."""
+        from services.discharge_source_adapter import prepare_discharge_source
+        previous = next((selection for selection in self._pipe_sources.state.selections
+                         if selection.selection_id == source_id), None)
+        selection = prepare_discharge_source(
+            self._pipe_design_service, state, previous, manual_material=manual_material)
+        self._pipe_sources.publish(selection)
+        self._mark_workspace_dirty()
+        return selection.selection_id

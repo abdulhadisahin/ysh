@@ -392,3 +392,10 @@ MESSAGES.update({
     "discharge.pipe.status.LINKED_SOURCE_DIFFERENT": 'Bağlı kaynak kimliği farklı',
     "discharge.pipe.status.LINKED_SOURCE_UNAVAILABLE": 'Bağlı kaynakta uygulanabilir boru bulunamadı',
 })
+
+# Phase 9 automatic discovery; no technical registry steps in normal UI.
+MESSAGES.update({
+    "discharge.pipe.help": 'Boru Tasarımı hesabını tamamlayın. Kullanılabilir sonuçlar otomatik listelenir; kullanmak için Boru Tasarımı modunu seçin.',
+    "discharge.pipe.no_available": 'Henüz kullanılabilir Boru Tasarımı sonucu yok.',
+    "discharge.pipe.select_source": 'Kullanılacak Boru Tasarımı sonucunu seçin.',
+})

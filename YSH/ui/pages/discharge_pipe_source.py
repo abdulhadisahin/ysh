@@ -1,4 +1,4 @@
-"""Compact discharge-only source controls; no hydraulic calculation or formulas."""
+"""Shared pipe source choices; discovery is independent of applied hydraulic values."""
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -21,13 +21,14 @@ class DischargePipeSourcePanel(ttk.LabelFrame):
 
     def __init__(self, parent: tk.Misc, workflow: DischargeWorkflow,
                  translate: Callable[[str], str], changed: Callable[[bool], None]) -> None:
-        """Build lightweight controls; a source factory is attached by the workspace."""
+        """Build mode/source choices and explicit update/keep decisions for either owner."""
         super().__init__(parent, padding=8)
         self.workflow = workflow
         self._translate = translate
         self._changed = changed
         self.source_factory: Callable[[PipeSelection | None], PipeSelection] | None = None
         self._selected_id: UUID | None = None
+        self._pending_link = False
         self._source_ids: list[UUID] = []
         self._mode = tk.StringVar()
         self._source = tk.StringVar()
@@ -42,7 +43,6 @@ class DischargePipeSourcePanel(ttk.LabelFrame):
         self._source_box.bind("<<ComboboxSelected>>", self._choose_source)
         self._buttons: dict[str, ttk.Button] = {}
         for column, (key, command) in enumerate((
-            ("link", self._link), ("publish", self._publish),
             ("update", self._update), ("keep", self._keep),
         )):
             button = ttk.Button(self, command=command)
@@ -69,9 +69,12 @@ class DischargePipeSourcePanel(ttk.LabelFrame):
     def render(self) -> None:
         """Render applied metadata, retaining historical details when stale/missing."""
         state = self.workflow.pipe_input
-        self._mode_box.current(1 if state.mode is PipeInputMode.LINKED else 0)
-        sources = self.workflow.state.selections
+        self._mode_box.current(1 if state.mode is PipeInputMode.LINKED or getattr(self, "_pending_link", False) else 0)
+        sources = self.workflow.available_sources()
         self._source_ids = [s.selection_id for s in sources]
+        if (self._selected_id not in self._source_ids and state.snapshot
+                and state.snapshot.source_selection_id in self._source_ids):
+            self._selected_id = state.snapshot.source_selection_id
         labels = [self._label(s, index) for index, s in enumerate(sources, 1)]
         self._source_box.configure(values=labels)
         if self._selected_id in self._source_ids:
@@ -84,7 +87,7 @@ class DischargePipeSourcePanel(ttk.LabelFrame):
             status += " · " + self._translate("discharge.pipe.kept")
         self._status.set(status)
         snapshot = state.snapshot
-        details = self._translate("discharge.pipe.help")
+        details = self._translate("discharge.pipe.help" if sources else "discharge.pipe.no_available")
         if snapshot:
             values = snapshot.values
             details = (f"{values.standard_code or '—'} · {values.nominal_diameter or '—'} · "
@@ -98,16 +101,25 @@ class DischargePipeSourcePanel(ttk.LabelFrame):
                 details += " · " + self._translate("discharge.pipe.provisional")
         self._details.set(details)
         current = self.workflow.source(snapshot.source_selection_id) if snapshot else None
-        self._buttons["update"].configure(state="normal" if current and current.selected_pipe else "disabled")
+        self._buttons["update"].configure(state="normal" if current and current.selection_id in self._source_ids else "disabled")
         self._buttons["keep"].configure(state="disabled" if state.status in (
             PipeLinkStatus.MANUAL, PipeLinkStatus.LINKED_SYNCED) else "normal")
-        self._buttons["publish"].configure(state="normal" if self.source_factory else "disabled")
+        if "publish" in self._buttons:  # Legacy internal adapters/tests only.
+            self._buttons["publish"].configure(state="normal" if self.source_factory else "disabled")
         selected = self.workflow.source(self._selected_id) if self._selected_id else None
-        self._buttons["link"].configure(state="normal" if selected and selected.selected_pipe else "disabled")
+        if "link" in self._buttons:
+            self._buttons["link"].configure(state="normal" if selected and selected.selected_pipe else "disabled")
 
     @staticmethod
     def _number(value: float | None) -> str:
         return format_user_number(value) if value is not None else "—"
+
+    def reset_choice(self) -> None:
+        """Clear transient source-choice intent at project/page boundaries."""
+        self._pending_link = False
+        self._selected_id = None
+        self._error.set("")
+        self.render()
 
     def _label(self, source: PipeSelection, index: int) -> str:
         diameter = source.actual_internal_diameter_mm
@@ -120,14 +132,34 @@ class DischargePipeSourcePanel(ttk.LabelFrame):
     def _choose_source(self, _event: object = None) -> None:
         index = self._source_box.current()
         self._selected_id = self._source_ids[index] if index >= 0 else None
-        self.render()
+        if getattr(self, "_pending_link", False) or self.workflow.pipe_fields_readonly:
+            self._link()  # A visible user choice is an explicit apply action.
+        else:
+            self.render()
 
     def _choose_mode(self, _event: object = None) -> None:
         if self._mode_box.current() == 1:
-            self._link()
+            sources = self.workflow.available_sources()
+            if not sources:
+                self._pending_link = False
+                self._error.set(self._translate("discharge.pipe.no_available"))
+                self.render()
+                return
+            if self._selected_id not in {s.selection_id for s in sources}:
+                self._selected_id = sources[0].selection_id if len(sources) == 1 else None
+            if self._selected_id is None:
+                self._pending_link = True
+                self._error.set(self._translate("discharge.pipe.select_source"))
+                self.render()
+            else:
+                self._link()
         elif self.workflow.pipe_fields_readonly:
+            self._pending_link = False
             self.workflow.manual()
             self._finish(True)
+        else:
+            self._pending_link = False
+            self.render()
 
     def _link(self) -> None:
         if self._selected_id is None:
@@ -136,6 +168,7 @@ class DischargePipeSourcePanel(ttk.LabelFrame):
             return
         try:
             self.workflow.link(self._selected_id)
+            self._pending_link = False
             self._finish(True)
         except ValueError:
             self._error.set(self._translate("discharge.pipe.unavailable"))
@@ -169,3 +202,7 @@ class DischargePipeSourcePanel(ttk.LabelFrame):
         self._error.set("")
         self.render()
         self._changed(inputs_changed)
+
+
+# The old name remains an import-compatible alias for Phase 8 integrations.
+PipeSourcePanel = DischargePipeSourcePanel

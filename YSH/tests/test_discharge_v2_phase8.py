@@ -306,10 +306,10 @@ def test_page_calculate_uses_snapshot_even_if_display_variables_are_changed() ->
 def test_page_mode_update_keep_and_publish_callbacks_without_recalculation() -> None:
     """Wired controls preserve results on observation/Keep and invalidate only on apply."""
     page=page_stub();panel=panel_stub(page)
-    page._workflow.publish(source())
     panel._mode_box.current(1);panel._choose_mode()
     assert page._workflow.pipe_input.mode is PipeInputMode.MANUAL
     assert panel._error.get()
+    page._workflow.publish(source())
     panel._selected_id=source().selection_id;panel._link()
     assert page._fields['q'].get()=='20' and page._entries['q'].options['state']=='readonly'
     page._calculate();old_result=page._last_result

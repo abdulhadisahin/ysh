@@ -7,6 +7,15 @@ import logging
 from collections.abc import Callable
 from tkinter import messagebox, ttk
 from uuid import UUID, uuid4
+from dataclasses import replace
+
+from engineering.head_loss.v2_models import DischargeLocalLoss
+from engineering.suction_npsh.v2_models import ENPYV2Input, SuctionV2Input
+from engineering.pipe_design.transfer import PipeTransferProjectState
+from engineering.pipe_design.transfer_serialization import transfer_from_workspace, transfer_to_dict
+from services.suction_workflow import SuctionWorkflow
+from services.pipe_source_discovery import PipeSourceDiscovery
+from ui.pages.discharge_pipe_source import PipeSourcePanel
 
 from core.local_loss_item import LocalLossItem
 from core.engineering_context import FLUID_SYSTEMS
@@ -78,6 +87,8 @@ class SuctionNPSHPage(ttk.Frame):
         self._formula = tk.StringVar()
         self._dirty_callback: object | None = None
         self._suppress_dirty = True
+        self._workflow = SuctionWorkflow()
+        self._pipe_entries: dict[str, ttk.Entry] = {}
         self._build()
         self._load_warning_fluids()
         self._load_materials()
@@ -99,13 +110,19 @@ class SuctionNPSHPage(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
         self.columnconfigure(2, weight=1)
-        self._header = SectionHeader(self, self._translate("page.suction.title"), self._translate("page.suction.description"))
+        top = ttk.Frame(self)
+        top.grid(row=0, column=0, columnspan=3, sticky="ew")
+        top.columnconfigure(0, weight=1)
+        self._header = SectionHeader(top, self._translate("page.suction.title"), self._translate("page.suction.description"))
         self._header.grid(row=0, column=0, columnspan=3, sticky="ew", pady=(0, 10))
+        self._pipe_source_panel = PipeSourcePanel(
+            top, self._workflow, self._translate, self._pipe_source_changed)
+        self._pipe_source_panel.grid(row=1, column=0, columnspan=3, sticky="ew", pady=(0, 8))
         self._fluid_card = InputCard(self, self._translate("section.suction_inputs"))
         fluid = self._fluid_card
         fluid.grid(row=1, column=0, sticky="nsew", padx=(0, 6))
         for row, (key, label, suffix) in enumerate((
-            ("diameter", "field.pipe_inside_diameter", " D, mm"),
+            ("diameter", "field.pipe_inside_diameter", " Di, mm"),
             ("flow", "field.flow_rate", " Q, m³/h"),
             ("viscosity", "field.kinematic_viscosity", ""),
             ("length", "field.pipe_length", " L, m"),
@@ -113,9 +130,9 @@ class SuctionNPSHPage(ttk.Frame):
             label_widget = ttk.Label(fluid, text=f"{self._translate(label)}{suffix}")
             label_widget.grid(row=row, column=0, sticky="w", pady=3)
             setattr(self, f"_field_label_{key}", (label_widget, label, suffix))
-            ttk.Entry(fluid, textvariable=self._fields[key], width=22).grid(
-                row=row, column=1, sticky="w", padx=(12, 0), pady=3
-            )
+            entry = ttk.Entry(fluid, textvariable=self._fields[key], width=22)
+            entry.grid(row=row, column=1, sticky="w", padx=(12, 0), pady=3)
+            self._pipe_entries[key] = entry
         self._viscosity_box = ttk.Combobox(
             fluid, textvariable=self._viscosity_unit, values=("cSt", "m²/s"),
             state="readonly", width=10,
@@ -363,6 +380,7 @@ class SuctionNPSHPage(ttk.Frame):
             ))
         finally:
             self._suppress_dirty = False
+        self._pipe_source_panel.refresh_texts()
         self._header.set_content(self._translate("page.suction.title"), self._translate("page.suction.description"))
         self._fluid_card.configure(text=self._translate("section.suction_inputs"))
         self._losses_card.configure(text=self._translate("section.local_losses"))
@@ -449,10 +467,16 @@ class SuctionNPSHPage(ttk.Frame):
         """Restore saved page data without modifying shared materials."""
         self._suppress_dirty = True
         try:
+            for field in self._fields.values():
+                field.set("")
             for key, value in dict(state.get("fields", {})).items():
                 if key in self._fields: self._fields[key].set(str(value))
             self._viscosity_unit.set(str(state.get("viscosity_unit", "cSt")));saved_source=str(state.get("roughness_source", "material"));self._roughness_source_mode="manual" if saved_source in {"manual","Manual"} else "material";self._roughness_source.set(self._translate("message.manual_source") if self._roughness_source_mode=="manual" else self._translate("message.material_source"));self._material.set(str(state.get("material", "")));self._pressure_unit.set(str(state.get("pressure_unit", "bar")));self._vapour_unit.set(str(state.get("vapour_unit", "bar")));self._set_warning_fluid(state.get("warning_fluid") if isinstance(state.get("warning_fluid"),str) else None)
-            self._items={str(item["id"]):LocalLossItem(str(item["name"]),int(item["quantity"]),float(item["k"])) for item in state.get("items", []) if isinstance(item,dict)};self._refresh_losses();self._set_roughness_source();self._set_status("loss",[]);self._set_status("enpy",[]);self._result.set(str(state.get("result", "")));self._formula.set(str(state.get("formula", "")));self._sync_detail_presentation()
+            self._items={str(item["id"]):LocalLossItem(str(item["name"]),int(item["quantity"]),float(item["k"])) for item in state.get("items", []) if isinstance(item,dict)};self._refresh_losses();self._set_roughness_source(reset_value=False);self._invalidate_hydraulics(force=True);self._set_status("loss",[]);self._set_status("enpy",[]);self._result.set(str(state.get("result", "")));self._formula.set(str(state.get("formula", "")));self._sync_detail_presentation()
+            manual = transfer_from_workspace({"suction_npsh": state}).suction
+            self._workflow.discovery.set_input("suction", manual)
+            self._on_pipe_sources_changed()
+            self._pipe_source_panel.reset_choice()
         finally:
             self._suppress_dirty = False
 
@@ -473,12 +497,13 @@ class SuctionNPSHPage(ttk.Frame):
             self._material_ids[label] = material.id
         self._material_box.configure(values=labels)
 
-    def _set_roughness_source(self, _event: object | None = None) -> None:
+    def _set_roughness_source(self, _event: object | None = None, *, reset_value: bool = True) -> None:
         manual = self._roughness_source_mode == "manual"
         self._material_box.configure(state="disabled" if manual else "readonly")
         self._roughness_entry.configure(state="normal" if manual else "readonly")
         if manual:
-            self._fields["roughness"].set("")
+            if reset_value:
+                self._fields["roughness"].set("")
         else:
             self._load_selected_roughness()
         self._invalidate_hydraulics()
@@ -558,7 +583,18 @@ class SuctionNPSHPage(ttk.Frame):
                 raise ValidationError(ValidationIssue("selection_required", "field.material"))
             if self._using_library_source() and not self._fields["roughness"].get().strip():
                 raise ValidationError(ValidationIssue("material_roughness_missing"))
-            result = self._service.calculate_suction_loss(number("diameter"), number("flow"), number("viscosity"), self._viscosity_unit.get(), number("length"), None if material_id else number("roughness"), list(self._items.values()), material_id)
+            if not self._workflow.pipe_fields_readonly:
+                self._workflow.edit_manual(diameter_mm=number("diameter"), flow_m3_h=number("flow"))
+            else:
+                self._sync_pipe_fields()
+            value = SuctionV2Input(
+                pipe_input=self._workflow.pipe_input, viscosity=number("viscosity"),
+                viscosity_unit=self._viscosity_unit.get(), pipe_length_m=number("length"),
+                roughness_mm=None if material_id else number("roughness"), material_id=material_id,
+                local_losses=tuple(DischargeLocalLoss(item.name, item.quantity, item.k_coefficient)
+                                   for item in self._items.values()),
+            )
+            result = self._service.calculate_suction_loss_v2(value)
         except ValidationError as error:
             self._result.set("")
             self._set_status("loss", [error.issue])
@@ -568,6 +604,7 @@ class SuctionNPSHPage(ttk.Frame):
             self._result.set("")
             self._set_status("loss", [ValidationIssue("unexpected_error")])
             return
+        self.__dict__.pop("_last_enpy", None)
         self._last_loss = result
         loss = result
         format_value = format_user_number
@@ -592,7 +629,14 @@ class SuctionNPSHPage(ttk.Frame):
             labels = {"pressure": "Suction Pressure (PE)", "vapour": "Vapour Pressure (Pb)", "density": "Fluid Density", "height": "Static Suction Height"}
             field_keys = {"pressure": "field.suction_pressure", "vapour": "field.vapour_pressure", "density": "field.fluid_density", "height": "field.static_suction_height"}
             number = lambda name: parse_engineering_float(self._fields[name].get(), field_name=labels[name], field_key=field_keys[name])
-            result = self._service.calculate_enpy(loss.total_hydraulic_loss_m, number("pressure"), self._pressure_unit.get(), number("vapour"), self._vapour_unit.get(), number("density"), number("height"), parse_engineering_float(self._fields["required"].get(), field_name="NPSH Required", allow_empty=True, field_key="field.npsh_required"))
+            value = ENPYV2Input(
+                suction_pressure=number("pressure"), suction_pressure_unit=self._pressure_unit.get(),
+                vapour_pressure=number("vapour"), vapour_pressure_unit=self._vapour_unit.get(),
+                density_kg_m3=number("density"), static_suction_height_m=number("height"),
+                npsh_required_m=parse_engineering_float(self._fields["required"].get(),
+                    field_name="NPSH Required", allow_empty=True, field_key="field.npsh_required"),
+            )
+            result = self._service.calculate_enpy_v2(loss, value)
         except ValidationError as error:
             self._set_status("enpy", [error.issue])
             return
@@ -633,8 +677,10 @@ class SuctionNPSHPage(ttk.Frame):
             sections[8] = FormulaSection("RESULT", f"{self._translate('result.available_npsh')} = {format_user_number(enpy.enpym_available_m)} m" + ("" if enpy.npsh_margin_m is None else f"\n{self._translate('result.npsh_margin')} = {format_user_number(enpy.npsh_margin_m)} m"), "2. ENPY / NPSH AVAILABLE", "result")
         return sections
 
-    def _invalidate_hydraulics(self, _event: object | None = None, *_args: object) -> None:
+    def _invalidate_hydraulics(self, _event: object | None = None, *_args: object, force: bool = False) -> None:
         """Invalidate both calculation stages after a hydraulic input changes."""
+        if self._suppress_dirty and not force:
+            return
         self.__dict__.pop("_last_loss", None);self.__dict__.pop("_last_enpy", None);self.__dict__.pop("_loss_display", None)
         self._result.set("")
         self._suction_loss_summary.set("—")
@@ -653,6 +699,8 @@ class SuctionNPSHPage(ttk.Frame):
 
     def _invalidate_enpy(self, _event: object | None = None, *_args: object) -> None:
         """Invalidate ENPY while retaining a still-valid hydraulic result."""
+        if self._suppress_dirty:
+            return
         self.__dict__.pop("_last_enpy", None)
         self._result.set(getattr(self, "_loss_display", ""))
         self._enpy_summary.set("—")
@@ -742,6 +790,9 @@ class SuctionNPSHPage(ttk.Frame):
         return self._roughness_source_mode == "material"
 
     def _clear(self) -> None:
+        self._workflow.manual(PipeTransferProjectState().suction.manual_values)
+        self._pipe_source_panel.reset_choice()
+        self._on_pipe_sources_changed()
         for field in self._fields.values():
             field.set("")
         self._items.clear()
@@ -754,7 +805,7 @@ class SuctionNPSHPage(ttk.Frame):
         self._pressure_unit.set("bar")
         self._vapour_unit.set("bar")
         self._set_roughness_source()
-        self._invalidate_hydraulics()
+        self._invalidate_hydraulics(force=True)
         self._mark_dirty()
 
     def _set_status(self, stage: str, messages: list[ValidationIssue]) -> None:
@@ -785,3 +836,51 @@ class SuctionNPSHPage(ttk.Frame):
     def _translator_proxy(self) -> object:
         """Expose the active translator to the shared semantic issue renderer."""
         return type("TranslatorProxy", (), {"translate": self._translate})()
+
+    def attach_pipe_sources(self, discovery: PipeSourceDiscovery) -> None:
+        """Share discovery with Basma while retaining independent applied suction inputs."""
+        self._workflow.discovery = discovery
+        discovery.subscribe(self._on_pipe_sources_changed)
+        self._on_pipe_sources_changed()
+
+    def set_transfer_state(self, state: PipeTransferProjectState) -> None:
+        """Restore exact applied values; no calculation or live-source refresh occurs."""
+        self._workflow.state = state.refresh()
+        self._on_pipe_sources_changed()
+
+    def export_transfer_state(self) -> dict[str, object]:
+        """Store Emme in the existing namespace, preserving Basma and source ownership."""
+        if not self._workflow.pipe_fields_readonly:
+            manual = transfer_from_workspace({"suction_npsh": self.export_state()}).suction
+            current, parsed = self._workflow.pipe_input.manual_values, manual.manual_values
+            if (current.flow_rate_m3_h, current.actual_internal_diameter_mm) != (
+                parsed.flow_rate_m3_h, parsed.actual_internal_diameter_mm
+            ):
+                self._workflow.discovery.set_input("suction", manual)
+        return transfer_to_dict(self._workflow.state)
+
+    def _on_pipe_sources_changed(self) -> None:
+        # Discovery only changes status. Keep results until an explicit input action.
+        self._pipe_source_panel.render()
+        self._sync_pipe_fields()
+
+    def _pipe_source_changed(self, inputs_changed: bool) -> None:
+        if inputs_changed:
+            self._sync_pipe_fields(apply_manual=True)
+            self._invalidate_hydraulics()
+        self._mark_dirty()
+
+    def _sync_pipe_fields(self, apply_manual: bool = False) -> None:
+        previous = self._suppress_dirty
+        self._suppress_dirty = True
+        try:
+            linked = self._workflow.pipe_fields_readonly
+            if linked or apply_manual:
+                values = self._workflow.pipe_input.used_values
+                for key, value in (("diameter", values.actual_internal_diameter_mm),
+                                   ("flow", values.flow_rate_m3_h)):
+                    self._fields[key].set(str(value) if value is not None else "")
+            for key in ("diameter", "flow"):
+                self._pipe_entries[key].configure(state="readonly" if linked else "normal")
+        finally:
+            self._suppress_dirty = previous

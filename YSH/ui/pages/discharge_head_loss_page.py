@@ -13,6 +13,7 @@ from engineering.head_loss.v2_models import DischargeLocalLoss, DischargeV2Input
 from engineering.pipe_design.transfer import PipeInputMode, PipeTransferProjectState
 from engineering.pipe_design.transfer_serialization import transfer_from_workspace, transfer_to_dict
 from services.discharge_workflow import DischargeWorkflow
+from services.pipe_source_discovery import PipeSourceDiscovery
 from ui.pages.discharge_pipe_source import DischargePipeSourcePanel
 from tkinter import messagebox,ttk
 from core.local_loss_item import LocalLossItem
@@ -284,13 +285,24 @@ class DischargeHeadLossPage(ttk.LabelFrame):
             self._result_summary.set(self._translate("message.no_current_calculation"))
             self._warning_panel.set_findings(())
             self._sync_result_empty_state()
-            self.set_transfer_state(transfer_from_workspace({"discharge_head_loss": state}))
+            manual = transfer_from_workspace({"discharge_head_loss": state})
+            if hasattr(self, "_shared_pipe_sources"):
+                self._workflow.discovery.set_input("discharge", manual.discharge)
+                self._on_pipe_sources_changed()
+            else:
+                self.set_transfer_state(manual)
+            if hasattr(self._pipe_source_panel, "reset_choice"):
+                self._pipe_source_panel.reset_choice()
         finally:self._suppress_dirty=False
     def clear_state(self)->None:
         """Clear project state without marking the project dirty.""";self._suppress_dirty=True
         try:
             self._clear()
-            self.set_transfer_state(PipeTransferProjectState())
+            if hasattr(self, "_shared_pipe_sources"):
+                self._workflow.discovery.set_input("discharge", PipeTransferProjectState().discharge)
+                self._on_pipe_sources_changed()
+            else:
+                self.set_transfer_state(PipeTransferProjectState())
         finally:self._suppress_dirty=False
     def _load_materials(self)->None:
         materials=self._materials.get_all_materials();values=[]
@@ -339,6 +351,8 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         self._set_warning_fluid(None)
         self._items.clear();self._refresh();self._viscosity_unit.set("cSt");self._source_mode="material";self._source.set(self._translate("message.material_source"));self._material.set("");self._set_source_mode();self._set_semantic_messages([]);self.__dict__.pop("_last_result",None);self._result_summary.set(self._translate("message.no_current_calculation"));self._clear_result_metrics();self._mark_dirty();self._refresh_formula_panel()
         if hasattr(self, "_pipe_source_panel"):
+            if hasattr(self._pipe_source_panel, "reset_choice"):
+                self._pipe_source_panel.reset_choice()
             self._pipe_source_panel.render()
             self._sync_pipe_fields()
     def _formula_sections(self)->list[FormulaSection]:
@@ -497,3 +511,15 @@ class DischargeHeadLossPage(ttk.LabelFrame):
                 self._entries[key].configure(state="readonly" if linked else "normal")
         finally:
             self._suppress_dirty = previous
+
+    def attach_pipe_sources(self, discovery: PipeSourceDiscovery) -> None:
+        """Share current-project discovery without transferring values implicitly."""
+        self._shared_pipe_sources = discovery
+        self._workflow.discovery = discovery
+        discovery.subscribe(self._on_pipe_sources_changed)
+        self._on_pipe_sources_changed()
+
+    def _on_pipe_sources_changed(self) -> None:
+        # Discovery changes status only; applied values and calculation results survive.
+        self._pipe_source_panel.render()
+        self._sync_pipe_fields()

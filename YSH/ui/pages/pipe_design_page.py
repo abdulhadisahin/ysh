@@ -1,6 +1,7 @@
 """TTK page for Version 1 pipe design."""
 from __future__ import annotations
 import math
+import logging
 import tkinter as tk
 from uuid import UUID
 from collections.abc import Callable
@@ -228,6 +229,7 @@ class PipeDesignPage(ttk.Frame):
         """Return every page-owned input, selection, result, and display state."""
         material_id = self._material_ids.get(self._material.get())
         return {
+            "pipe_selection_id": str(self._source_selection_id) if getattr(self, "_source_selection_id", None) else None,
             "fields": {key: value.get() for key, value in self._fields.items()},
             "pipe_standard_code": self._selected_pipe_standard_code(),
             "circuit_code": self._selected_circuit_code(),
@@ -249,6 +251,10 @@ class PipeDesignPage(ttk.Frame):
         }
     def load_state(self,state:dict[str,object])->None:
         """Restore saved page state without marking the workspace dirty."""
+        try:
+            self._source_selection_id = UUID(str(state["pipe_selection_id"])) if state.get("pipe_selection_id") else None
+        except (ValueError, TypeError):
+            self._source_selection_id = None
         standard_missing = False
         circuit_missing = False
         self._suppress_dirty=True
@@ -310,6 +316,7 @@ class PipeDesignPage(ttk.Frame):
         self._refresh_formula_panel()
     def clear_state(self)->None:
         """Clear project-specific values and reload saved engineering defaults."""
+        self._source_selection_id = None
         self._suppress_dirty=True
         try:
             for field in self._fields.values():field.set("")
@@ -324,7 +331,10 @@ class PipeDesignPage(ttk.Frame):
 
     def _clear_user_state(self) -> None:
         """Clear user values while retaining default constants and reporting dirtiness."""
+        old_source = getattr(self, "_source_selection_id", None)
         self.clear_state()
+        if old_source is not None and callable(getattr(self, "_source_removed", None)):
+            self._source_removed(old_source)
         self._mark_dirty()
     def _load_defaults(self) -> None:
         """Load saved library constants into current-calculation UI fields."""
@@ -1210,6 +1220,7 @@ class PipeDesignPage(ttk.Frame):
                 self._message.set(self._t("validation.unexpected_error"));return
             assert result.diameter is not None
             self._diameter_result = result.diameter.to_dict()
+            self._notify_pipe_selection()
             self._diameter_warning_velocity_m_s = diameter_input.design_velocity_mps
             self._diameter_warning_codes = self._warning_codes_from_result()
             self._update_diameter_summary()
@@ -1255,6 +1266,7 @@ class PipeDesignPage(ttk.Frame):
                 return
             assert result.wall_thickness is not None
             self._wall_result = result.wall_thickness.to_dict()
+            self._notify_pipe_selection()
             self._update_wall_summary()
             self._message.set(f"Et kalınlığı: {format_user_number(result.wall_thickness.final_wall_thickness_mm)} mm")
             self._refresh_formula_panel()
@@ -1449,3 +1461,27 @@ class PipeDesignPage(ttk.Frame):
         return self._source.get() not in {
             "Manual", self._translate("message.manual_source"), "manual"
         }
+
+    def set_pipe_selection_listener(
+        self, listener: Callable[[dict[str, object], bool, UUID | None], UUID | None],
+        removed: Callable[[UUID], None],
+    ) -> None:
+        """Publish completed results through workspace orchestration, without changing formulas."""
+        self._selection_listener = listener
+        self._source_removed = removed
+
+    def _notify_pipe_selection(self) -> None:
+        listener = getattr(self, "_selection_listener", None)
+        if not callable(listener):
+            return
+        try:
+            self._source_selection_id = listener(
+                self.export_state(), not self._using_library_source(),
+                getattr(self, "_source_selection_id", None),
+            )
+        except ValidationError:
+            # A diameter-only calculation can be valid while wall inputs are incomplete.
+            # No source is fabricated and the last completed selection is retained.
+            pass
+        except Exception:
+            logging.getLogger(__name__).exception("Unable to publish Pipe Design selection")

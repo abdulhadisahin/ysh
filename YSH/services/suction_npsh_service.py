@@ -4,6 +4,7 @@ from uuid import UUID
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from engineering.pipe_design.transfer import PipeInputState
+    from engineering.suction_npsh.v2_models import ENPYV2Input, SuctionV2Input, SuctionV2LossResult, SuctionV2Result
 from core.local_loss_item import LocalLossItem
 from engineering.suction_npsh.calculator import SuctionNPSHCalculator
 from engineering.suction_npsh.models import ENPYInput,SuctionNPSHInput,SuctionNPSHResult
@@ -97,4 +98,49 @@ class SuctionNPSHService:
         result = self.calculate(diameter, flow, viscosity, viscosity_unit, length,
             roughness, items, pe, pe_unit, pb, pb_unit, density, height, required, material_id)
         result.metadata["pipe_transfer"] = pipe_input.trace()
+        return result
+
+    def calculate_suction_loss_v2(self, value: SuctionV2Input) -> SuctionV2LossResult:
+        """Validate and delegate actual applied Q/Di to the shared hydraulic service."""
+        from dataclasses import fields, replace
+        from engineering.suction_npsh.v2_models import SuctionV2LossResult
+        roughness = value.roughness_mm
+        if value.material_id is not None:
+            roughness = self._materials.get_material(value.material_id).roughness_mm
+            if roughness is None:
+                raise ValidationError(ValidationIssue("material_roughness_missing"))
+        result = self.calculate_suction_loss_with_pipe(
+            value.pipe_input, viscosity=value.viscosity, viscosity_unit=value.viscosity_unit,
+            length=value.pipe_length_m, roughness=roughness,
+            items=[item.to_item() for item in value.local_losses],
+        )
+        result.metadata["roughness_source"] = "material" if value.material_id else "manual"
+        diameter, flow = value.pipe_input.used_values.hydraulic_values()
+        return SuctionV2LossResult(
+            **{field.name: getattr(result, field.name) for field in fields(result)},
+            input=replace(value, roughness_mm=roughness),
+            actual_internal_diameter_mm=diameter, flow_rate_m3_h=flow,
+        )
+
+    def calculate_enpy_v2(self, loss: SuctionV2LossResult, value: ENPYV2Input) -> SuctionV2Result:
+        """Reuse the sole ENPY arithmetic implementation without recalculating hydraulics."""
+        from dataclasses import fields
+        from engineering.suction_npsh.v2_models import SuctionV2Result
+        result = self.calculate_enpy(
+            loss.total_hydraulic_loss_m, value.suction_pressure, value.suction_pressure_unit,
+            value.vapour_pressure, value.vapour_pressure_unit, value.density_kg_m3,
+            value.static_suction_height_m, value.npsh_required_m,
+        )
+        result.metadata["head_loss"] = loss
+        result.metadata["pipe_transfer"] = loss.input.pipe_input.trace()
+        return SuctionV2Result(
+            **{field.name: getattr(result, field.name) for field in fields(result)},
+            hydraulic=loss, input=value,
+        )
+
+    def calculate_v2(self, pipe: SuctionV2Input, enpy: ENPYV2Input) -> SuctionV2Result:
+        """Compose the two explicit stages; no duplicated hydraulic or ENPY equations."""
+        loss = self.calculate_suction_loss_v2(pipe)
+        result = self.calculate_enpy_v2(loss, enpy)
+        result.warnings[:0] = loss.warnings
         return result
