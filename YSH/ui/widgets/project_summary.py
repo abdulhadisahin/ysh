@@ -87,7 +87,7 @@ class ProjectSummary(ttk.Frame):
         for row, (label_key, value_name) in enumerate(labels):
             label = ttk.Label(self, text=f"{self._translate(label_key)}:", style="ActiveProjectLabel.TLabel")
             label.grid(
-                row=row + 1,
+                row=row * 2 + 1,
                 column=0,
                 sticky="nw",
                 pady=(0, SM // 2),
@@ -105,7 +105,7 @@ class ProjectSummary(ttk.Frame):
                 justify="left",
             )
             value_label.grid(
-                row=row + 1,
+                row=row * 2 + 2,
                 column=0,
                 sticky="ew",
                 pady=(0, SM if value_name == "name" else SM // 2),

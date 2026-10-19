@@ -32,7 +32,7 @@ def test_header_reflows_commands_to_the_right_and_keeps_group_titles() -> None:
     assert "header.columnconfigure(1, weight=1)" in shell
     assert "icon_only=True" in shell
     assert "tooltip_text=text" in shell
-    assert "icon_size=72" in shell
+    assert "icon_size=79" in shell
     assert "square_size=86" in shell
     assert 'self._create_ribbon_group(toolbar, "ribbon.project")' in shell
     assert 'self._create_ribbon_group(toolbar, "ribbon.data_library")' in shell
@@ -43,8 +43,8 @@ def test_sidebar_restores_native_text_while_transfer_toolbar_stays_compact() -> 
     shell = _source("ui/main_window.py")
     transfer = _source("ui/pages/transfer_pump_page.py")
 
-    assert "icon_size=36" in shell
-    assert "minimum_height=48" in shell
+    assert "icon_size=40" in shell
+    assert "minimum_height=52" in shell
     assert "icon_only=True" not in shell.split("def _create_sidebar_button", 1)[1].split("def _add_decorative_image", 1)[0]
     for icon_name in ('icon_name="add", icon_only=True', 'icon_name="edit", icon_only=True', 'icon_name="delete", icon_only=True'):
         assert icon_name in transfer

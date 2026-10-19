@@ -20,7 +20,7 @@ def test_top_commands_remain_icon_only_at_the_larger_shared_size() -> None:
 
     assert "icon_only=True" in header_factory
     assert "tooltip_text=text" in header_factory
-    assert "icon_size=72" in header_factory
+    assert "icon_size=79" in header_factory
     assert "square_size=86" in header_factory
 
 
@@ -29,8 +29,8 @@ def test_sidebar_actions_keep_native_text_callbacks_and_icons() -> None:
     sidebar_factory = source.split("def _create_sidebar_button", 1)[1].split("def _add_decorative_image", 1)[0]
 
     assert "icon_only=True" not in sidebar_factory
-    assert "icon_size=36" in sidebar_factory
-    assert "minimum_height=48" in sidebar_factory
+    assert "icon_size=40" in sidebar_factory
+    assert "minimum_height=52" in sidebar_factory
     assert "horizontal_padding=18" in sidebar_factory
     for callback in ("self._open_new_project", "self._open_selected_project", "self._save_project", "self._delete_project", "self._refresh_projects"):
         assert callback in source

@@ -33,7 +33,7 @@ def test_header_uses_distinct_library_keys_and_larger_fixed_command_surface() ->
     ):
         assert f'icon_name="{name}"' in source
     factory = source.split("def _create_header_button", 1)[1].split("def _add_header_logo", 1)[0]
-    assert "icon_size=72" in factory
+    assert "icon_size=79" in factory
     assert "square_size=86" in factory
 
 

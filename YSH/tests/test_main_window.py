@@ -213,6 +213,28 @@ def test_main_window_initializes_projects_tree(monkeypatch: object) -> None:
             super().__init__(*args, **kwargs)
             self.tree = _DummyTreeview(*args, **kwargs)
 
+    class _DummySidebarFrame(_DummyWidget):
+        """Record the native grid allocation used by the project list."""
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            super().__init__(*args, **kwargs)
+            self.rows = {}
+
+        def rowconfigure(self, row: int, **kwargs: object) -> None:
+            self.rows[row] = kwargs
+
+    class _DummySidebarScroll(_DummyWidget):
+        """Retain bounded sidebar geometry without a native Tk interpreter."""
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            super().__init__(*args, **kwargs)
+            self.content = _DummyWidget()
+            self.propagate = True
+
+        def grid_propagate(self, enabled: bool) -> None:
+            self.propagate = enabled
+
+        def set_wheel_active(self, active: bool) -> None:
+            self.wheel_active = active
+
     class _DummyStringVar:
         """Provide the project-search variable API without a Tk display."""
 
@@ -262,7 +284,7 @@ def test_main_window_initializes_projects_tree(monkeypatch: object) -> None:
         "StringVar": _DummyStringVar,
     }))
     monkeypatch.setattr(main_window_module.ttk, "Entry", _DummyWidget)
-    monkeypatch.setattr(main_window_module.ttk, "Frame", _DummyWidget)
+    monkeypatch.setattr(main_window_module.ttk, "Frame", _DummySidebarFrame)
     monkeypatch.setattr(main_window_module.ttk, "LabelFrame", _DummyWidget)
     monkeypatch.setattr(main_window_module.ttk, "Button", _DummyWidget)
     monkeypatch.setattr(main_window_module.ttk, "Label", _DummyWidget)
@@ -277,6 +299,7 @@ def test_main_window_initializes_projects_tree(monkeypatch: object) -> None:
     monkeypatch.setattr(main_window_module, "StatusBar", lambda *args, **kwargs: _DummyWidget(*args, **kwargs))
     monkeypatch.setattr(main_window_module, "ScrollablePageHost", lambda *args, **kwargs: _DummyWidget(*args, **kwargs))
     monkeypatch.setattr(main_window_module, "ScrollableTreeview", _DummyScrollableTreeview)
+    monkeypatch.setattr(main_window_module, "ScrollableFrame", _DummySidebarScroll)
     monkeypatch.setattr(main_window_module, "OpenProjectDialog", lambda *args, **kwargs: None)
     monkeypatch.setattr(main_window_module, "NewProjectDialog", lambda *args, **kwargs: None)
     monkeypatch.setattr(main_window_module, "MaterialLibraryDialog", lambda *args, **kwargs: None)
@@ -291,6 +314,11 @@ def test_main_window_initializes_projects_tree(monkeypatch: object) -> None:
 
     assert hasattr(window, "_projects_tree")
     assert window._projects_tree is not None
+    assert window._project_footer.kwargs["height"] == 200
+    assert window._project_footer.propagate is False
+    assert window._project_footer.wheel_active
+    assert window._project_footer.args[0].rows[3] == {"weight": 1, "minsize": 120}
+    assert window._project_summary.args[0] is window._project_footer.content
 
 
 def test_open_project_dialog_sets_result_before_closing() -> None:

@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import math
 import tkinter as tk
+from dataclasses import replace
 from collections.abc import Callable
 from pathlib import Path
 from tkinter import messagebox, ttk
@@ -226,7 +227,7 @@ class MainWindow:
         )
         navigation.grid(row=0, column=0, sticky="nsew")
         navigation.columnconfigure(0, weight=1)
-        navigation.rowconfigure(3, weight=1)
+        navigation.rowconfigure(3, weight=1, minsize=120)
         self._sidebar_title = ttk.Label(navigation, text=self._translate("project.projects"), style="SidebarTitle.TLabel")
         self._sidebar_title.grid(row=0, column=0, sticky="w", pady=(0, SM))
         self._project_search_label = ttk.Label(
@@ -271,8 +272,16 @@ class MainWindow:
         self._projects_tree.bind("<Double-1>", self._open_selected_project)
         self._projects_tree.bind("<Return>", self._open_selected_project)
         self._projects_tree.bind("<Delete>", self._delete_project)
-        actions = ttk.Frame(navigation, style="SidebarActions.TFrame", padding=(0, SM, 0, 0))
-        actions.grid(row=4, column=0, sticky="ew", pady=(SM, 0))
+        # Active-project details must not grow the fixed sidebar rows until the
+        # only expanding row (the project list) collapses. Keep the lower area
+        # bounded and independently scrollable, retaining all project metadata.
+        self._project_footer = ScrollableFrame(navigation, height=200)
+        self._project_footer.grid(row=4, column=0, sticky="ew", pady=(SM, 0))
+        self._project_footer.grid_propagate(False)
+        self._project_footer.set_wheel_active(True)
+        self._project_footer.content.columnconfigure(0, weight=1)
+        actions = ttk.Frame(self._project_footer.content, style="SidebarActions.TFrame", padding=(0, SM, 0, 0))
+        actions.grid(row=0, column=0, sticky="ew")
         actions.columnconfigure(0, weight=1)
         actions.columnconfigure(1, weight=1)
         self._sidebar_new = self._create_sidebar_button(actions, self._translate('action.new'), self._open_new_project, style="RoundedAdd.TButton", palette=ADD_BUTTON_PALETTE, icon_name="new")
@@ -285,8 +294,8 @@ class MainWindow:
         self._sidebar_delete.grid(row=1, column=1, sticky="ew", padx=(SM // 2, 0), pady=(SM // 2, 0))
         self._sidebar_refresh = self._create_sidebar_button(actions, self._translate("action.refresh"), self._refresh_projects, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="refresh")
         self._sidebar_refresh.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(SM // 2, 0))
-        self._project_summary = ProjectSummary(navigation, self._translate)
-        self._project_summary.grid(row=5, column=0, sticky="ew", pady=(MD, 0))
+        self._project_summary = ProjectSummary(self._project_footer.content, self._translate)
+        self._project_summary.grid(row=1, column=0, sticky="ew", pady=(MD, 0))
 
         self._page_host = ScrollablePageHost(content)
         self._page_host.grid(row=0, column=0, sticky="nsew")
@@ -350,9 +359,8 @@ class MainWindow:
             icon_name=icon_name,
             icon_only=True,
             tooltip_text=text,
-            # Keep the full composed action tile visible with a six-pixel
-            # breathing margin inside the slightly tighter header surface.
-            icon_size=72,
+            # Grow the artwork ~10%, retaining the existing clickable surface.
+            icon_size=79,
             square_size=86,
         )
 
@@ -398,13 +406,13 @@ class MainWindow:
             text,
             command,
             style=style,
-            palette=palette,
+            palette=replace(palette, normal=(colors.SIDEBAR_SURFACE, colors.SIDEBAR_SURFACE)),
             outside_background=colors.SIDEBAR_SURFACE,
             icon_name=icon_name,
             # Sidebar labels retain their readable native text lane while
             # giving the complete icon composition a six-pixel vertical margin.
-            icon_size=36,
-            minimum_height=48,
+            icon_size=40,
+            minimum_height=52,
             horizontal_padding=18,
         )
 
@@ -944,7 +952,11 @@ class MainWindow:
             return
         self._active_project = project
         if hasattr(self, "_projects_tree"):
+            search = getattr(self, "_project_search", None)
+            if search is not None and search.get():
+                search.set("")
             self._refresh_projects()
+            self._select_project_row(project.id)
         self._refresh_window_title()
         self._project_summary.set_project(project)
         self._file_menu.entryconfigure(FILE_MENU_INDEX["close"], state="normal")
@@ -1146,15 +1158,13 @@ class MainWindow:
             is_empty = not self._projects_tree.get_children()
             tree_container = getattr(self, "_project_tree_container", None)
             empty_state = getattr(self, "_project_empty_state", None)
-            if tree_container is not None and empty_state is not None:
-                (tree_container.grid_remove if is_empty else tree_container.grid)()
+            if tree_container is not None:
+                (tree_container.grid_remove if is_empty and empty_state is not None else tree_container.grid)()
+            if empty_state is not None:
                 (empty_state.grid if is_empty else empty_state.grid_remove)()
-            if (
-                selected
-                and hasattr(self._projects_tree, "exists")
-                and self._projects_tree.exists(selected[0])
-            ):
-                self._projects_tree.selection_set(selected[0])
+            restored = bool(selected) and self._select_project_row(selected[0])
+            if not restored and self._active_project is not None:
+                self._select_project_row(self._active_project.id)
         except Exception:
             LOGGER.exception("Unable to refresh the saved project list.")
             messagebox.showerror(
@@ -1162,6 +1172,19 @@ class MainWindow:
                 self._translate("validation.unexpected_error"),
                 parent=self._root,
             )
+
+    def _select_project_row(self, project_id: UUID | str) -> bool:
+        """Restore an existing row's selection/focus without activating or loading it."""
+        tree = self._projects_tree
+        identifier = str(project_id)
+        exists = getattr(tree, "exists", None)
+        if not callable(exists) or not exists(identifier):
+            return False
+        for name in ("selection_set", "focus", "see"):
+            action = getattr(tree, name, None)
+            if callable(action):
+                action(identifier)
+        return True
 
     def _add_project(self, project: Project) -> None:
         self._projects_tree.insert(

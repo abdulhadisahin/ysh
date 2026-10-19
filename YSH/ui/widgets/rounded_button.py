@@ -89,7 +89,7 @@ FORMULA_BUTTON_PALETTE = RoundedButtonPalette(
     focus_border="#7B5A17",
 )
 HEADER_COMMAND_PALETTE = RoundedButtonPalette(
-    normal=("#102B46", "#B58A2A"),
+    normal=("#102B46", "#102B46"),
     hover=("#163957", "#D3B66A"),
     pressed=("#091B2D", "#B58A2A"),
     disabled=("#31465A", "#516275"),
