@@ -15,6 +15,7 @@ from ui.widgets.engineering_components import EmptyState
 from ui.theme import typography
 from ui.theme.spacing import MD, SM
 from ui.widgets.asset_loader import AssetImageLoader, LoadedImage
+from ui.formula_asset_policy import QUARANTINED_ASSETS
 
 
 FormulaSectionRole = Literal[
@@ -452,6 +453,8 @@ class FormulaReferencePanel(ttk.Frame):
             return False
         rendered = False
         for row, asset_name in enumerate(section.asset_names, start=1):
+            if asset_name in QUARANTINED_ASSETS:
+                continue
             formula_image = AssetImageLoader.load(
                 container,
                 formula_asset_path(asset_name),

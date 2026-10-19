@@ -6,6 +6,7 @@ from tkinter import ttk
 from engineering.formula.common import reason_for
 from engineering.formula.models import FormulaStep
 from engineering.provenance import SourceReference
+from ui.formula_asset_policy import step_asset_names
 
 
 @dataclass(frozen=True, slots=True)
@@ -127,7 +128,10 @@ def render_step(panel: object, step: FormulaStep, row: int) -> None:
                 (target.grid_remove if target.winfo_manager() else target.grid)()
             ttk.Button(region, text=tr("formula2.details"), command=toggle).grid(row=2, sticky="w")
         if section.key == "formula":
-            panel._render_section_content(body, FormulaSection("FORMULA", section.text), "FormulaEquation")
+            panel._render_section_content(
+                body, FormulaSection("FORMULA", section.text, asset_names=step_asset_names(step)),
+                "FormulaEquation",
+            )
         elif section.rows:
             for r, cells in enumerate(section.rows):
                 for c, value in enumerate(cells):
