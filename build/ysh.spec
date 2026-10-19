@@ -1,28 +1,37 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""Reproducible onedir diagnostic PyInstaller build for YSH."""
+"""Offline D243 Windows onedir release with validated Tcl/Tk runtime."""
 
 import sys
+import os
 from pathlib import Path
 
-from PyInstaller.utils.hooks import collect_all
+from PyInstaller.utils.hooks.tcl_tk import tcltk_info
 
 
 repository_root = Path(SPECPATH).resolve().parent
 application_root = repository_root / "YSH"
 main_entry = repository_root / "main.py"
-python_root = Path(sys.base_prefix)
-tcl_root = python_root / "tcl"
+# Standard hooks discover the DLLs for this interpreter (including Tcl/Tk 9).
+# Build-only TCL_LIBRARY/TK_LIBRARY may point to matching standalone scripts;
+# the frozen runtime hook always redirects them to the bundled directories.
+if not tcltk_info.available:
+    raise SystemExit("Tcl/Tk probe failed: supply matching TCL_LIBRARY and TK_LIBRARY for the build.")
+for directory, marker in ((tcltk_info.tcl_data_dir, "init.tcl"),
+                          (tcltk_info.tk_data_dir, "tk.tcl")):
+    if not directory or not (Path(directory) / marker).is_file():
+        raise SystemExit(f"Missing Tcl/Tk script resource: {directory}/{marker}")
 tk_runtime_data = [
-    (str(tcl_root / "tcl8.6"), "_tcl_data"),
-    (str(tcl_root / "tk8.6"), "_tk_data"),
+    (str(tcltk_info.tcl_data_dir), "_tcl_data"),
+    (str(tcltk_info.tk_data_dir), "_tk_data"),
 ]
 tk_runtime_binaries = [
-    (str(python_root / "DLLs" / filename), ".")
-    for filename in ("_tkinter.pyd", "tcl86t.dll", "tk86t.dll")
+    (str(path), ".") for path in (
+        tcltk_info.tkinter_extension_file,
+        tcltk_info.tcl_shared_library, tcltk_info.tk_shared_library,
+    ) if path
 ]
-matplotlib_datas, matplotlib_binaries, matplotlib_hiddenimports = collect_all(
-    "matplotlib"
-)
+# Official Matplotlib hooks collect mpl-data/fonts and extension dependencies.
+# D243 uses TkAgg and MathText; collecting every backend/submodule is unnecessary.
 branding_resources = [(str(application_root / "resources"), "resources")]
 legacy_module_imports = [
     ".".join(module_path.relative_to(application_root).with_suffix("").parts)
@@ -33,16 +42,16 @@ legacy_module_imports = [
 analysis = Analysis(
     [str(main_entry)],
     pathex=[str(repository_root), str(application_root)],
-    binaries=tk_runtime_binaries + matplotlib_binaries,
-    datas=tk_runtime_data + matplotlib_datas + branding_resources,
+    binaries=tk_runtime_binaries,
+    datas=tk_runtime_data + branding_resources,
     hiddenimports=[
         "tkinter",
         "tkinter.ttk",
         "_tkinter",
         "matplotlib.backends.backend_tkagg",
         *legacy_module_imports,
-        *matplotlib_hiddenimports,
     ],
+    hooksconfig={"matplotlib": {"backends": ["TkAgg"]}},
     hookspath=[str(repository_root / "build" / "hooks")],
     runtime_hooks=[
         str(repository_root / "build" / "hooks" / "rthooks" / "pyi_rth_ysh_legacy_packages.py")
@@ -55,14 +64,27 @@ executable = EXE(
     pyz,
     analysis.scripts,
     [],
-    name="YSH",
-    console=True,
+    name="D243",
+    console=False,
     exclude_binaries=True,
     debug=False,
     strip=False,
     upx=False,
+    version=str(repository_root / "build" / "version_info.txt"),
     icon=str(application_root / "resources" / "branding" / "d243_logo.ico"),
 )
+# Optional build-only checker shares the release PYZ/hooks and is deliberately
+# absent from COLLECT. Copy it only into an isolated validation directory.
+if os.environ.get("D243_BUILD_PROBE") == "1":
+    probe_scripts = [
+        (name, str(repository_root / "build" / "package_probe.py"), kind)
+        if name == "main" else (name, path, kind)
+        for name, path, kind in analysis.scripts
+    ]
+    EXE(
+        pyz, probe_scripts, [], name="D243-package-probe",
+        console=True, exclude_binaries=True, debug=False, strip=False, upx=False,
+    )
 COLLECT(
     executable,
     analysis.binaries,
@@ -70,5 +92,5 @@ COLLECT(
     analysis.datas,
     strip=False,
     upx=False,
-    name="YSH",
+    name="D243",
 )

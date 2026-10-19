@@ -5,9 +5,10 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.axes import Axes
-from matplotlib.figure import Figure
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 from tkinter import Misc, StringVar
 from tkinter import ttk
 
@@ -118,16 +119,16 @@ class TransferPumpChart(ttk.Frame):
         decimal_places: int = 2,
         translate: Callable[[str], str] | None = None,
     ) -> None:
-        """Create one reusable Figure and its TkAgg canvas."""
+        """Create chart chrome; defer Matplotlib until the chart becomes visible."""
         super().__init__(parent)
         self._decimal_places = decimal_places
         self._translate = translate or Translator().translate
         self._last_model: TransferPumpChartModel | None = None
         self.columnconfigure(0, weight=1)
-        self._figure = Figure(figsize=(7.5, 3.6), dpi=100, facecolor=colors.SURFACE)
-        self._axes = self._figure.add_subplot(111)
-        self._canvas = FigureCanvasTkAgg(self._figure, master=self)
-        self._canvas.get_tk_widget().grid(row=0, column=0, sticky="ew")
+        self._figure = None
+        self._axes = None
+        self._canvas = None
+        self.bind("<Map>", self._on_map, add="+")
         self._summary = StringVar(master=self, value="")
         self._summary_label = ttk.Label(
             self,
@@ -137,9 +138,27 @@ class TransferPumpChart(ttk.Frame):
         )
         self._summary_label.grid(row=1, column=0, sticky="w", pady=(SM // 2, 0))
 
+    def _on_map(self, _event: object = None) -> None:
+        if self._last_model is not None:
+            self.render(self._last_model)
+
+    def _ensure_canvas(self) -> None:
+        if self._canvas is not None:
+            return
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+        from matplotlib.figure import Figure
+
+        self._figure = Figure(figsize=(7.5, 3.6), dpi=100, facecolor=colors.SURFACE)
+        self._axes = self._figure.add_subplot(111)
+        self._canvas = FigureCanvasTkAgg(self._figure, master=self)
+        self._canvas.get_tk_widget().grid(row=0, column=0, sticky="ew")
+
     def render(self, model: TransferPumpChartModel) -> None:
         """Redraw the existing canvas from prepared authoritative chart data."""
         self._last_model = model
+        if not self.winfo_ismapped():
+            return
+        self._ensure_canvas()
         axes = self._axes
         axes.clear()
         self._configure_axes(axes)

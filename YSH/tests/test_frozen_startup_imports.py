@@ -12,8 +12,8 @@ def test_release_spec_collects_tcl_runtime_directories_for_the_hook() -> None:
     """The frozen Tcl runtime hook receives its required onedir data directories."""
     source = (ROOT.parent / "build" / "ysh.spec").read_text(encoding="utf-8")
 
-    assert '(str(tcl_root / "tcl8.6"), "_tcl_data")' in source
-    assert '(str(tcl_root / "tk8.6"), "_tk_data")' in source
+    assert '(str(tcltk_info.tcl_data_dir), "_tcl_data")' in source
+    assert '(str(tcltk_info.tk_data_dir), "_tk_data")' in source
     assert 'hookspath=[str(repository_root / "build" / "hooks")]' in source
 
 

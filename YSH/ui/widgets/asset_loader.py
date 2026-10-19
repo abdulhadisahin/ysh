@@ -15,7 +15,7 @@ except ImportError:  # pragma: no cover - optional artwork must never block star
 
 @dataclass(frozen=True)
 class LoadedImage:
-    """Keep source and rendered image references alive for one UI consumer."""
+    """Keep compatible image handles alive for one display rendition."""
 
     source: tk.PhotoImage
     rendered: tk.PhotoImage
@@ -151,23 +151,25 @@ class AssetImageLoader:
             with Image.open(path) as source_file:
                 rgba = source_file.convert("RGBA")
             render_source = {
-                "canvas": rgba,
-                "visible_content": cls._visible_content(rgba, alpha_threshold, padding_percent),
-                "glyph_content": cls._glyph_content(rgba, alpha_threshold, padding_percent),
-                "full_asset_safe": cls._full_asset_safe(rgba),
-                "silhouette_safe": cls._silhouette_safe(rgba),
-            }[fit_mode]
+                "canvas": lambda: rgba,
+                "visible_content": lambda: cls._visible_content(rgba, alpha_threshold, padding_percent),
+                "glyph_content": lambda: cls._glyph_content(rgba, alpha_threshold, padding_percent),
+                "full_asset_safe": lambda: cls._full_asset_safe(rgba),
+                "silhouette_safe": lambda: cls._silhouette_safe(rgba),
+            }[fit_mode]()
             ratio = min(target_size / render_source.width, target_size / render_source.height, 1.0)
             rendered_size = (
                 max(1, round(render_source.width * ratio)),
                 max(1, round(render_source.height * ratio)),
             )
             rendered_rgba = render_source.resize(rendered_size, Image.Resampling.LANCZOS)
-            source = ImageTk.PhotoImage(rgba, master=master)
             rendered = ImageTk.PhotoImage(rendered_rgba, master=master)
         except (OSError, tk.TclError):
             return None
-        loaded = LoadedImage(source=source, rendered=rendered)
+        # Consumers display only the target rendition. Retain the source handle
+        # alias for compatibility without uploading an unused full-size Tk image.
+        # The canonical artwork remains unchanged on disk.
+        loaded = LoadedImage(source=rendered, rendered=rendered)
         cls._cache[key] = loaded
         if len(cls._cache) > cls.CACHE_LIMIT:
             del cls._cache[next(iter(cls._cache))]

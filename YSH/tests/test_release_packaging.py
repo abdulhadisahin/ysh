@@ -16,13 +16,13 @@ def test_spec_bundles_resources_icon_and_matplotlib_tkagg() -> None:
     assert 'main_entry = repository_root / "main.py"' in source
     assert '"resources"' in source
     assert '"d243_logo.ico"' in source
-    assert 'collect_all(\n    "matplotlib"' in source
+    assert 'hooksconfig={"matplotlib": {"backends": ["TkAgg"]}}' in source
     assert '"matplotlib.backends.backend_tkagg"' in source
     assert '"_tcl_data"' in source
     assert '"_tk_data"' in source
-    assert '"_tkinter.pyd"' in source
-    assert '"tcl86t.dll"' in source
-    assert '"tk86t.dll"' in source
+    assert "tcltk_info.tkinter_extension_file" in source
+    assert "tcltk_info.tcl_shared_library" in source
+    assert "tcltk_info.tk_shared_library" in source
     assert 'hookspath=[str(repository_root / "build" / "hooks")]' in source
     assert "legacy_module_imports" in source
     assert "*legacy_module_imports" in source

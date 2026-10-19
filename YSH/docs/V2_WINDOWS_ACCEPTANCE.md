@@ -142,3 +142,19 @@ Git fark kontrolü temiz; yalnız bu kabul kaydı ve üç testi içeren modül e
 Üretim dosyaları, veri, asset, ortam ve paketleme dosyaları değişmedi.
 Otomatik kabul PASS; final Windows/RC ve genel Faz 16 sonucu kullanıcı görsel/runtime
 yanıtına kadar **PENDING_MANUAL_ACCEPTANCE**. Manuel sonuç uydurulmadı.
+
+
+## Phase 17 release engineering — 2026-10-19
+
+The preceding Phase 16 record is retained as historical evidence. Phase 17 now
+has **1379 passing tests (42.57 s)** and a successful Windows onedir build.
+Actual D243.exe launches/closes from an isolated copy; frozen Tcl/Tk 9.0.4,
+PNG/MathText/TkAgg, SQLite, project persistence and module/Library/History checks
+pass. Final runtime: 167,380,009 bytes / 1417 files; ZIP: 110,774,019 bytes.
+Controlled first-drawing startup improves from approximately 24–26 s to 4.8–6.6 s.
+No UI redesign, calculation, schema or engineering data change is included.
+
+Exact build command, dependency/asset audits, checksums, deferred items and the
+20-item packaged-EXE checklist are in [V2_RELEASE_PHASE17.md](V2_RELEASE_PHASE17.md).
+Final status remains **PENDING_MANUAL_ACCEPTANCE** until human Windows acceptance;
+no later phase is started.
