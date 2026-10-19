@@ -41,10 +41,11 @@ class TransferPumpDesignPanel(ttk.Frame):
             ttk.Entry(self._inputs,textvariable=self._fields[key],width=20).grid(row=row,column=1,padx=8,pady=4)
             self._labels[key] = label
         self._calculate = create_rounded_button(self._inputs, '', self.calculate,
-            palette=TRANSFER_PRIMARY_PALETTE, primary=True, icon_name='calculate')
+            style='TransferRoundedPrimary.TButton', palette=TRANSFER_PRIMARY_PALETTE,
+            primary=True, icon_name='calculate')
         self._calculate.grid(row=3,column=0,sticky='w',pady=8)
         self._clear = create_rounded_button(self._inputs, '', self.clear,
-            palette=NEUTRAL_BUTTON_PALETTE, icon_name='clear')
+            style='RoundedNeutral.TButton', palette=NEUTRAL_BUTTON_PALETTE, icon_name='clear')
         self._clear.grid(row=3,column=1,sticky='w',pady=8)
         self._results = ResultCard(self, '')
         self._results.grid(row=1,column=0,sticky='ew',pady=(8,0))
