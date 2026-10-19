@@ -143,6 +143,11 @@ def apply_theme(root: tk.Misc) -> None:
     _configure_card(style, "CriticalCard.TLabelframe", colors.CRITICAL_ENGINEERING_SURFACE, colors.CRITICAL_ENGINEERING, colors.CRITICAL_ENGINEERING)
     _configure_card(style, "FormulaStage.TLabelframe", colors.CARD_SURFACE, colors.BORDER, colors.NAVY)
     style.configure("FormulaStrip.TFrame", background=colors.SURFACE)
+    style.configure("FormulaDocument.TFrame", background=colors.CARD_SURFACE)
+    style.configure("FormulaDocument.TLabel", background=colors.CARD_SURFACE, foreground=colors.TEXT_PRIMARY, font=typography.BODY)
+    style.configure("FormulaSectionTitle.TLabel", background=colors.CARD_SURFACE, foreground=colors.TEXT_SECONDARY, font=typography.SUBSECTION_TITLE)
+    style.configure("FormulaBadge.TLabel", background=colors.NAVY, foreground=colors.WHITE, padding=(6, 3), font=typography.MUTED)
+    style.configure("FormulaDocumentResult.TLabel", background=colors.GOLD_SOFT, foreground=colors.NAVY, padding=8, font=typography.FORMULA_RESULT)
     _configure_formula_section(
         style,
         "FormulaEquation",

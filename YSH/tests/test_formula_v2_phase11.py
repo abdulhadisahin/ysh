@@ -288,6 +288,11 @@ def test_generic_renderer_uses_vertical_sections_and_existing_equation_renderer(
         def columnconfigure(self,*args,**kwargs): pass
     for name in ('LabelFrame','Frame','Label','Button'):
         monkeypatch.setattr(view.ttk,name,Widget)
+    class Disclosure(Widget):
+        def __init__(self,parent,title,summary=''):
+            super().__init__(parent,text=title)
+            self.body=Widget()
+    monkeypatch.setattr(view,'DetailDisclosure',Disclosure)
     equations=[]
     panel=SimpleNamespace(_content=object(),_translate=TR.__getitem__,
                           _render_section_content=lambda parent,section,style:equations.append(section.text))

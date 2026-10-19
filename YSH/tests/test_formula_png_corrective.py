@@ -81,7 +81,11 @@ def test_actual_renderer_prioritizes_png_then_mathtext_then_native_text(monkeypa
 def test_missing_and_quarantined_png_reach_existing_fallback(monkeypatch):
     import ui.widgets.formula_view as module
     attempts = []
-    monkeypatch.setattr(module.AssetImageLoader, 'load', lambda *a, **kw: attempts.append(a) or None)
+    class MissingImage:
+        available = False
+        def __init__(self, *a, **kw): attempts.append(a)
+        def destroy(self): pass
+    monkeypatch.setattr(module, 'FormulaImage', MissingImage)
     panel = SimpleNamespace(_formula_asset_images=[])
     for key in ('pipe_diameter', 'base_wall_thickness', 'local_loss'):
         assert not FormulaReferencePanel._render_formula_assets(panel, object(),
@@ -92,3 +96,9 @@ def test_missing_and_quarantined_png_reach_existing_fallback(monkeypatch):
 def test_spec_keeps_formula_directory_in_resources_manifest():
     source = (Path(__file__).parents[2] / 'build/ysh.spec').read_text(encoding='utf-8')
     assert '(str(application_root / "resources"), "resources")' in source
+
+
+def test_mixed_legacy_section_cannot_hide_bad_equation_behind_one_good_png():
+    panel=SimpleNamespace(_formula_asset_images=[])
+    section=FormulaSection('FORMULA','stored hf and hL expressions',asset_names=('pipe_friction_loss','local_loss'))
+    assert not FormulaReferencePanel._render_formula_assets(panel,object(),section,'FormulaEquation')

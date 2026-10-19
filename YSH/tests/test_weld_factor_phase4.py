@@ -12,7 +12,7 @@ from services.pipe_design_service import PipeDesignService
 
 
 ROOT = Path(__file__).resolve().parents[1]
-NOTE = "Kaynak faktörü dikişsiz borular için 1 alınmıştır. (Türk Loydu)"
+NOTE = "Kaynak faktörü v, hesapta kullanılan girdidir; üretim kaynağı doğrulaması gereklidir."
 
 
 def test_weld_factor_default_and_manual_value_reach_existing_formula(material_service: object, pipe_size_service: object, engineering_constant_service: object) -> None:
@@ -43,5 +43,5 @@ def test_pipe_page_keeps_v_independent_and_formula_view_reports_actual_value() -
 def test_reference_note_is_exact_turkish_information_only() -> None:
     source = (ROOT / "i18n/messages_tr.py").read_text(encoding="utf-8")
     assert NOTE in source
-    assert "Türk Loydu)" in source
+    assert "üretim kaynağı doğrulaması gereklidir" in source
     assert "table" not in NOTE.casefold() and "section" not in NOTE.casefold()

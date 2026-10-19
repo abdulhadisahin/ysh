@@ -38,11 +38,11 @@ def test_formula_artwork_uses_complete_composition_and_native_text_fallback() ->
 
     assert "asset_names: tuple[str, ...] = ()" in source
     assert "formula_asset_path(asset_name)" in source
-    assert 'fit_mode="canvas"' in source
-    assert "_FORMULA_ASSET_MAX_SIDE = 260" in source
+    assert "FormulaImage(" in source
+    assert "formula_asset_path(asset_name)" in source
     assert "columnspan=3" in source
     assert 'sticky="n"' in source
-    assert "if formula_image is None:" in source
+    assert "if not formula_image.available:" in source
     assert "self._render_mathtext_equations" in source
 
 

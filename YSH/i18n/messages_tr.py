@@ -103,7 +103,7 @@ MESSAGES = {
     "formula.regression_slope_unit": "m³/h / m³",
     "formula.regression_model_note": "m ve b, referans gemilerden elde edilen yetkili doğrusal regresyon modelinden gelir. R², kapasite denkleminin bir parçası değil, model kalitesi bilgisidir.",
     "formula.pipe_size_recommendation_note": "Mevcut Boru Ölçüleri Kütüphanesinden ilk uygun farklı anma DN değeri seçilir.",
-    "formula.weld_factor_reference_note": "Kaynak faktörü dikişsiz borular için 1 alınmıştır. (Türk Loydu)",
+    "formula.weld_factor_reference_note": 'Kaynak faktörü v, hesapta kullanılan girdidir; üretim kaynağı doğrulaması gereklidir.',
     "formula.bend_radius_convention_note": "D243 ürün yaklaşımında D, boru dış çapı da olarak alınır; 3D varsayılanı Türk Loydu zorunluluğu değildir.",
     "pipe.bend_radius_convention": "D243'te D, boru dış çapı da olarak alınır.",
     "pipe.bend_mode.D1_5": "1.5D",
@@ -112,7 +112,7 @@ MESSAGES = {
     "pipe.bend_mode.D5": "5D",
     "pipe.bend_mode.D10": "10D",
     "pipe.bend_mode.MANUAL": "Manuel",
-    "formula.safety_factor_reference_note": "Emniyet katsayısı B, Türk Loydu Bölüm 8 Tablo 8.9'a göre Boru Sınıfı II ve III çelik borular için 1,80 alınmıştır.",
+    "formula.safety_factor_reference_note": 'Emniyet katsayısı B, kullanılan kullanıcı girdisidir. Eski A/B referans notları için kaynak doğrulaması gereklidir.',
     "formula.stage.pipe_diameter": "1. BORU ÇAPI",
     "formula.stage.allowable_stress": "2. MÜSAADE EDİLEN GERİLME",
     "formula.stage.base_wall_thickness": "3. TEMEL ET KALINLIĞI",
@@ -293,7 +293,7 @@ MESSAGES = {
     "result.local_loss_coefficient": "Toplam K",
     "library.search": "Ara:",
     "library.no_records": "Kayıt bulunamadı.",
-    "library.record_count": "{count} kayıt",
+    "library.record_count": "kayıt",
     "library.materials": "Malzeme Kütüphanesi",
     "library.pipe_sizes": "Boru Ölçüleri Kütüphanesi",
     "library.constants": "Mühendislik Sabitleri",
@@ -690,3 +690,26 @@ MESSAGES.update(
 )
 
 MESSAGES.update({"pipe.bend_mode.NO_BEND": 'Bükme yok', "formula2.no_bend": 'b = 0 — Bükme yok; bükme ilavesi uygulanmaz'})
+
+
+# Formula / Library corrective presentation; no engineering data changes.
+MESSAGES.update({'formula2.asset_unverified': 'Hazır görsel denklemle uyuşmadığı için hesapta kullanılan denklem '
+                              'gösteriliyor.',
+ 'library2.filters': 'Filtreler ▾',
+ 'library2.relationship': 'İlişkili kayıt',
+ 'library2.no_records': 'Bu görünümde kayıt yok. Arama ve filtreleri kontrol edin.',
+ 'library2.record_count': 'kayıt',
+ 'library2.editable': 'Düzenlenebilir',
+ 'library2.read_only': 'Salt okunur',
+ 'library2.section.basic': 'Temel bilgiler',
+ 'library2.section.engineering': 'Mühendislik verisi',
+ 'library2.section.ownership': 'Sahiplik / durum',
+ 'library2.section.verification': 'Doğrulama',
+ 'library2.section.relationships': 'İlişkiler',
+ 'library2.section.technical': 'Teknik ayrıntılar',
+ 'library2.section.source': 'Kaynak / açıklama',
+ 'pipe.source_notes': 'A/B kaynak notları',
+ 'pipe.source_notes_title': 'A/B referans notları — kaynak doğrulaması gerekli',
+ 'pipe.source_notes_warning': 'Bu eski referans notlarının belge, sürüm ve tablo doğrulaması '
+                              'yoktur. Doğrulanmış üretim kuralı değildir; hesap girdilerini '
+                              'değiştirmez.'})

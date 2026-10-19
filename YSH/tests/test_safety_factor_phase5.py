@@ -13,7 +13,7 @@ from services.pipe_design_service import PipeDesignService
 
 
 ROOT = Path(__file__).resolve().parents[1]
-NOTE = "Emniyet katsayısı B, Türk Loydu Bölüm 8 Tablo 8.9'a göre Boru Sınıfı II ve III çelik borular için 1,80 alınmıştır."
+NOTE = "Emniyet katsayısı B, kullanılan kullanıcı girdisidir. Eski A/B referans notları için kaynak doğrulaması gereklidir."
 
 
 def test_table_8_9_reference_is_exact_and_preserves_missing_values() -> None:

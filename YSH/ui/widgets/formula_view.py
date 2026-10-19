@@ -16,6 +16,7 @@ from ui.theme import typography
 from ui.theme.spacing import MD, SM
 from ui.widgets.asset_loader import AssetImageLoader, LoadedImage
 from ui.formula_asset_policy import QUARANTINED_ASSETS
+from ui.widgets.formula_image import FormulaImage
 
 
 FormulaSectionRole = Literal[
@@ -71,7 +72,6 @@ _MATHTEXT_LINES = {
 }
 
 _LONG_EQUATION_CHARACTER_THRESHOLD = 90
-_FORMULA_ASSET_MAX_SIDE = 260
 _FORMULA_MARKER_RENDER_SIZE = 32
 _FORMULA_MARKER_LANE_SIZE = 36
 
@@ -164,7 +164,7 @@ class FormulaReferencePanel(ttk.Frame):
         self._dialog = tk.Toplevel(self)
         self._dialog.title(self._translate("formula.view_title" if self._separate_window else "formula.reference"))
         self._dialog.transient(self.winfo_toplevel())
-        self._dialog.geometry("1000x700")
+        self._dialog.geometry("920x640")
         self._dialog.minsize(700, 450)
         self._dialog.protocol("WM_DELETE_WINDOW", self._close_dialog)
         host = ScrollableFrame(self._dialog)
@@ -449,33 +449,21 @@ class FormulaReferencePanel(ttk.Frame):
         style_root: str,
     ) -> bool:
         """Render supplied complete equation artwork, with native text fallback."""
-        if not section.asset_names:
+        if not section.asset_names or any(key in QUARANTINED_ASSETS for key in section.asset_names):
             return False
         rendered = False
         for row, asset_name in enumerate(section.asset_names, start=1):
-            if asset_name in QUARANTINED_ASSETS:
-                continue
-            formula_image = AssetImageLoader.load(
-                container,
-                formula_asset_path(asset_name),
-                _FORMULA_ASSET_MAX_SIDE,
-                fit_mode="canvas",
+            formula_image = FormulaImage(
+                container, formula_asset_path(asset_name), style=f"{style_root}Text.TLabel",
             )
-            if formula_image is None:
+            if not formula_image.available:
+                formula_image.destroy()
                 continue
-            self._formula_asset_images.append(formula_image)
-            ttk.Label(
-                container,
-                image=formula_image.rendered,
-                style=f"{style_root}Text.TLabel",
-            ).grid(
-                row=row,
-                column=2,
-                columnspan=3,
-                sticky="n",
-                padx=(SM, MD),
-                pady=(SM if row == 1 else SM // 2, 0),
+            formula_image.grid(
+                row=row, column=2, columnspan=3, sticky="n",
+                padx=(SM, MD), pady=(SM if row == 1 else SM // 2, 0),
             )
+            container.columnconfigure(2, weight=1)
             rendered = True
         return rendered
 

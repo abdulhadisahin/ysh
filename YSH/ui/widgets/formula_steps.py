@@ -6,7 +6,8 @@ from tkinter import ttk
 from engineering.formula.common import reason_for
 from engineering.formula.models import FormulaStep
 from engineering.provenance import SourceReference
-from ui.formula_asset_policy import step_asset_names
+from ui.formula_asset_policy import step_asset_names, STEP_ASSET_KEYS, QUARANTINED_ASSETS
+from ui.widgets.detail_disclosure import DetailDisclosure
 
 
 @dataclass(frozen=True, slots=True)
@@ -31,7 +32,7 @@ def source_rows(source: SourceReference, translate: Callable[[str], str]) -> tup
     rows = []
     for field in fields(source):
         value = getattr(source, field.name)
-        if value is None:
+        if value is None or value == "":
             continue
         if field.name in ("source_type", "verification_status"):
             value = translate(f"formula2.{field.name}.{value.value}")
@@ -84,7 +85,7 @@ def step_sections(step: FormulaStep, translate: Callable[[str], str]) -> tuple[S
     for source in dict.fromkeys(sources):
         rows = source_rows(source, tr)
         summary = " · ".join(value for name, value in rows if name in (
-            tr("formula2.source.source_type"), tr("formula2.source.document"),
+            tr("formula2.source.source_type"), tr("formula2.source.source_organization"), tr("formula2.source.document"),
             tr("formula2.source.verification_status")))
         sections.append(StepSection("source", summary, rows=rows, details=len(rows) > 3))
     links = tuple((v.symbol, str(v.source_selection_id), str(v.source_revision)) for v in step.variables if v.source_selection_id)
@@ -112,31 +113,44 @@ def render_step(panel: object, step: FormulaStep, row: int) -> None:
                           style="FormulaStage.TLabelframe")
     card.grid(row=row, column=0, sticky="ew", pady=(0, 12))
     card.columnconfigure(0, weight=1)
-    ttk.Label(card, text=tr(f"formula2.classification.{step.classification.value}")).grid(row=0, sticky="w")
+    header = ttk.Frame(card, style="FormulaDocument.TFrame")
+    header.grid(row=0, column=0, sticky="ew")
+    header.columnconfigure(1, weight=1)
+    ttk.Label(header, text=tr(f"formula2.classification.{step.classification.value}"),
+              style="FormulaBadge.TLabel").grid(row=0, column=0, sticky="w")
+    sources = tuple(step.sources) + tuple(v.source for v in step.variables if v.source) + tuple(v.source for v in step.used_values)
+    statuses = tuple(dict.fromkeys(s.verification_status for s in sources if s.verification_status))
+    if statuses:
+        ttk.Label(header, text=" · ".join(tr(f"formula2.verification_status.{status.value}") for status in statuses),
+                  style="FormulaDocument.TLabel", wraplength=360).grid(row=0, column=1, sticky="e")
     from ui.widgets.formula_view import FormulaSection
     for index, section in enumerate(step_sections(step, tr), 1):
-        region = ttk.LabelFrame(card, text=tr(f"formula2.{section.key}"), padding=8)
-        region.grid(row=index, column=0, sticky="ew", pady=(6, 0))
-        region.columnconfigure(0, weight=1)
-        body = ttk.Frame(region)
-        body.grid(row=1, column=0, sticky="ew")
         if section.details:
-            body.grid_remove()
-            if section.text:
-                ttk.Label(region, text=section.text, wraplength=720).grid(row=0, sticky="w")
-            def toggle(target: ttk.Frame = body) -> None:
-                (target.grid_remove if target.winfo_manager() else target.grid)()
-            ttk.Button(region, text=tr("formula2.details"), command=toggle).grid(row=2, sticky="w")
+            region = DetailDisclosure(card, tr(f"formula2.{section.key}"), section.text)
+            body = region.body
+        else:
+            region = ttk.Frame(card, style="FormulaDocument.TFrame")
+            ttk.Label(region, text=tr(f"formula2.{section.key}"),
+                      style="FormulaSectionTitle.TLabel").grid(row=0, column=0, sticky="w")
+            body = ttk.Frame(region, style="FormulaDocument.TFrame")
+            body.grid(row=1, column=0, sticky="ew", pady=(3, 0))
+        region.grid(row=index, column=0, sticky="ew", pady=(8, 0))
+        region.columnconfigure(0, weight=1)
+        body.columnconfigure(0, weight=1)
         if section.key == "formula":
             panel._render_section_content(
                 body, FormulaSection("FORMULA", section.text, asset_names=step_asset_names(step)),
                 "FormulaEquation",
             )
+            if STEP_ASSET_KEYS.get(step.step_id) in QUARANTINED_ASSETS:
+                ttk.Label(body, text=tr("formula2.asset_unverified"), wraplength=620,
+                          style="FormulaDocument.TLabel").grid(row=3, column=0, columnspan=5, sticky="w", pady=(4, 0))
         elif section.rows:
             for r, cells in enumerate(section.rows):
                 for c, value in enumerate(cells):
                     body.columnconfigure(c, weight=1 if c == 1 else 0)
                     ttk.Label(body, text=value, wraplength=420 if c == 1 else 180,
-                              justify="left").grid(row=r, column=c, sticky="nw", padx=(0, 12), pady=4)
+                              justify="left", style="FormulaDocument.TLabel").grid(row=r, column=c, sticky="nw", padx=(0, 12), pady=2)
         else:
-            ttk.Label(body, text=section.text, wraplength=720, justify="left").grid(sticky="ew")
+            ttk.Label(body, text=section.text, wraplength=680, justify="left",
+                      style="FormulaDocumentResult.TLabel" if section.key == "result" else "FormulaDocument.TLabel").grid(sticky="ew")

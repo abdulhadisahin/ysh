@@ -644,7 +644,7 @@ class PipeDesignPage(ttk.Frame):
         self._material_box.bind("<<ComboboxSelected>>", lambda _: self._load_selected_material())
 
         self._table_89_button = ttk.Button(
-            allowance_group, text="Türk Loydu Tablo 8.9", command=self._open_table_8_9
+            allowance_group, text=self._translate("pipe.source_notes"), command=self._open_table_8_9
         )
         self._table_89_button.grid(row=11, column=0, columnspan=2, sticky="w", pady=(SM, 0))
         self._widgets.append(self._table_89_button)
@@ -781,7 +781,7 @@ class PipeDesignPage(ttk.Frame):
 
     def _open_table_8_9(self) -> None:
         """Open an informational reference only; do not mutate inputs or state."""
-        TurkLoyduTable89Dialog(self)
+        TurkLoyduTable89Dialog(self, self._translate)
 
     def _on_layout_configure(self, event: tk.Event[tk.Misc]) -> None:
         """Reflow only when the live viewport can no longer fit the current cards."""
@@ -890,6 +890,7 @@ class PipeDesignPage(ttk.Frame):
 
     def refresh_texts(self) -> None:
         """Refresh Pipe Design labels without recreating inputs or result state."""
+        self._table_89_button.configure(text=self._translate("pipe.source_notes"))
         self._header.set_content(self._translate("page.pipe.title"), self._translate("page.pipe.description"))
         self._diameter_stage_label.configure(text=self._translate("pipe.stage.diameter"))
         self._wall_stage_label.configure(text=self._translate("pipe.stage.wall"))

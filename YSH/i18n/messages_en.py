@@ -103,7 +103,7 @@ MESSAGES = {
     "formula.regression_slope_unit": "m³/h per m³",
     "formula.regression_model_note": "m and b come from the authoritative linear regression model fitted from reference ships. R² is model-quality information, not part of the capacity equation.",
     "formula.pipe_size_recommendation_note": "The first suitable distinct nominal DN from the current Pipe Size Library is selected.",
-    "formula.weld_factor_reference_note": "Kaynak Faktörü dikişsiz borular için 1 alınmıştır. (Türk Loydu)",
+    "formula.weld_factor_reference_note": 'Weld factor v is the used calculation input; production source verification is required.',
     "formula.bend_radius_convention_note": "In the D243 product convention, D is the pipe outside diameter da; the 3D default is not a Türk Loydu requirement.",
     "pipe.bend_radius_convention": "In D243, D is the pipe outside diameter da.",
     "pipe.bend_mode.D1_5": "1.5D",
@@ -112,7 +112,7 @@ MESSAGES = {
     "pipe.bend_mode.D5": "5D",
     "pipe.bend_mode.D10": "10D",
     "pipe.bend_mode.MANUAL": "Manual",
-    "formula.safety_factor_reference_note": "Emniyet katsayısı B, Türk Loydu Bölüm 8 Tablo 8.9'a göre Boru Sınıfı II ve III çelik borular için 1,80 alınmıştır.",
+    "formula.safety_factor_reference_note": 'Safety factor B is the used user input. Legacy A/B reference notes require source verification.',
     "formula.suction_enpy_note": "PE and Pb must be absolute pressures. Positive HEgeo means the pump is above the liquid level. NPSH Margin is shown only when NPSH Required is supplied.",
     "formula.stage.pipe_diameter": "1. PIPE DIAMETER",
     "formula.stage.allowable_stress": "2. ALLOWABLE STRESS",
@@ -675,3 +675,26 @@ MESSAGES.update(
 )
 
 MESSAGES.update({"pipe.bend_mode.NO_BEND": 'No bend', "formula2.no_bend": 'b = 0 — No bend; bend allowance is not applied'})
+
+
+# Formula / Library corrective presentation; no engineering data changes.
+MESSAGES.update({'formula2.asset_unverified': 'The prepared artwork does not match this equation; the stored '
+                              'expression is shown.',
+ 'library2.filters': 'Filters ▾',
+ 'library2.relationship': 'Related record',
+ 'library2.no_records': 'No records in this view. Check search and filters.',
+ 'library2.record_count': 'records',
+ 'library2.editable': 'Editable',
+ 'library2.read_only': 'Read-only',
+ 'library2.section.basic': 'Basic information',
+ 'library2.section.engineering': 'Engineering data',
+ 'library2.section.ownership': 'Ownership / state',
+ 'library2.section.verification': 'Verification',
+ 'library2.section.relationships': 'Relationships',
+ 'library2.section.technical': 'Technical details',
+ 'library2.section.source': 'Source / description',
+ 'pipe.source_notes': 'A/B source notes',
+ 'pipe.source_notes_title': 'A/B reference notes — source verification required',
+ 'pipe.source_notes_warning': 'These legacy reference notes have no verified document, revision or '
+                              'table provenance. They are not a verified production rule and do '
+                              'not change calculation inputs.'})
