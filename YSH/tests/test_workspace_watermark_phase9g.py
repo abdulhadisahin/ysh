@@ -1,4 +1,4 @@
-"""Display-independent contracts for Phase 9G branding watermarks."""
+"""Canonical branding assets remain intact after workspace watermark removal."""
 
 from __future__ import annotations
 
@@ -17,33 +17,6 @@ def _source(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def test_watermark_uses_the_approved_asset_with_a_bounded_translucent_render() -> None:
-    """The watermark derives a cached low-opacity view; it never edits the logo file."""
-    source = _source("ui/widgets/workspace_watermark.py")
-
-    assert "OPACITY = 0.12" in source
-    assert "CACHE_LIMIT = 6" in source
-    assert "watermark_size(self._source.size, viewport)" in source
-    assert "Image.open(self._source_path)" in source
-    assert "image.putalpha(alpha)" in source
-    assert "Image.Resampling.LANCZOS" in source
-    assert "self._image_cache" in source
-    assert ".save(" not in source
-
-
-def test_canvas_watermark_stays_centered_below_the_workspace_content() -> None:
-    """The host selects existing page surfaces for the common decoration."""
-    watermark = _source("ui/widgets/workspace_watermark.py")
-    host = _source("ui/widgets/scrollable_page_host.py")
-
-    assert "CENTER_X = 0.5" in watermark
-    assert "CENTER_Y = 0.5" in watermark
-    assert "def _position_in_workspace" in watermark
-    assert "round(canvas_width * self.CENTER_X)" in watermark
-    assert "round(canvas_height * self.CENTER_Y)" in watermark
-    assert 'd243_watermark_logo_path(), getattr(page, "watermark_surfaces", ())' in host
-
-
 def test_technical_logo_derivatives_preserve_the_master_emblem_without_square_background() -> None:
     """The technical files keep the master immutable and only clear its outside corners."""
     master = RESOURCES / "d243_logo.png"
@@ -57,39 +30,3 @@ def test_technical_logo_derivatives_preserve_the_master_emblem_without_square_ba
             assert derivative.getpixel((0, 0))[3] == 0
             assert derivative.getpixel((derivative.width - 1, 0))[3] == 0
             assert derivative.getpixel((derivative.width // 2, derivative.height // 2))[3] == 255
-
-
-def test_optional_watermark_renderer_is_nonfocusable_and_preserves_wheel_routing() -> None:
-    """The retained renderer stays decorative if later used in a safe empty region."""
-    watermark = _source("ui/widgets/workspace_watermark.py")
-
-    assert "takefocus=0" in watermark
-    assert 'self.bind("<MouseWheel>", self._wheel_callback, add="+")' in watermark
-    assert "placement: tuple[float, float]" in watermark
-    assert "_parent_background(parent)" in watermark
-
-
-def test_calculation_pages_use_only_a_canvas_background_watermark() -> None:
-    """Decoration reserves no sibling lane and is lowered behind controls once."""
-    host = _source("ui/widgets/scrollable_page_host.py")
-    frame = _source("ui/widgets/scrollable_frame.py")
-    watermark = _source("ui/widgets/workspace_watermark.py")
-
-    assert "d243_watermark_logo_path" in host
-    assert 'd243_watermark_logo_path(), getattr(page, "watermark_surfaces", ())' in host
-    assert "WorkspaceWatermark" in frame
-    assert "canvas.create_image" in watermark
-    assert "canvas.tag_lower(self._item)" in watermark
-    canvas_section = watermark.split("class CanvasBackgroundWatermark", 1)[1].split("class WorkspaceWatermark", 1)[0]
-    assert "OPACITY = 0.14" in canvas_section
-    assert "self.place(" not in canvas_section
-
-
-def test_shared_watermark_reserves_no_grid_lane() -> None:
-    frame = _source("ui/widgets/scrollable_frame.py")
-    watermark = _source("ui/widgets/workspace_watermark.py")
-    assert "column=2" not in frame
-    assert "_size_decoration" not in frame
-    assert 'self.canvas.itemconfigure(self._window, width=event.width)' in frame
-    assert 'self.lower()' in watermark
-    assert 'anchor="se"' in watermark

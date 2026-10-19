@@ -16,7 +16,6 @@ from services.pipe_design_service import PipeDesignService
 from ui.pages.pipe_design_page import PipeDesignPage
 from ui.widgets.asset_loader import AssetImageLoader
 from ui.widgets.rounded_button import RoundedImageButton
-from ui.widgets.workspace_watermark import CanvasBackgroundWatermark, watermark_size
 from ui.assets import action_icon_path
 from .test_bend_radius_phase6 import _automatic_page, _Value
 
@@ -95,76 +94,6 @@ def test_real_page_bend_calculation_formula_and_snapshot_freeze(
     assert snapshots[0].evidence['facts']['calculation']['trace']['wall_input'] == results[0].trace['wall_input']
     assert results[0].wall_thickness.base_wall_thickness_mm == results[1].wall_thickness.base_wall_thickness_mm
     assert results[0].wall_thickness.allowable_stress_mpa == results[1].wall_thickness.allowable_stress_mpa
-
-
-@pytest.mark.parametrize('source,viewport', [((1254, 1254), (220, 600)),
-    ((600, 300), (220, 110)), ((300, 600), (100, 80)), ((600, 300), (2000, 1500))])
-def test_watermark_geometry_is_bounded_and_proportionate(source, viewport) -> None:
-    width, height = watermark_size(source, viewport)
-    assert 0 < width <= viewport[0] and 0 < height <= viewport[1]
-    assert max(width, height) <= 480
-    assert abs(width / height - source[0] / source[1]) < .04
-    assert (width, height) == watermark_size(source, viewport)
-
-
-def test_watermark_missing_geometry_is_safe() -> None:
-    assert watermark_size((100, 100), (1, 1)) == (0, 0)
-
-
-class CanvasDouble:
-    """Record canvas operations without claiming rendered visual verification."""
-    width, height = 220, 500
-    def __init__(self, *args, **kwargs): self.settings = kwargs
-    def create_image(self, *args, **kwargs): return 1
-    def tag_lower(self, item): pass
-    def bind(self, *args, **kwargs): pass
-    def after_idle(self, callback): return 'pending'
-    def winfo_width(self): return self.width
-    def winfo_height(self): return self.height
-    def coords(self, *args): self.position = args
-    def itemconfigure(self, *args, **kwargs): self.item = kwargs
-    def grid(self, **kwargs): self.cell = kwargs
-
-
-def test_watermark_resize_cache_is_lazy_bounded_and_reuses_quantized_size(tmp_path, monkeypatch) -> None:
-    import ui.widgets.workspace_watermark as module
-    path = tmp_path / 'logo.png'
-    Image.new('RGBA', (100, 100), (0, 20, 40, 255)).save(path)
-    renders = []
-    monkeypatch.setattr(module.ImageTk, 'PhotoImage', lambda image, **kw: renders.append(image.copy()) or renders[-1])
-    canvas = CanvasDouble()
-    renderer = CanvasBackgroundWatermark(canvas, path)
-    assert not renders
-    renderer._refresh()
-    assert renders[-1].getchannel('A').getextrema() == (36, 36)
-    canvas.width += 1
-    renderer._refresh()
-    assert len(renders) == 1
-    for width in range(240, 500, 24):
-        canvas.width = width
-        renderer._refresh()
-    assert len(renderer._cache) <= renderer.CACHE_LIMIT
-    assert canvas.item['state'] == 'normal'
-
-
-def test_watermark_shares_existing_surfaces_without_an_extra_grid_cell(tmp_path, monkeypatch) -> None:
-    import ui.widgets.scrollable_frame as module
-    path = tmp_path / 'logo.png'; path.touch()
-    selected = []
-    class Decoration:
-        @staticmethod
-        def is_available(): return True
-        def __init__(self, parent, source, callback, placement):
-            selected.append((parent, placement))
-    monkeypatch.setattr(module, 'WorkspaceWatermark', Decoration)
-    frame = module.ScrollableFrame.__new__(module.ScrollableFrame)
-    frame._background_watermark = []
-    surface = object()
-    frame.set_background_watermark(path, (surface,))
-    assert selected == [(surface, (1.0, 1.0))]
-    frame.set_background_watermark(path, (surface,))
-    assert len(selected) == 1
-    assert '_decoration' not in frame.__dict__
 
 
 def test_real_action_art_has_more_visible_area_without_changing_aspect_or_mapping() -> None:

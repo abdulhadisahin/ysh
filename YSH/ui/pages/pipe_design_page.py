@@ -767,7 +767,6 @@ class PipeDesignPage(ttk.Frame):
         self._warning_panel = EngineeringWarningPanel(inputs, self._translate)
         self._warning_panel.grid(row=2, column=1, sticky="ew", padx=(SM // 2, 0), pady=(SM, 0))
         self._warning_panel.set_findings(())
-        self.watermark_surfaces = (self._wall_result_card.content,)
         self._formula_panel = FormulaReferencePanel(
             self,
             self._formula_sections,

@@ -1,12 +1,10 @@
 """Non-pixel contracts for the shared workspace and on-demand explanations."""
 from pathlib import Path
-from types import SimpleNamespace
 
 import pytest
-from PIL import Image
+
 
 from ui.widgets.formula_view import FormulaReferencePanel
-from ui.widgets.workspace_watermark import WorkspaceWatermark, watermark_size
 
 ROOT = Path(__file__).parents[1]
 
@@ -19,12 +17,7 @@ def test_modules_keep_typed_formula_provider_and_compact_entry(page):
     source = (ROOT / f'ui/pages/{page}.py').read_text(encoding='utf-8')
     assert 'separate_window=True' in source
     assert 'step_provider=self._formula_steps' in source
-    assert 'self.watermark_surfaces = ' in source
-
-
-@pytest.mark.parametrize('viewport', [(0, 0), (-1, 100), (100, -1), (8, 8), (24, 24)])
-def test_no_artwork_for_unusable_surface(viewport):
-    assert watermark_size((600, 300), viewport) == (0, 0)
+    assert 'self.watermark_surfaces = ' not in source
 
 
 def test_historical_view_retains_inline_frozen_provider():
@@ -78,42 +71,3 @@ def test_live_view_is_lazy_and_closes_reopens_without_duplicates(monkeypatch):
     assert len(created) == 2 and panel.expanded
     panel.toggle()
     assert created[1].destroyed and not panel.expanded
-
-
-def test_shared_surface_render_cache_reuses_bounded_aspect_fit(tmp_path, monkeypatch):
-    import ui.widgets.workspace_watermark as module
-    path = tmp_path / 'logo.png'
-    Image.new('RGBA', (600, 300), (0, 20, 40, 255)).save(path)
-    renders = []
-    monkeypatch.setattr(module.ImageTk, 'PhotoImage', lambda image, **kw: renders.append(image.copy()) or image)
-    state = SimpleNamespace(width=300, height=200)
-    renderer = WorkspaceWatermark.__new__(WorkspaceWatermark)
-    renderer.master = SimpleNamespace(winfo_width=lambda: state.width, winfo_height=lambda: state.height)
-    renderer._source_path = path
-    renderer._source = None
-    renderer._image_cache = {}
-    renderer._active_size = (0, 0)
-    renderer.configure = lambda **kw: None
-    renderer._refresh_image()
-    assert renders[0].getchannel('A').getextrema() == (31, 31)
-    assert renders[0].width <= state.width - 24
-    assert renders[0].height <= state.height - 24
-    state.width += 1
-    renderer._refresh_image()
-    assert len(renders) == 1
-    for width in range(320, 800, 32):
-        state.width = width
-        state.height = width
-        renderer._refresh_image()
-    assert len(renderer._image_cache) <= renderer.CACHE_LIMIT
-    assert renderer._source.size == (600, 300)
-
-
-def test_shared_surface_resize_events_are_coalesced():
-    renderer = WorkspaceWatermark.__new__(WorkspaceWatermark)
-    renderer._pending = None
-    scheduled = []
-    renderer.after_idle = lambda callback: scheduled.append(callback) or 'pending'
-    renderer._on_parent_configure(None)
-    renderer._on_parent_configure(None)
-    assert len(scheduled) == 1

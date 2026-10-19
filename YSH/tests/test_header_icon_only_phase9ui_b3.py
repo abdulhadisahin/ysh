@@ -50,16 +50,3 @@ def test_sidebar_restores_native_text_while_transfer_toolbar_stays_compact() -> 
         assert icon_name in transfer
     assert 'icon_name="calculate", icon_size=36' in transfer
     assert 'icon_name="formula", icon_size=36' in transfer
-
-
-def test_canvas_watermark_is_optional_below_content_and_never_receives_events() -> None:
-    host = _source("ui/widgets/scrollable_page_host.py")
-    watermark = _source("ui/widgets/workspace_watermark.py")
-
-    assert 'd243_watermark_logo_path(), getattr(page, "watermark_surfaces", ())' in host
-    assert "OPACITY = 0.14" in watermark
-    assert "def watermark_size" in watermark
-    assert "canvas.tag_lower(self._item)" in watermark
-    canvas_section = watermark.split("class CanvasBackgroundWatermark", 1)[1].split("class WorkspaceWatermark", 1)[0]
-    assert "tag_bind" not in canvas_section
-    assert "create_image" in canvas_section

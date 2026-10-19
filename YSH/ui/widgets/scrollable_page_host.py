@@ -6,7 +6,6 @@ import tkinter as tk
 from collections.abc import Callable
 from tkinter import ttk
 
-from ui.assets import d243_watermark_logo_path
 from ui.theme import colors
 from ui.widgets.scrollable_frame import ScrollableFrame
 
@@ -36,9 +35,6 @@ class ScrollablePageHost(ttk.Notebook):
         host = ScrollableFrame(self)
         page = factory(host.content)
         page.pack(fill="x", expand=True)
-        host.set_background_watermark(
-            d243_watermark_logo_path(), getattr(page, "watermark_surfaces", ()),
-        )
         self.add(host, text=title)
         self._hosts[str(host)] = host
         self._page_hosts[str(page)] = host

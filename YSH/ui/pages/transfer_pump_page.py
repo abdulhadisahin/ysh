@@ -281,7 +281,6 @@ class TransferPumpPage(ttk.LabelFrame):
             self._chart_card, textvariable=self._message, wraplength=680, style="Info.TLabel"
         )
         self._model_message.grid(row=1, column=0, sticky="w", pady=(8, 0))
-        self.watermark_surfaces = (self._design_panel._results, self._estimate_card)
         self._formula_panel = FormulaReferencePanel(self, self._formula_sections, self._translate, self._create_formula_toggle, self._has_active_result, step_provider=self._formula_steps, separate_window=True)
         self._formula_panel.grid(row=3, column=0, sticky="ew", pady=(8, 0))
         self._responsive_layout_mode = ""
