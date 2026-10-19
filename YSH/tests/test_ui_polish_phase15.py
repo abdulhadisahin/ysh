@@ -147,21 +147,24 @@ def test_watermark_resize_cache_is_lazy_bounded_and_reuses_quantized_size(tmp_pa
     assert canvas.item['state'] == 'normal'
 
 
-def test_watermark_uses_a_separate_grid_cell_not_the_opaque_content_canvas(tmp_path, monkeypatch) -> None:
+def test_watermark_shares_existing_surfaces_without_an_extra_grid_cell(tmp_path, monkeypatch) -> None:
     import ui.widgets.scrollable_frame as module
     path = tmp_path / 'logo.png'; path.touch()
-    monkeypatch.setattr(module.tk, 'Canvas', CanvasDouble)
     selected = []
-    monkeypatch.setattr(module, 'CanvasBackgroundWatermark', lambda canvas, source: selected.append(canvas) or object())
+    class Decoration:
+        @staticmethod
+        def is_available(): return True
+        def __init__(self, parent, source, callback, placement):
+            selected.append((parent, placement))
+    monkeypatch.setattr(module, 'WorkspaceWatermark', Decoration)
     frame = module.ScrollableFrame.__new__(module.ScrollableFrame)
-    frame._background_watermark = None
-    frame.canvas = object()
-    frame.bind = lambda *a, **kw: None
-    frame.set_background_watermark(path)
-    assert selected[0] is frame._decoration and selected[0] is not frame.canvas
-    assert frame._decoration.cell == dict(row=0, column=2, sticky='ns')
-    frame.set_background_watermark(path)
+    frame._background_watermark = []
+    surface = object()
+    frame.set_background_watermark(path, (surface,))
+    assert selected == [(surface, (1.0, 1.0))]
+    frame.set_background_watermark(path, (surface,))
     assert len(selected) == 1
+    assert '_decoration' not in frame.__dict__
 
 
 def test_real_action_art_has_more_visible_area_without_changing_aspect_or_mapping() -> None:

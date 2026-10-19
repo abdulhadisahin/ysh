@@ -21,10 +21,9 @@ def test_watermark_uses_the_approved_asset_with_a_bounded_translucent_render() -
     """The watermark derives a cached low-opacity view; it never edits the logo file."""
     source = _source("ui/widgets/workspace_watermark.py")
 
-    assert "OPACITY = 0.06" in source
-    assert "PREFERRED_WIDTH = 600" in source
-    assert "MINIMUM_WIDTH = 520" in source
-    assert "MAXIMUM_WIDTH = 680" in source
+    assert "OPACITY = 0.12" in source
+    assert "CACHE_LIMIT = 6" in source
+    assert "watermark_size(self._source.size, viewport)" in source
     assert "Image.open(self._source_path)" in source
     assert "image.putalpha(alpha)" in source
     assert "Image.Resampling.LANCZOS" in source
@@ -33,7 +32,7 @@ def test_watermark_uses_the_approved_asset_with_a_bounded_translucent_render() -
 
 
 def test_canvas_watermark_stays_centered_below_the_workspace_content() -> None:
-    """All calculation pages share one centered Canvas-only background layer."""
+    """The host selects existing page surfaces for the common decoration."""
     watermark = _source("ui/widgets/workspace_watermark.py")
     host = _source("ui/widgets/scrollable_page_host.py")
 
@@ -42,7 +41,7 @@ def test_canvas_watermark_stays_centered_below_the_workspace_content() -> None:
     assert "def _position_in_workspace" in watermark
     assert "round(canvas_width * self.CENTER_X)" in watermark
     assert "round(canvas_height * self.CENTER_Y)" in watermark
-    assert "host.set_background_watermark(d243_watermark_logo_path())" in host
+    assert 'd243_watermark_logo_path(), getattr(page, "watermark_surfaces", ())' in host
 
 
 def test_technical_logo_derivatives_preserve_the_master_emblem_without_square_background() -> None:
@@ -71,16 +70,26 @@ def test_optional_watermark_renderer_is_nonfocusable_and_preserves_wheel_routing
 
 
 def test_calculation_pages_use_only_a_canvas_background_watermark() -> None:
-    """The reserved decoration region cannot be obscured by or obstruct controls."""
+    """Decoration reserves no sibling lane and is lowered behind controls once."""
     host = _source("ui/widgets/scrollable_page_host.py")
     frame = _source("ui/widgets/scrollable_frame.py")
     watermark = _source("ui/widgets/workspace_watermark.py")
 
     assert "d243_watermark_logo_path" in host
-    assert "host.set_background_watermark(d243_watermark_logo_path())" in host
-    assert "CanvasBackgroundWatermark" in frame
+    assert 'd243_watermark_logo_path(), getattr(page, "watermark_surfaces", ())' in host
+    assert "WorkspaceWatermark" in frame
     assert "canvas.create_image" in watermark
     assert "canvas.tag_lower(self._item)" in watermark
     canvas_section = watermark.split("class CanvasBackgroundWatermark", 1)[1].split("class WorkspaceWatermark", 1)[0]
     assert "OPACITY = 0.14" in canvas_section
     assert "self.place(" not in canvas_section
+
+
+def test_shared_watermark_reserves_no_grid_lane() -> None:
+    frame = _source("ui/widgets/scrollable_frame.py")
+    watermark = _source("ui/widgets/workspace_watermark.py")
+    assert "column=2" not in frame
+    assert "_size_decoration" not in frame
+    assert 'self.canvas.itemconfigure(self._window, width=event.width)' in frame
+    assert 'self.lower()' in watermark
+    assert 'anchor="se"' in watermark

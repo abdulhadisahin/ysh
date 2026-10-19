@@ -1,4 +1,4 @@
-"""Inline expandable engineering formula-reference presentation widgets."""
+"""On-demand engineering explanations with a retained inline history view."""
 
 from __future__ import annotations
 
@@ -95,7 +95,7 @@ class FormulaBlock:
 
 
 class FormulaReferencePanel(ttk.Frame):
-    """Render always-available formula reference blocks inline on a page."""
+    """Present FormulaStep explanations on demand without recalculating."""
 
     def __init__(
         self,
@@ -105,6 +105,8 @@ class FormulaReferencePanel(ttk.Frame):
         toggle_button_factory: FormulaToggleFactory | None = None,
         content_available: Callable[[], bool] | None = None,
         step_provider: Callable[[], tuple] | None = None,
+        *,
+        separate_window: bool = False,
     ) -> None:
         """Create a collapsed panel backed by a page-owned section provider."""
         super().__init__(parent)
@@ -114,6 +116,8 @@ class FormulaReferencePanel(ttk.Frame):
         self._content_available = content_available
         self._step_provider = step_provider
         self._expanded = False
+        self._separate_window = separate_window
+        self._dialog: tk.Toplevel | None = None
         button_factory = toggle_button_factory or self._create_default_toggle
         self._toggle = button_factory(
             self,
@@ -122,17 +126,54 @@ class FormulaReferencePanel(ttk.Frame):
         )
         self._configure_toggle_stable_texts()
         self._toggle.grid(row=0, column=0, sticky="w")
-        self._content = ttk.LabelFrame(
-            self,
-            text=self._translate("formula.reference"),
-            style="FormulaCard.TLabelframe",
-            padding=MD,
-        )
-        self._content.columnconfigure(0, weight=1)
+        self._content: ttk.LabelFrame | None = None
+        if not separate_window:
+            self._content = self._create_content(self)
         self._formula_strips: list[tuple[ttk.Frame, tuple[ttk.Frame, ...]]] = []
         self._equation_images: list[tk.PhotoImage] = []
         self._formula_asset_images: list[LoadedImage] = []
         self._section_marker_images: list[LoadedImage] = []
+
+    def _create_content(self, parent: tk.Misc) -> ttk.LabelFrame:
+        content = ttk.LabelFrame(
+            parent, text=self._translate("formula.view_title" if self._separate_window else "formula.reference"),
+            style="FormulaCard.TLabelframe", padding=MD,
+        )
+        content.columnconfigure(0, weight=1)
+        return content
+
+    def _close_dialog(self) -> None:
+        self._expanded = False
+        if self._dialog is not None:
+            self._dialog.destroy()
+        self._dialog = None
+        self._content = None
+        self._formula_strips.clear()
+        self._equation_images.clear()
+        self._formula_asset_images.clear()
+        self._section_marker_images.clear()
+        self._toggle.configure(text=self._translate("common.show_formula"))
+
+    def _toggle_dialog(self) -> None:
+        from ui.widgets.scrollable_frame import ScrollableFrame
+
+        if self._expanded:
+            self._close_dialog()
+            return
+        self._dialog = tk.Toplevel(self)
+        self._dialog.title(self._translate("formula.view_title" if self._separate_window else "formula.reference"))
+        self._dialog.transient(self.winfo_toplevel())
+        self._dialog.geometry("1000x700")
+        self._dialog.minsize(700, 450)
+        self._dialog.protocol("WM_DELETE_WINDOW", self._close_dialog)
+        host = ScrollableFrame(self._dialog)
+        host.pack(fill="both", expand=True)
+        host.set_wheel_active(True)
+        self._content = self._create_content(host.content)
+        self._content.pack(fill="x", expand=True)
+        self._expanded = True
+        self.refresh()
+        self._toggle.configure(text=self._translate("common.hide_formula"))
 
     @staticmethod
     def _create_default_toggle(
@@ -150,11 +191,14 @@ class FormulaReferencePanel(ttk.Frame):
 
     @property
     def expanded(self) -> bool:
-        """Return whether the inline reference is currently visible."""
+        """Return whether the explanatory view is currently open."""
         return self._expanded
 
     def toggle(self) -> None:
-        """Expand or collapse the formula reference without a separate dialog."""
+        """Open the requested presentation while retaining the history inline default."""
+        if self._separate_window:
+            self._toggle_dialog()
+            return
         self._expanded = not self._expanded
         if self._expanded:
             self.refresh()
@@ -177,7 +221,10 @@ class FormulaReferencePanel(ttk.Frame):
 
     def refresh_texts(self) -> None:
         """Refresh panel chrome while retaining its expanded/collapsed state."""
-        self._content.configure(text=self._translate("formula.reference"))
+        if self._content is not None:
+            self._content.configure(text=self._translate("formula.view_title" if self._separate_window else "formula.reference"))
+        if self._dialog is not None:
+            self._dialog.title(self._translate("formula.view_title" if self._separate_window else "formula.reference"))
         self._toggle.configure(
             text=self._translate(
                 "common.hide_formula" if self._expanded else "common.show_formula"
@@ -189,6 +236,8 @@ class FormulaReferencePanel(ttk.Frame):
 
     def refresh(self) -> None:
         """Render current authoritative static and dynamic page sections."""
+        if self._content is None:
+            return
         for child in self._content.winfo_children():
             child.destroy()
         self._formula_strips.clear()

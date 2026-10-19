@@ -17,20 +17,20 @@ from ui.theme import colors
 
 
 def watermark_size(source_size: tuple[int, int], viewport: tuple[int, int]) -> tuple[int, int]:
-    """Fit the complete emblem inside its reserved region, preserving its ratio."""
+    """Fit the complete emblem inside its available surface, preserving its ratio."""
     sw, sh = source_size
     width, height = viewport
-    if min(sw, sh, width, height) <= 1:
+    if min(sw, sh) <= 1 or min(width, height) <= 24:
         return (0, 0)
     ratio = min(max(1, width - 24) / sw, max(1, height - 24) / sh, 480 / max(sw, sh))
     return (max(1, round(sw * ratio)), max(1, round(sh * ratio)))
 
 
 class CanvasBackgroundWatermark:
-    """Draw only in a reserved decoration canvas, never below opaque controls.
+    """Retain the optional Canvas image renderer for plain Canvas surfaces.
 
-    The scroll host owns a separate background region beside the form. This
-    solves opaque child-window occlusion without lifting images over inputs.
+    Engineering pages use WorkspaceWatermark on existing control surfaces so
+    they reserve no sibling column and avoid an opaque full-page window.
     """
 
     OPACITY = 0.14
@@ -106,11 +106,8 @@ class WorkspaceWatermark(tk.Label):
     unfocusable and uses the host's existing wheel routing.
     """
 
-    OPACITY = 0.06
-    PREFERRED_WIDTH = 600
-    MINIMUM_WIDTH = 520
-    MAXIMUM_WIDTH = 680
-    VIEWPORT_MARGIN = 160
+    OPACITY = 0.12
+    CACHE_LIMIT = 6
 
     @classmethod
     def is_available(cls) -> bool:
@@ -134,40 +131,51 @@ class WorkspaceWatermark(tk.Label):
         )
         self._source_path = source_path
         self._wheel_callback = wheel_callback
-        self._image_cache: dict[int, object] = {}
-        self._active_width = 0
+        self._image_cache: dict[tuple[int, int], object] = {}
+        self._source = None
+        self._pending = None
+        self._active_size = (0, 0)
         self._watermark_image: ImageTk.PhotoImage | None = None
         parent.bind("<Configure>", self._on_parent_configure, add="+")
         self.bind("<MouseWheel>", self._wheel_callback, add="+")
-        self.place(relx=placement[0], rely=placement[1], anchor="center")
-        self.after_idle(self._refresh_image)
+        self.place(relx=placement[0], rely=placement[1], x=-12, y=-12, anchor="se")
+        self.lower()  # One stable background layer; controls retain their stacking order.
+        self._pending = self.after_idle(self._refresh_image)
 
     def _on_parent_configure(self, _event: tk.Event[tk.Misc]) -> None:
-        """Regenerate only when a resize selects a new cached target width."""
-        self._refresh_image()
+        """Coalesce resize events without polling or changing control stacking."""
+        if self._pending is None:
+            self._pending = self.after_idle(self._refresh_image)
 
     def _refresh_image(self) -> None:
-        """Keep a proportionate low-opacity rendering at the current page width."""
+        """Reuse a bounded aspect-preserving rendering inside the existing surface."""
+        self._pending = None
         if not self.is_available():
             return
-        width = self._target_width()
-        if width <= 0 or width == self._active_width:
+        try:
+            viewport = (self.master.winfo_width() // 8 * 8,
+                        self.master.winfo_height() // 8 * 8)
+            if min(viewport) <= 24:
+                self.configure(image="")
+                self._active_size = (0, 0)
+                return
+            if self._source is None:
+                with Image.open(self._source_path) as source:
+                    self._source = source.convert("RGBA")
+            size = watermark_size(self._source.size, viewport)
+            if min(size) <= 0 or size == self._active_size:
+                return
+            image = self._image_cache.get(size)
+            if image is None:
+                image = self._render_image(size)
+                self._image_cache[size] = image
+                if len(self._image_cache) > self.CACHE_LIMIT:
+                    del self._image_cache[next(iter(self._image_cache))]
+            self._active_size = size
+            self._watermark_image = image
+            self.configure(image=image)
+        except (OSError, tk.TclError):
             return
-        image = self._image_cache.get(width)
-        if image is None:
-            image = self._render_image(width)
-            self._image_cache[width] = image
-        self._active_width = width
-        self._watermark_image = image
-        self.configure(image=image)
-
-    def _target_width(self) -> int:
-        """Choose a bounded fraction of the page while preserving responsive space."""
-        available = self.master.winfo_width() if self.master is not None else 0
-        if available <= 1:
-            return 0
-        available_width = max(self.MINIMUM_WIDTH, available - self.VIEWPORT_MARGIN)
-        return min(self.MAXIMUM_WIDTH, self.PREFERRED_WIDTH, available_width)
 
     @staticmethod
     def _parent_background(parent: tk.Misc) -> str:
@@ -179,15 +187,9 @@ class WorkspaceWatermark(tk.Label):
             background = ""
         return background or colors.WORKSPACE_SURFACE
 
-    def _render_image(self, width: int) -> object:
-        """Create a derived translucent rendering without modifying the source asset."""
-        if not self.is_available():
-            raise RuntimeError("Pillow is required to render an optional workspace watermark.")
-        with Image.open(self._source_path) as source:
-            image = source.convert("RGBA")
-            ratio = width / image.width
-            height = max(1, round(image.height * ratio))
-            image = image.resize((width, height), Image.Resampling.LANCZOS)
+    def _render_image(self, size: tuple[int, int]) -> object:
+        """Derive translucent artwork without modifying the canonical asset."""
+        image = self._source.resize(size, Image.Resampling.LANCZOS)
         alpha = image.getchannel("A").point(lambda value: round(value * self.OPACITY))
         image.putalpha(alpha)
         return ImageTk.PhotoImage(image, master=self)

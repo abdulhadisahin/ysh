@@ -9,14 +9,15 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_common_formula_view_is_inline_and_expandable() -> None:
-    """The common component expands in the page rather than opening a dialog."""
+    """Live modules can open a separate view; inline history remains the default."""
     source = (ROOT / "ui/widgets/formula_view.py").read_text(encoding="utf-8")
     assert "FormulaSection" in source
     assert "FormulaReferencePanel" in source
     assert "grid_remove" in source
     assert '"common.show_formula"' in source
     assert '"common.hide_formula"' in source
-    assert "Toplevel" not in source
+    assert "tk.Toplevel(self)" in source
+    assert "separate_window: bool = False" in source
 
 
 def test_pipe_formula_uses_engineering_weld_symbol_and_separate_dn_section() -> None:

@@ -74,6 +74,7 @@ MESSAGES = {
     "common.calculations": "CALCULATIONS",
     "common.results": "RESULTS",
     "formula.reference": "Engineering Formula Reference",
+    "formula.view_title": "Formula View 2.0 — Calculation Explanation",
     "formula.formula": "FORMULA",
     "formula.variables": "VARIABLES",
     "formula.current_substitution": "CURRENT SUBSTITUTION",

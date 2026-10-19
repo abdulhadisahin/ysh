@@ -27,7 +27,7 @@ def test_reusable_formula_architecture_exposes_semantic_blocks() -> None:
     ):
         assert required in source
     assert "Calculator" not in source
-    assert "Toplevel" not in source
+    assert "separate_window: bool = False" in source
 
 
 def test_formula_design_tokens_are_centralized() -> None:

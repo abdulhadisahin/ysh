@@ -743,6 +743,7 @@ class PipeDesignPage(ttk.Frame):
         self._warning_panel = EngineeringWarningPanel(inputs, self._translate)
         self._warning_panel.grid(row=2, column=1, sticky="ew", padx=(SM // 2, 0), pady=(SM, 0))
         self._warning_panel.set_findings(())
+        self.watermark_surfaces = (self._wall_result_card.content,)
         self._formula_panel = FormulaReferencePanel(
             self,
             self._formula_sections,
@@ -750,6 +751,7 @@ class PipeDesignPage(ttk.Frame):
             self._create_formula_toggle,
             lambda: bool(self._diameter_result or self._wall_result),
             step_provider=self._formula_steps,
+            separate_window=True,
         )
         self._formula_panel.grid(row=3, column=0, sticky="ew", pady=(10, 0))
         self._responsive_layout_mode = ""

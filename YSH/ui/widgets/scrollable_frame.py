@@ -6,8 +6,7 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import ttk
 
-from ui.theme import colors
-from ui.widgets.workspace_watermark import CanvasBackgroundWatermark, Image, ImageTk
+from ui.widgets.workspace_watermark import WorkspaceWatermark
 
 class ScrollableFrame(ttk.Frame):
     """Canvas-backed page viewport with active-tab-aware wheel routing."""
@@ -25,7 +24,7 @@ class ScrollableFrame(ttk.Frame):
         self.scrollbar.grid(row=0, column=1, sticky="ns")
         self.content = ttk.Frame(self.canvas)
         self._window = self.canvas.create_window((0, 0), window=self.content, anchor="nw")
-        self._background_watermark: CanvasBackgroundWatermark | None = None
+        self._background_watermark: list[WorkspaceWatermark] = []
         self.content.bind("<Configure>", self._update_scrollregion)
         self.canvas.bind("<Configure>", self._sync_width)
         self.canvas.bind("<MouseWheel>", self.scroll_mousewheel)
@@ -34,25 +33,18 @@ class ScrollableFrame(ttk.Frame):
         self.canvas.bind("<Home>", lambda _event: self._move_to(0.0))
         self.canvas.bind("<End>", lambda _event: self._move_to(1.0))
 
-    def set_background_watermark(self, source_path: Path | None) -> None:
-        """Attach a reserved Canvas decoration beside the opaque content window."""
-        if self._background_watermark is not None or source_path is None or not source_path.is_file():
+    def set_background_watermark(
+        self, source_path: Path | None, surfaces: tuple[tk.Misc, ...] = (),
+    ) -> None:
+        """Place decoration behind existing workspace controls without a grid lane."""
+        if self._background_watermark or source_path is None or not source_path.is_file():
             return
-        if Image is None or ImageTk is None:
+        if not WorkspaceWatermark.is_available():
             return
-        # A separate grid cell cannot be obscured by the opaque content window.
-        self._decoration = tk.Canvas(self, width=220, highlightthickness=0,
-                                     background=colors.WORKSPACE_SURFACE, takefocus=0)
-        self._decoration.grid(row=0, column=2, sticky="ns")
-        self._decoration.bind("<MouseWheel>", self.scroll_mousewheel)
-        self._background_watermark = CanvasBackgroundWatermark(self._decoration, source_path)
-        self.bind("<Configure>", self._size_decoration, add="+")
-
-    def _size_decoration(self, event: tk.Event[tk.Misc]) -> None:
-        """Bound decoration space while giving the scrollable form all remaining width."""
-        width = min(280, max(120, round(event.width * 0.20)))
-        if int(float(self._decoration.cget("width"))) != width:
-            self._decoration.configure(width=width)
+        for surface in surfaces:
+            self._background_watermark.append(WorkspaceWatermark(
+                surface, source_path, self.scroll_mousewheel, (1.0, 1.0),
+            ))
 
     def set_wheel_active(self, active: bool) -> None:
         """Enable wheel routing only while this page is the selected tab."""

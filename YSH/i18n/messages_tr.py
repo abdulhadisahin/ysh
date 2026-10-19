@@ -74,6 +74,7 @@ MESSAGES = {
     "common.calculations": "HESAPLAMALAR",
     "common.results": "SONUÇLAR",
     "formula.reference": "Mühendislik Formül Referansı",
+    "formula.view_title": "Formula View 2.0 — Hesap Açıklaması",
     "formula.formula": "FORMÜL",
     "formula.variables": "DEĞİŞKENLER",
     "formula.current_substitution": "MEVCUT DEĞERLERİN YERİNE KONMASI",

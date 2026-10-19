@@ -34,9 +34,11 @@ class ScrollablePageHost(ttk.Notebook):
     ) -> tk.Misc:
         """Create and register a page within a standard scroll viewport."""
         host = ScrollableFrame(self)
-        host.set_background_watermark(d243_watermark_logo_path())
         page = factory(host.content)
         page.pack(fill="x", expand=True)
+        host.set_background_watermark(
+            d243_watermark_logo_path(), getattr(page, "watermark_surfaces", ()),
+        )
         self.add(host, text=title)
         self._hosts[str(host)] = host
         self._page_hosts[str(page)] = host
