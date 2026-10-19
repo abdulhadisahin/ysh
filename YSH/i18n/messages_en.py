@@ -698,3 +698,17 @@ MESSAGES.update({'formula2.asset_unverified': 'The prepared artwork does not mat
  'pipe.source_notes_warning': 'These legacy reference notes have no verified document, revision or '
                               'table provenance. They are not a verified production rule and do '
                               'not change calculation inputs.'})
+
+# Pipe semantic grouping presentation labels.
+MESSAGES.update({
+    'pipe.group.pipe_data': 'Pipe / Design Data',
+    'pipe.group.strength': 'Material / Strength',
+    'pipe.group.safety': 'Safety / Allowable Stress',
+    'pipe.group.corrosion': 'Corrosion Allowance',
+    'pipe.group.bend': 'Bending',
+    'pipe.ab_source_required': 'TL A/B source verification required. Current factors are not presented as a verified TL rule.',
+    'pipe.corrosion_source_note': 'Default: selected circuit. Used: the c input for this calculation.',
+    'pipe.no_bend_note': 'With no bending selected, b = 0.',
+})
+
+MESSAGES["pipe.wall_calculated"] = 'Wall thickness: {value} mm'

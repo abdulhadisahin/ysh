@@ -143,7 +143,7 @@ class SuctionNPSHPage(ttk.Frame):
         self._roughness_source_label.grid(row=4, column=0, sticky="w", pady=(10, 3))
         self._roughness_source_box = ttk.Combobox(
             fluid, textvariable=self._roughness_source,
-            values=("Material Library", "Manual"), state="readonly", width=18,
+            values=(self._translate("message.material_source"), self._translate("message.manual_source")), state="readonly", width=18,
         )
         self._roughness_source_box.grid(row=4, column=1, sticky="w", padx=(12, 0), pady=(10, 3))
         self._roughness_source_box.bind("<<ComboboxSelected>>", self._select_roughness_source)

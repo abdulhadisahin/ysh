@@ -7,7 +7,7 @@ MESSAGES = {
     "app.subtitle": "Boru ve Tulumba Boyutlandırma Programı",
     "app.workspace": "Mühendislik Hesaplama Çalışma Alanı",
     "app.language": "Dil",
-    "language.english": "English",
+    "language.english": "İngilizce",
     "language.turkish": "Türkçe",
     "menu.file": "Dosya",
     "menu.library": "Kütüphane",
@@ -253,7 +253,7 @@ MESSAGES = {
     "transfer.q12_note": "Q12, 12 saatte boşaltma için matematiksel ortalama kapasitedir; regresyon tahmini değildir.",
     "field.material": "Malzeme",
     "field.roughness_source": "Pürüzlülük Kaynağı",
-    "field.rp_source": "Rp0.2 Kaynağı",
+    "field.rp_source": "Rp0,2 Kaynağı",
     "field.search_references": "Referanslarda ara:",
     "field.ship_name": "Gemi Adı",
     "field.component": "Bileşen",
@@ -649,7 +649,7 @@ MESSAGES.update(
  'library2.field.pipe_size_id': 'Boru Ölçüsü',
  'library2.field.standard_family': 'Boyut Standardı Ailesi',
  'library2.field.nps': 'NPS',
- 'library2.field.schedule': 'Schedule',
+ 'library2.field.schedule': 'Et kalınlığı serisi',
  'library2.field.manufacturing_tolerance': 'Kayıtlı İmalat Toleransı',
  'library2.field.tolerance_unit': 'Tolerans Birimi',
  'library2.field.corrosion_circuit_id': 'Korozyon Devresi',
@@ -713,3 +713,17 @@ MESSAGES.update({'formula2.asset_unverified': 'Hazır görsel denklemle uyuşmad
  'pipe.source_notes_warning': 'Bu eski referans notlarının belge, sürüm ve tablo doğrulaması '
                               'yoktur. Doğrulanmış üretim kuralı değildir; hesap girdilerini '
                               'değiştirmez.'})
+
+# Pipe semantic grouping presentation labels.
+MESSAGES.update({
+    'pipe.group.pipe_data': 'Boru / Tasarım Verileri',
+    'pipe.group.strength': 'Malzeme / Dayanım',
+    'pipe.group.safety': 'Emniyet / Gerilme',
+    'pipe.group.corrosion': 'Korozyon Artımı',
+    'pipe.group.bend': 'Bükme',
+    'pipe.ab_source_required': 'TL A/B kaynak doğrulaması gerekli. Mevcut katsayılar doğrulanmış TL kuralı olarak sunulmaz.',
+    'pipe.corrosion_source_note': 'Varsayılan: seçili devre. Kullanılan: bu hesaba ait c girdisi.',
+    'pipe.no_bend_note': 'Bükme yok seçildiğinde b = 0.',
+})
+
+MESSAGES["pipe.wall_calculated"] = 'Et kalınlığı: {value} mm'

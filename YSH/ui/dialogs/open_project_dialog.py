@@ -94,7 +94,7 @@ class OpenProjectDialog:
         self._cancel_button.pack(side="left")
         self._open_button = ttk.Button(
             actions,
-            text="Open",
+            text=self._translate("action.open"),
             command=self._open_selected,
             state="disabled",
             style="Warning.TButton",
