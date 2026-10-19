@@ -116,6 +116,9 @@ class CalculationHistoryWindow(tk.Toplevel):
                for ref in (context.system,context.circuit,context.fluid) if ref is not None]
         ttk.Label(self._body,text=tr('history.readonly')+'\n'+' · '.join(names)+
                   f'\n{snapshot.created_at.isoformat()} · {snapshot.model_version}',wraplength=1050).grid(row=0,column=0,sticky='w')
+        from ui.dialogs.pdf_report import save_snapshot_pdf
+        ttk.Button(self._body, text='PDF Raporu Oluştur',
+                   command=lambda: save_snapshot_pdf(self, snapshot)).grid(row=3, column=0, sticky='w', pady=8)
         panel=FormulaReferencePanel(self._body,lambda:[],tr,
                                     step_provider=lambda:snapshot.formula_steps)
         panel.grid(row=1,column=0,sticky='ew',pady=8)

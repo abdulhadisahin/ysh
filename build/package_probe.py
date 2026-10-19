@@ -138,6 +138,49 @@ def main() -> None:
             assert window._history_window.winfo_exists()
             window._history_window._close()
             checks["history"] = "PASS"
+            # PDF export shares precisely the frozen D243 payload/resources.
+            from engineering.module_registry import ModuleCode
+            from engineering.snapshots.builders import build_snapshot
+            from reporting.models import adapt_snapshot
+            from reporting.export import export_pdf
+            from ui.dialogs import pdf_report
+            snapshot = build_snapshot(ModuleCode.TRANSFER_PUMP, 'design', design,
+                                      context=window._system_context)
+            report = adapt_snapshot(snapshot)
+            pdf_path = export_pdf(report, profile / 'frozen_report.pdf')
+            assert pdf_path.read_bytes().startswith(b'%PDF-')
+            checks['snapshot_pdf_export'] = 'PASS'
+            window._capture_calculation(ModuleCode.TRANSFER_PUMP, 'design', design, None, ())
+            page = pages['transfer_pump']
+            assert page._pdf_button.instate(['!disabled'])
+            original_dialog = pdf_report.filedialog.asksaveasfilename
+            original_info = pdf_report.messagebox.showinfo
+            original_error = pdf_report.messagebox.showerror
+            notices = []
+            try:
+                pdf_report.filedialog.asksaveasfilename = lambda **kwargs: str(profile / 'button_report.pdf')
+                pdf_report.messagebox.showinfo = lambda *a, **k: notices.append('info')
+                pdf_report.messagebox.showerror = lambda *a, **k: notices.append('error')
+                page._pdf_button.invoke()
+                assert (profile / 'button_report.pdf').read_bytes().startswith(b'%PDF-')
+                assert notices == ['info']
+                window._open_calculation_history()
+                history = window._history_window
+                key = str(page._pdf_snapshot.snapshot_id)
+                history._tree.selection_set(key)
+                history._select()
+                buttons = [child for child in history._body.winfo_children()
+                           if child.winfo_class() == 'TButton' and child.cget('text') == 'PDF Raporu Oluştur']
+                assert len(buttons) == 1
+                pdf_report.filedialog.asksaveasfilename = lambda **kwargs: str(profile / 'history_report.pdf')
+                buttons[0].invoke()
+                assert (profile / 'history_report.pdf').is_file()
+                history._close()
+            finally:
+                pdf_report.filedialog.asksaveasfilename = original_dialog
+                pdf_report.messagebox.showinfo = original_info
+                pdf_report.messagebox.showerror = original_error
+            checks['main_and_history_pdf_actions'] = 'PASS'
             window._close()
             checks["normal_close"] = "PASS"
 

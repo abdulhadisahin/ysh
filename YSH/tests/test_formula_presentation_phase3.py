@@ -81,8 +81,10 @@ def test_formula_equations_use_local_mathtext_with_textual_fallbacks() -> None:
     assert "f\"${mathtext}$\"" in source
     assert "except Exception:" in source
     assert "return None" in source
+    assert "from reporting.equations import MATHTEXT_LINES as _MATHTEXT_LINES" in source
+    shared = _source("reporting/equations.py")
     for notation in ("\\frac", "\\sqrt", "\\pi", "\\rho", "^2", "\\mathrm"):
-        assert notation in source
+        assert notation in shared
 
 
 def test_mathtext_equations_use_bounded_readable_display_sizes() -> None:

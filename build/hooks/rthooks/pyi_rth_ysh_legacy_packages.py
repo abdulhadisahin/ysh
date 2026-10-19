@@ -14,5 +14,6 @@ for package_name in (
     "i18n",
     "ui",
     "paths",
+    "reporting",
 ):
     importlib.import_module(package_name)

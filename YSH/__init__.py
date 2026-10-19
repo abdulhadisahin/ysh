@@ -24,3 +24,6 @@ sys.modules.setdefault("repositories", _repositories)
 sys.modules.setdefault("services", _services)
 sys.modules.setdefault("i18n", _i18n)
 sys.modules.setdefault("ui", _ui)
+
+from . import reporting as _reporting
+sys.modules.setdefault("reporting", _reporting)

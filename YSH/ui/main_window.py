@@ -951,6 +951,7 @@ class MainWindow:
             )
             return
         self._active_project = project
+        MainWindow._clear_pdf_snapshots(self)
         if hasattr(self, "_projects_tree"):
             search = getattr(self, "_project_search", None)
             if search is not None and search.get():
@@ -970,6 +971,7 @@ class MainWindow:
         if not self._resolve_unsaved_changes():
             return
         self._active_project = None
+        MainWindow._clear_pdf_snapshots(self)
         self._refresh_window_title()
         self._project_summary.clear()
         persistence = getattr(self, "_project_persistence_service", None)
@@ -1057,6 +1059,7 @@ class MainWindow:
             )
             return
         self._active_project = project
+        MainWindow._clear_pdf_snapshots(self)
         self._refresh_projects()
         self._refresh_window_title()
         self._project_summary.set_project(project)
@@ -1109,6 +1112,7 @@ class MainWindow:
             return "break"
         if self._active_project is not None and self._active_project.id == project_id:
             self._active_project = None
+            MainWindow._clear_pdf_snapshots(self)
             self._refresh_window_title()
             self._project_summary.clear()
             self._clear_all_pages()
@@ -1245,6 +1249,13 @@ class MainWindow:
         """Register deferred library composition without reading any dataset."""
         self._library_service_factory = factory
 
+    def _clear_pdf_snapshots(self) -> None:
+        """A project switch never offers another workspace's last report."""
+        for page in getattr(self, '_pages', {}).values():
+            if hasattr(page, '_pdf_button'):
+                page._pdf_snapshot = None
+                page._pdf_button.configure(state='disabled')
+
     def set_snapshot_history_service(self, service: object) -> None:
         """Attach successful-result listeners without reading project history."""
         from engineering.module_registry import ModuleCode
@@ -1253,6 +1264,13 @@ class MainWindow:
             def listener(stage,result,selection,findings,module=ModuleCode(code)):
                 MainWindow._capture_calculation(self,module,stage,result,selection,findings)
             page._snapshot_listener = listener
+            if hasattr(page, '_formula_panel'):
+                from ui.dialogs.pdf_report import save_snapshot_pdf
+                page._pdf_snapshot = None
+                page._pdf_button = ttk.Button(page._formula_panel,
+                    text='PDF Raporu Oluştur (son kayıt)', state='disabled',
+                    command=lambda target=page: save_snapshot_pdf(self._root, target._pdf_snapshot))
+                page._pdf_button.grid(row=0, column=1, sticky='e', padx=(12, 0))
             if code == 'transfer_pump' and hasattr(page,'_design_panel'):
                 page._design_panel._snapshot_listener = listener
 
@@ -1266,6 +1284,10 @@ class MainWindow:
                                       project_id=project.id if project else None,
                                       selection=selection,findings=findings)
             self._snapshot_history.append(snapshot)
+            page = getattr(self, '_pages', {}).get(module.value)
+            if page is not None and hasattr(page, '_pdf_button'):
+                page._pdf_snapshot = snapshot
+                page._pdf_button.configure(state='normal')
         except Exception:
             LOGGER.exception('Calculation succeeded but snapshot capture/persistence failed')
             messagebox.showerror(self._translate('history.title'),

@@ -6,6 +6,7 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
+    "reportlab>=4.4,<5",
     "matplotlib>=3.11,<3.12",
 ]
 
@@ -15,3 +16,6 @@ python_files = ["test_*.py"]
 python_functions = ["test_*"]
 python_classes = ["Test*"]
 pythonpath = ["YSH"]
+
+[project.optional-dependencies]
+report-test = ["pypdf>=6,<7"]
