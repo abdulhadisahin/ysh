@@ -41,9 +41,9 @@ def test_material_rp_and_source_share_strength_group() -> None:
 
 
 def test_ab_corrosion_bend_and_results_have_distinct_semantic_owners() -> None:
-    """Source notes stay with safety; used/default c stay beside the editable c input."""
+    """Source notes stay with safety; default c stays beside the editable c input."""
     assert assigned_parent('_table_89_button') == assigned_parent('_ab_source_status') == 'design_group'
-    assert assigned_parent('_circuit_default_label') == assigned_parent('_circuit_used_label') == 'corrosion_group'
+    assert assigned_parent('_circuit_default_label') == 'corrosion_group'
     assert assigned_parent('_corrosion_source_note') == 'corrosion_group'
     assert assigned_parent('_bend_mode_box') == assigned_parent('_bend_result_label') == 'bend_group'
     assert assigned_parent('_wall_result_card') == 'wall_form'
@@ -137,3 +137,41 @@ def test_localizing_saved_library_label_does_not_refresh_frozen_rp() -> None:
                      'fields': {'rp': '195'}, 'bend_enabled': False})
     assert page._fields['rp'].get() == '195'
     assert page._source.get() == 'Malzeme Kütüphanesi'
+
+
+def test_micro_correction_hides_only_redundant_corrosion_row() -> None:
+    """Main UI omits used c while its internal value and default remain available."""
+    tree = ast.parse(PIPE.read_text(encoding='utf-8'))
+    build = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == '_build')
+    visible = ast.unparse(build)
+    assert 'result.used_corrosion_allowance' not in visible
+    assert '_circuit_used_c' not in visible
+    assert 'result.default_corrosion_allowance' in visible
+    assert 'pipe.corrosion_source_note' in visible
+    c = _FakeStringVar(); c.set('1,25')
+    default = _FakeStringVar(); used = _FakeStringVar()
+    result = {'corrosion_allowance_mm': 1.25, 'final_wall_thickness_mm': 2.1974250852323705}
+    page = SimpleNamespace(_selected_circuit_code=lambda: 'TEST', _circuit_defaults={'TEST': 2},
+                           _fields={'c': c}, _circuit_default_c=default, _circuit_used_c=used,
+                           _wall_result=result)
+    before = dict(result)
+    PipeDesignPage._update_circuit_summary(page)
+    assert c.get() == '1,25' and used.get() == '1,25 mm' and default.get() == '2,00 mm'
+    assert page._wall_result == before
+
+
+def test_micro_correction_safety_title_preserves_source_verification() -> None:
+    """Renaming the action/dialog never upgrades the existing unverified source."""
+    tr = Translator('tr').translate
+    for key in ('pipe.source_notes', 'pipe.source_notes_title'):
+        assert tr(key) == 'Emniyet katsayısı tablosu'
+        assert 'A/B' not in tr(key)
+        assert EN[key] == 'Safety factor table'
+    assert 'kaynak doğrulaması gerekli' in tr('pipe.ab_source_required')
+    assert 'Doğrulanmış üretim kuralı değildir' in tr('pipe.source_notes_warning')
+    source = PIPE.read_text(encoding='utf-8')
+    assert 'text=self._translate("pipe.source_notes")' in source
+    assert 'text=self._translate("pipe.ab_source_required")' in source
+    dialog = (ROOT / 'ui/dialogs/turk_loydu_table_8_9_dialog.py').read_text(encoding='utf-8')
+    assert 'dialog.title(tr("pipe.source_notes_title"))' in dialog
+    assert 'text=tr("pipe.source_notes_warning")' in dialog

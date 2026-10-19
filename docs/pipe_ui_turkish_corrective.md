@@ -80,3 +80,12 @@ Son odaklı kontrol: **158 passed** (semantik gruplama, yerelleştirme, gerçek 
 Son tam test: **1457 passed, 0 failed**, 78,71 saniye.
 Otomatik runtime smoke: **PASS**; ekran yakalama görsel kısmı **BLOCKED_ENVIRONMENT**.
 Genel durum: **PENDING_MANUAL_ACCEPTANCE**.
+
+## Son mikro düzeltme
+
+Ana Boru korozyon grubundaki görünür **Kullanılan c** satırı kaldırılmıştır;
+yukarıdaki önceki kontrol listesinin bu satıra ilişkin maddesi artık uygulanmaz.
+**Varsayılan c**, c girdisi ve kaynak açıklaması korunur. İç kullanılan c değeri,
+sonuçlar, Formula View, snapshot ve PDF verileri değiştirilmemiştir.
+Düğme ve açılan pencerenin yeni başlığı tam olarak **Emniyet katsayısı tablosu**;
+mevcut kaynak doğrulama uyarıları aynı kalır. İngilizce karşılık: Safety factor table.

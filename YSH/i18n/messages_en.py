@@ -693,8 +693,8 @@ MESSAGES.update({'formula2.asset_unverified': 'The prepared artwork does not mat
  'library2.section.relationships': 'Relationships',
  'library2.section.technical': 'Technical details',
  'library2.section.source': 'Source / description',
- 'pipe.source_notes': 'A/B source notes',
- 'pipe.source_notes_title': 'A/B reference notes — source verification required',
+ 'pipe.source_notes': 'Safety factor table',
+ 'pipe.source_notes_title': 'Safety factor table',
  'pipe.source_notes_warning': 'These legacy reference notes have no verified document, revision or '
                               'table provenance. They are not a verified production rule and do '
                               'not change calculation inputs.'})

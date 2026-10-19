@@ -708,8 +708,8 @@ MESSAGES.update({'formula2.asset_unverified': 'Hazır görsel denklemle uyuşmad
  'library2.section.relationships': 'İlişkiler',
  'library2.section.technical': 'Teknik ayrıntılar',
  'library2.section.source': 'Kaynak / açıklama',
- 'pipe.source_notes': 'A/B kaynak notları',
- 'pipe.source_notes_title': 'A/B referans notları — kaynak doğrulaması gerekli',
+ 'pipe.source_notes': 'Emniyet katsayısı tablosu',
+ 'pipe.source_notes_title': 'Emniyet katsayısı tablosu',
  'pipe.source_notes_warning': 'Bu eski referans notlarının belge, sürüm ve tablo doğrulaması '
                               'yoktur. Doğrulanmış üretim kuralı değildir; hesap girdilerini '
                               'değiştirmez.'})

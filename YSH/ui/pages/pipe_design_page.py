@@ -671,9 +671,6 @@ class PipeDesignPage(ttk.Frame):
         self._circuit_default_label = ttk.Label(corrosion_group, text=self._translate("result.default_corrosion_allowance"), style="PipeField.TLabel")
         self._circuit_default_label.grid(row=2, column=0, sticky="w", pady=(SM, 0))
         ttk.Label(corrosion_group, textvariable=self._circuit_default_c, style="PipeSupportingValue.TLabel").grid(row=2, column=1, sticky="w", padx=(SM, 0), pady=(SM, 0))
-        self._circuit_used_label = ttk.Label(corrosion_group, text=self._translate("result.used_corrosion_allowance"), style="PipeField.TLabel")
-        self._circuit_used_label.grid(row=3, column=0, sticky="w", pady=2)
-        ttk.Label(corrosion_group, textvariable=self._circuit_used_c, style="PipeSupportingValue.TLabel").grid(row=3, column=1, sticky="w", padx=(SM, 0), pady=2)
 
         self._ab_source_status = ttk.Label(design_group, text=self._translate("pipe.ab_source_required"),
                                            wraplength=250, style="PipeField.TLabel")
@@ -964,7 +961,6 @@ class PipeDesignPage(ttk.Frame):
         self._circuit_label.configure(text=self._translate("field.circuit"))
         self._line_role_label.configure(text=self._translate("field.line_role"))
         self._circuit_default_label.configure(text=self._translate("result.default_corrosion_allowance"))
-        self._circuit_used_label.configure(text=self._translate("result.used_corrosion_allowance"))
         self._source_box.configure(values=(
             self._translate("message.material_source"),
             self._translate("message.manual_source"),
