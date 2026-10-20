@@ -36,7 +36,8 @@ from ui.widgets.cards import (
     SurfaceCard,
 )
 from ui.theme import colors
-from ui.theme.spacing import MD, SM
+from ui.theme.spacing import MD, SM, LG
+from ui.theme import pipe_pilot as pilot
 
 
 _DN_WARNING_TRANSLATION_KEYS = {
@@ -46,11 +47,11 @@ _DN_WARNING_TRANSLATION_KEYS = {
 }
 
 _PIPE_BUTTON_PALETTE = RoundedButtonPalette(
-    normal=(colors.NAVY, colors.GOLD),
-    hover=("#163957", "#D3B66A"),
-    pressed=(colors.DEEP_NAVY, colors.GOLD),
+    normal=(pilot.PIPE_DARK, pilot.PIPE_ACCENT),
+    hover=(colors.NAVY, pilot.PIPE_ACCENT),
+    pressed=(colors.NAVY, pilot.PIPE_DARK),
     disabled=("#5E7181", colors.STRONG_BORDER),
-    focus_border="#F0D58D",
+    focus_border=pilot.PIPE_ACCENT,
 )
 _PIPE_NEUTRAL_BUTTON_PALETTE = RoundedButtonPalette(
     normal=(colors.CARD_SURFACE, colors.STRONG_BORDER),
@@ -67,11 +68,11 @@ _PIPE_FORMULA_BUTTON_PALETTE = RoundedButtonPalette(
     focus_border=colors.FORMULA,
 )
 _PIPE_RECOMMENDED_BUTTON_PALETTE = RoundedButtonPalette(
-    normal=(colors.CARD_SURFACE, colors.PIPE_BORDER),
-    hover=(colors.PIPE_SOFT, colors.PIPE_DARK),
-    pressed=(colors.PIPE_PRESSED_SOFT, colors.PIPE_DARK),
+    normal=(colors.CARD_SURFACE, pilot.PIPE_BORDER),
+    hover=(pilot.PIPE_SOFT, pilot.PIPE_DARK),
+    pressed=(colors.PIPE_PRESSED_SOFT, pilot.PIPE_DARK),
     disabled=(colors.SECONDARY_SURFACE, colors.BORDER),
-    focus_border=colors.PIPE_DARK,
+    focus_border=pilot.PIPE_DARK,
 )
 
 
@@ -364,6 +365,8 @@ class PipeDesignPage(ttk.Frame):
             self,
             self._translate("page.pipe.title"),
             self._translate("page.pipe.description"),
+            style="PipePageHeader.TFrame", title_style="PipePageTitle.TLabel",
+            description_style="PipePageDescription.TLabel",
         )
         self._header.grid(row=0, column=0, sticky="ew", pady=(0, 10))
 
@@ -388,6 +391,7 @@ class PipeDesignPage(ttk.Frame):
             inputs,
             self._translate("section.pipe_diameter_inputs"),
             style="PipeInputCard.TFrame",
+            padding=(LG, MD),
             title_style="PipeInputCardTitle.TLabel",
             content_style="PipeInputCardContent.TFrame",
         )
@@ -487,6 +491,7 @@ class PipeDesignPage(ttk.Frame):
             inputs,
             self._translate("section.wall_thickness_inputs"),
             style="PipeInputCard.TFrame",
+            padding=(LG, MD),
             title_style="PipeInputCardTitle.TLabel",
             content_style="PipeInputCardContent.TFrame",
         )
@@ -508,7 +513,7 @@ class PipeDesignPage(ttk.Frame):
         wall_form.grid_anchor("w")
 
         material_group = ttk.Frame(wall_form, style="PipeGroup.TFrame")
-        design_group = ttk.Frame(wall_form, style="PipeGroup.TFrame")
+        design_group = ttk.Frame(wall_form, style="PipeSection.TFrame")
         allowance_group = ttk.Frame(wall_form, style="PipeGroup.TFrame")
         self._wall_groups = (material_group, design_group, allowance_group)
         for column, group in enumerate(
@@ -517,10 +522,10 @@ class PipeDesignPage(ttk.Frame):
             group.grid(row=0, column=column, sticky="nsew", padx=(0, SM))
             group.columnconfigure(1, weight=1)
 
-        pipe_group = ttk.Frame(material_group, style="PipeGroup.TFrame")
-        strength_group = ttk.Frame(material_group, style="PipeGroup.TFrame")
-        corrosion_group = ttk.Frame(allowance_group, style="PipeGroup.TFrame")
-        bend_group = ttk.Frame(allowance_group, style="PipeGroup.TFrame")
+        pipe_group = ttk.Frame(material_group, style="PipeSection.TFrame")
+        strength_group = ttk.Frame(material_group, style="PipeSection.TFrame")
+        corrosion_group = ttk.Frame(allowance_group, style="PipeSection.TFrame")
+        bend_group = ttk.Frame(allowance_group, style="PipeSection.TFrame")
         self._semantic_groups = {
             "pipe": pipe_group, "material": strength_group, "safety": design_group,
             "corrosion": corrosion_group, "bend": bend_group,
@@ -532,22 +537,22 @@ class PipeDesignPage(ttk.Frame):
         for group, target_row in ((pipe_group, 0), (strength_group, 1),
                                   (corrosion_group, 0), (bend_group, 1)):
             group.grid(row=target_row, column=0, columnspan=2, sticky="nw",
-                       pady=(SM if target_row else 0, 0))
+                       pady=(MD if target_row else 0, 0))
             group.columnconfigure(1, weight=1)
         self._wall_group_labels = []
         for group, key in zip(self._semantic_groups.values(), self._wall_group_keys):
             label = ttk.Label(group, text=self._translate(key), style="PipeGroupTitle.TLabel")
-            label.grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, SM))
+            label.grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, SM))
             self._wall_group_labels.append(label)
 
         labels = (
-            (pipe_group, "da", "field.pipe_outside_diameter", " da (mm)", 1),
-            (pipe_group, "pc", "field.design_pressure", " pc (bar)", 2),
-            (strength_group, "rp", "field.yield_strength", " (MPa)", 2),
+            (pipe_group, "da", "field.pipe_outside_diameter", " da", 1),
+            (pipe_group, "pc", "field.design_pressure", " pc", 2),
+            (strength_group, "rp", "field.yield_strength", "", 2),
             (design_group, "sf", "field.safety_factor", "", 1),
             (design_group, "wf", "field.weld_factor", " (v)", 2),
-            (corrosion_group, "c", "field.corrosion_allowance", " c (mm)", 1),
-            (bend_group, "r", "field.bend_radius_value", " R (mm)", 2),
+            (corrosion_group, "c", "field.corrosion_allowance", " c", 1),
+            (bend_group, "r", "field.bend_radius_value", " R", 2),
         )
         self._field_labels: dict[str, tuple[ttk.Label, str, str]] = {}
         for parent, key, label_key, suffix, target_row in labels:
@@ -558,8 +563,11 @@ class PipeDesignPage(ttk.Frame):
             )
             label.grid(row=target_row, column=0, sticky="w", pady=3)
             self._field_labels[key] = (label, label_key, suffix)
-            entry = ttk.Entry(parent, textvariable=self._fields[key], width=15)
+            entry = ttk.Entry(parent, textvariable=self._fields[key], width=15, style="Pipe.TEntry")
             entry.grid(row=target_row, column=1, padx=(SM, 0), pady=3, sticky="w")
+            unit = {"da": "mm", "pc": "bar", "rp": "MPa", "c": "mm", "r": "mm"}.get(key, "")
+            ttk.Label(parent, text=unit, style="PipeUnit.TLabel").grid(
+                row=target_row, column=2, sticky="w", padx=(SM, 0))
             self._widgets.append(entry)
             if key == "rp":
                 self._rp_entry = entry
@@ -573,7 +581,7 @@ class PipeDesignPage(ttk.Frame):
         )
         self._bend_mode_label.grid(row=1, column=0, sticky="w", pady=3)
         self._bend_mode_box = ttk.Combobox(
-            bend_group, textvariable=self._bend_mode, state="readonly", width=16
+            bend_group, textvariable=self._bend_mode, state="readonly", width=16, style="Pipe.TCombobox",
         )
         self._bend_mode_box.grid(row=1, column=1, sticky="w", padx=(SM, 0), pady=3)
         self._bend_mode_box.bind("<<ComboboxSelected>>", self._on_bend_mode_selected)
@@ -590,9 +598,9 @@ class PipeDesignPage(ttk.Frame):
                                             style="PipeField.TLabel")
         self._bend_result_label.grid(row=4, column=0, sticky="w", pady=2)
         ttk.Label(bend_group, textvariable=self._wall_bend,
-                  style="PipeSupportingValue.TLabel").grid(row=4, column=1, sticky="w", padx=(SM, 0))
+                  style="PipeInputValue.TLabel").grid(row=4, column=1, sticky="w", padx=(SM, 0))
         self._no_bend_note = ttk.Label(bend_group, text=self._translate("pipe.no_bend_note"),
-                                      wraplength=270, style="PipeField.TLabel")
+                                      wraplength=270, style="PipeInfo.TLabel")
         self._no_bend_note.grid(row=5, column=0, columnspan=2, sticky="w", pady=2)
 
         self._circuit_label = ttk.Label(
@@ -600,14 +608,14 @@ class PipeDesignPage(ttk.Frame):
         )
         self._circuit_label.grid(row=1, column=2, sticky="w", pady=3, padx=(MD, 0))
         self._circuit_box = ttk.Combobox(
-            diameter_form, textvariable=self._circuit, state="readonly", width=20
+            diameter_form, textvariable=self._circuit, state="readonly", width=20, style="Pipe.TCombobox",
         )
         self._circuit_box.grid(row=1, column=3, sticky="w", padx=(SM, 0), pady=3)
         self._circuit_box.bind("<<ComboboxSelected>>", self._on_circuit_selected)
         self._widgets.append(self._circuit_box)
         self._line_role_label = ttk.Label(diameter_form, text=self._translate("field.line_role"), style="PipeField.TLabel")
         self._line_role_label.grid(row=3, column=0, sticky="w", pady=3)
-        self._line_role_box = ttk.Combobox(diameter_form, textvariable=self._line_role, state="readonly", width=20)
+        self._line_role_box = ttk.Combobox(diameter_form, textvariable=self._line_role, state="readonly", width=20, style="Pipe.TCombobox")
         self._line_role_box.grid(row=3, column=1, sticky="w", padx=(SM, 0), pady=3)
         self._line_role_box.bind("<<ComboboxSelected>>", self._on_line_role_selected)
         self._widgets.append(self._line_role_box)
@@ -622,7 +630,7 @@ class PipeDesignPage(ttk.Frame):
             diameter_form,
             textvariable=self._pipe_standard,
             state="readonly",
-            width=24,
+            width=24, style="Pipe.TCombobox",
         )
         self._pipe_standard_box.grid(row=1, column=1, padx=(SM, 0), pady=3, sticky="w")
         self._pipe_standard_box.bind("<<ComboboxSelected>>", self._on_pipe_standard_selected)
@@ -639,7 +647,7 @@ class PipeDesignPage(ttk.Frame):
             )
             label.grid(row=target_row, column=label_column, sticky="w", pady=3, padx=((0 if label_column == 0 else MD), 0))
             self._field_labels[key] = (label, label_key, suffix)
-            entry = ttk.Entry(diameter_form, textvariable=self._fields[key], width=16)
+            entry = ttk.Entry(diameter_form, textvariable=self._fields[key], width=16, style="Pipe.TEntry")
             entry.grid(row=target_row, column=label_column + 1, padx=(SM, 0), pady=3, sticky="w")
             self._widgets.append(entry)
 
@@ -649,7 +657,7 @@ class PipeDesignPage(ttk.Frame):
             style="PipeField.TLabel",
         )
         self._source_label.grid(row=3, column=0, sticky="w", pady=3)
-        self._source_box = ttk.Combobox(strength_group, textvariable=self._source, values=(self._translate("message.material_source"), self._translate("message.manual_source")), state="readonly", width=16)
+        self._source_box = ttk.Combobox(strength_group, textvariable=self._source, values=(self._translate("message.material_source"), self._translate("message.manual_source")), state="readonly", width=16, style="Pipe.TCombobox")
         self._source_box.grid(row=3, column=1, sticky="w", padx=(SM, 0), pady=3)
         self._source_box.bind("<<ComboboxSelected>>", lambda _: self._set_source_mode())
         self._material_label = ttk.Label(
@@ -658,7 +666,7 @@ class PipeDesignPage(ttk.Frame):
             style="PipeField.TLabel",
         )
         self._material_label.grid(row=1, column=0, sticky="w", pady=3)
-        self._material_box = ttk.Combobox(strength_group, textvariable=self._material, state="readonly", width=20)
+        self._material_box = ttk.Combobox(strength_group, textvariable=self._material, state="readonly", width=20, style="Pipe.TCombobox")
         self._material_box.grid(row=1, column=1, sticky="w", padx=(SM, 0), pady=3)
         self._material_box.bind("<<ComboboxSelected>>", lambda _: self._load_selected_material())
 
@@ -670,13 +678,13 @@ class PipeDesignPage(ttk.Frame):
 
         self._circuit_default_label = ttk.Label(corrosion_group, text=self._translate("result.default_corrosion_allowance"), style="PipeField.TLabel")
         self._circuit_default_label.grid(row=2, column=0, sticky="w", pady=(SM, 0))
-        ttk.Label(corrosion_group, textvariable=self._circuit_default_c, style="PipeSupportingValue.TLabel").grid(row=2, column=1, sticky="w", padx=(SM, 0), pady=(SM, 0))
+        ttk.Label(corrosion_group, textvariable=self._circuit_default_c, style="PipeInputValue.TLabel").grid(row=2, column=1, sticky="w", padx=(SM, 0), pady=(SM, 0))
 
         self._ab_source_status = ttk.Label(design_group, text=self._translate("pipe.ab_source_required"),
-                                           wraplength=250, style="PipeField.TLabel")
+                                           wraplength=250, style="PipeSourceWarning.TLabel")
         self._ab_source_status.grid(row=3, column=0, columnspan=2, sticky="w", pady=(SM, 0))
         self._corrosion_source_note = ttk.Label(corrosion_group,
-            text=self._translate("pipe.corrosion_source_note"), wraplength=270, style="PipeField.TLabel")
+            text=self._translate("pipe.corrosion_source_note"), wraplength=270, style="PipeInfo.TLabel")
         self._corrosion_source_note.grid(row=4, column=0, columnspan=2, sticky="w", pady=(4, 0))
 
         self._diameter_button = RoundedImageButton(
@@ -739,7 +747,7 @@ class PipeDesignPage(ttk.Frame):
             padding=(10, 8),
         )
         wall_result = self._wall_result_card
-        self._wall_result_card.grid(row=0, column=3, sticky="nsew")
+        self._wall_result_card.grid(row=0, column=3, sticky="nsew", padx=(SM, 0))
         wall_metrics = wall_result.content
         wall_metrics.columnconfigure(0, weight=0)
         wall_metrics.columnconfigure(1, weight=0)

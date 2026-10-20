@@ -175,13 +175,13 @@ def test_pipe_image_button_prototype_keeps_live_text_and_four_surface_states() -
     assert "Calculate Diameter" not in widget_source
 
 
-def test_pipe_button_uses_navy_fill_with_a_restrained_gold_outline() -> None:
+def test_pipe_button_uses_isolated_teal_pilot_palette() -> None:
     """The primary Pipe action follows the D243 command hierarchy."""
     page_source = (ROOT / "ui/pages/pipe_design_page.py").read_text(encoding="utf-8")
     widget_source = (ROOT / "ui/widgets/rounded_button.py").read_text(encoding="utf-8")
 
-    assert 'normal=(colors.NAVY, colors.GOLD)' in page_source
-    assert 'pressed=(colors.DEEP_NAVY, colors.GOLD)' in page_source
+    assert 'normal=(pilot.PIPE_DARK, pilot.PIPE_ACCENT)' in page_source
+    assert 'pressed=(colors.NAVY, pilot.PIPE_DARK)' in page_source
     assert "_surface_pixel" in widget_source
     assert "return fill" in widget_source
     assert "return border" in widget_source

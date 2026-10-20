@@ -229,7 +229,7 @@ class MainWindow:
         navigation.columnconfigure(0, weight=1)
         navigation.rowconfigure(3, weight=1, minsize=120)
         self._sidebar_title = ttk.Label(navigation, text=self._translate("project.projects"), style="SidebarTitle.TLabel")
-        self._sidebar_title.grid(row=0, column=0, sticky="w", pady=(0, SM))
+        self._sidebar_title.grid(row=0, column=0, sticky="w", pady=(0, MD))
         self._project_search_label = ttk.Label(
             navigation,
             style="SidebarSearchLabel.TLabel",
@@ -302,7 +302,7 @@ class MainWindow:
         if getattr(self, "_system_context_service", None) is not None:
             self._context_panel = SystemContextPanel(
                 content, self._system_context_service, self._translate,
-                self._change_system_context)
+                self._change_system_context, compact=True)
             self._context_panel.grid(row=0, column=0, sticky="ew")
             self._page_host.grid(row=1, column=0, sticky="nsew")
             content.rowconfigure(0, weight=0)
@@ -507,9 +507,9 @@ class MainWindow:
     def _create_ribbon_group(self, parent: tk.Misc, title_key: str) -> ttk.Frame:
         """Create one compact ribbon group using an existing command callback."""
         group = ttk.Frame(parent, style="CommandGroup.TFrame", padding=(0, 0))
-        group.pack(side="left", padx=(0, MD), fill="y")
+        group.pack(side="left", padx=(0, LG), fill="y")
         label = ttk.Label(group, text=self._translate(title_key), style="CommandGroupTitle.TLabel")
-        label.pack(anchor="w", pady=(0, 2))
+        label.pack(anchor="w", pady=(0, SM // 2))
         commands = ttk.Frame(group, style="CommandGroupCommands.TFrame")
         commands.pack(anchor="w")
         group._ribbon_title_key = title_key  # type: ignore[attr-defined]
@@ -1269,6 +1269,7 @@ class MainWindow:
                 page._pdf_snapshot = None
                 page._pdf_button = ttk.Button(page._formula_panel,
                     text='PDF Raporu Oluştur (son kayıt)', state='disabled',
+                    style="PipeSecondary.TButton" if code == "pipe_design" else "TButton",
                     command=lambda target=page: save_snapshot_pdf(self._root, target._pdf_snapshot))
                 page._pdf_button.grid(row=0, column=1, sticky='e', padx=(12, 0))
             if code == 'transfer_pump' and hasattr(page,'_design_panel'):

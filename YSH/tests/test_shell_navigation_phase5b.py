@@ -23,7 +23,8 @@ def test_calculation_tabs_have_stable_semantic_page_colors() -> None:
     assert "self._page_keys" in source
     assert "YSH.TNotebook" in source
     assert "selected_foreground = colors.GOLD" in source
-    assert 'background=[("selected", colors.DEEP_NAVY)' in source
+    assert 'background=[("selected", selected_background)' in source
+    assert 'if page_key == "pipe_design"' in source
     assert 'foreground=[("selected", selected_foreground)' in source
 
 

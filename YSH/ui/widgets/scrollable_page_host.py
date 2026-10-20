@@ -83,6 +83,11 @@ class ScrollablePageHost(ttk.Notebook):
         # identifies the selected engineering module without borrowing purple
         # or other legacy module colors into the shell.
         selected_foreground = colors.GOLD
+        selected_background = colors.DEEP_NAVY
+        if page_key == "pipe_design":
+            from ui.theme.pipe_pilot import PIPE_DARK
+            selected_background = PIPE_DARK
+            selected_foreground = colors.WHITE
         style = ttk.Style(self)
         style.configure(
             "YSH.TNotebook.Tab",
@@ -91,7 +96,7 @@ class ScrollablePageHost(ttk.Notebook):
         )
         style.map(
             "YSH.TNotebook.Tab",
-            background=[("selected", colors.DEEP_NAVY), ("active", colors.DEEP_NAVY)],
+            background=[("selected", selected_background), ("active", colors.DEEP_NAVY)],
             foreground=[("selected", selected_foreground), ("active", colors.GOLD)],
         )
 

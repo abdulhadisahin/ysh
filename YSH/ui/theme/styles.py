@@ -7,6 +7,7 @@ from tkinter import ttk
 
 from . import colors, typography
 from .spacing import SM
+from .pipe_pilot import configure_pipe_pilot
 
 
 def apply_theme(root: tk.Misc) -> None:
@@ -335,6 +336,7 @@ def apply_theme(root: tk.Misc) -> None:
     style.configure("Status.TFrame", background=colors.NAVY)
     style.configure("Status.TLabel", background=colors.NAVY, foreground=colors.ON_ACCENT)
     style.configure("ChartSummary.TLabel", background=colors.CARD_SURFACE, foreground=colors.TEXT_SECONDARY, font=typography.MUTED)
+    configure_pipe_pilot(style)
 
 
 def _configure_button(style: ttk.Style, name: str, background: str, active: str, foreground: str) -> None:

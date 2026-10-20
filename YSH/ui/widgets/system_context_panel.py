@@ -13,23 +13,28 @@ class SystemContextPanel(ttk.LabelFrame):
     """Keep system, circuit and fluid as separate, clearable selections."""
 
     def __init__(self, parent: tk.Misc, service: SystemContextService,
-                 translate: Callable[[str], str], changed: Callable[[SystemContext], None]) -> None:
+                 translate: Callable[[str], str], changed: Callable[[SystemContext], None], *,
+                 compact: bool = False) -> None:
         """Build a nonblocking, project-owned context strip."""
         super().__init__(parent, padding=8)
         self._service, self._translate, self._changed = service, translate, changed
         self._context = SystemContext()
+        self._compact = compact
         self._values = {key: tk.StringVar() for key in ("system", "circuit", "fluid")}
         self._labels, self._selectors, self._choices = {}, {}, {}
         for column, key in enumerate(self._values):
-            self.columnconfigure(column, weight=1)
+            self.columnconfigure(column * 2 + 1 if compact else column, weight=1)
             self._labels[key] = ttk.Label(self)
-            self._labels[key].grid(row=0, column=column, sticky="w", pady=(0, 4))
+            self._labels[key].grid(row=0, column=column * 2 if compact else column,
+                                   sticky="w", padx=(0, 8) if compact else 0, pady=0 if compact else (0, 4))
             combo = ttk.Combobox(self, textvariable=self._values[key], state="readonly", width=24)
-            combo.grid(row=1, column=column, sticky="ew", padx=(0, 8))
+            combo.grid(row=0 if compact else 1, column=column * 2 + 1 if compact else column,
+                       sticky="ew", padx=(0, 12))
             combo.bind("<<ComboboxSelected>>", self._select)
             self._selectors[key] = combo
         self._status = ttk.Label(self, wraplength=900, justify="left")
-        self._status.grid(row=2, column=0, columnspan=3, sticky="w", pady=(4, 0))
+        self._status.grid(row=1 if compact else 2, column=0, columnspan=6 if compact else 3,
+                          sticky="w", pady=(4, 0))
         self._module_notice = ""
         self.refresh_texts()
 

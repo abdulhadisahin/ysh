@@ -100,12 +100,14 @@ class CriticalCard(InformationCard):
 class SectionHeader(ttk.Frame):
     """Render a compact page title and optional engineering description."""
 
-    def __init__(self, parent: tk.Misc, title: str, description: str) -> None:
+    def __init__(self, parent: tk.Misc, title: str, description: str, *,
+                 style: str = "PageHeader.TFrame", title_style: str = "PageTitle.TLabel",
+                 description_style: str = "PageDescription.TLabel") -> None:
         """Create a title hierarchy without consuming excessive page height."""
-        super().__init__(parent, style="PageHeader.TFrame")
-        self._title = ttk.Label(self, text=title, style="PageTitle.TLabel")
+        super().__init__(parent, style=style)
+        self._title = ttk.Label(self, text=title, style=title_style)
         self._title.grid(row=0, column=0, sticky="w")
-        self._description = ttk.Label(self, text=description, style="PageDescription.TLabel")
+        self._description = ttk.Label(self, text=description, style=description_style)
         self._description.grid(
             row=1, column=0, sticky="w", pady=(2, 0)
         )
