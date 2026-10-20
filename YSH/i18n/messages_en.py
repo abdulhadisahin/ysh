@@ -718,3 +718,6 @@ MESSAGES.update({'transfer.design.volume.label': 'Transfer volume Vtransfer', 't
 
 # Formula View presentation chrome.
 MESSAGES.update({'formula.view_title': 'Formula View', 'formula.visual.historical': 'Historical record · Read only', 'formula.visual.previous': 'Previous', 'formula.visual.next': 'Next'})
+
+# Engineering Library presentation chrome.
+MESSAGES.update({'library.visual.title': 'Libraries', 'library.visual.subtitle': 'Engineering data and reference sources', 'library.visual.no_matches': 'No records match the search and filters.', 'library.visual.edit_mode': 'Edit Mode', 'library.visual.create_mode': 'New Record', 'library2.verification': 'Verification'})

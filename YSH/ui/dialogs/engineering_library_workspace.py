@@ -15,8 +15,10 @@ from ui.library_controller import LibraryController, EditMode
 from ui.widgets.scrollable_frame import ScrollableFrame
 from ui.widgets.formula_steps import number, source_rows
 from ui.widgets.detail_disclosure import DetailDisclosure
-from ui.library_presentation import detail_group
+from ui.library_presentation import detail_group, ordered_editor_fields
 from ui.theme import colors, typography
+from ui.theme.library_visuals import configure_library_visuals, verification_role, PANE_WEIGHTS, pane_positions
+from ui.theme.spacing import SM, MD
 
 
 def record_label(record: object, translate: Callable[[str], str] | None = None) -> str:
@@ -36,6 +38,16 @@ def record_label(record: object, translate: Callable[[str], str] | None = None) 
         if getattr(record,key,None) is not None) or str(getattr(record,'id',''))
 
 
+def record_verification(record: object) -> VerificationStatus | None:
+    """Read an existing row status only; never look up linked sources per table row."""
+    return getattr(record, 'verification_status', getattr(getattr(record,'reference',None),'verification_status',None))
+
+
+def visible_detail(value: object) -> bool:
+    """Omit missing display metadata while retaining numeric zero and False."""
+    return value is not None and value != '' and value != {} and value != () and value != []
+
+
 class EngineeringLibraryWorkspace(tk.Toplevel):
     """Browse first; an explicit editor draft never autosaves or modifies project data."""
     def __init__(self, parent: tk.Misc, service: EngineeringLibraryService,
@@ -43,83 +55,86 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         """Load only the initial category after the user opens Libraries."""
         super().__init__(parent)
         self.transient(parent)
-        self.geometry('1120x680');self.minsize(960,560)
+        self.geometry('1366x768');self.minsize(960,560)
+        configure_library_visuals(ttk.Style(self))
+        self.configure(background=colors.WORKSPACE_SURFACE)
         self._controller=LibraryController(service)
         self._translate=translate;self._owner=owner
         self._group=tk.StringVar();self._category=tk.StringVar();self._parent=tk.StringVar()
         self._search=tk.StringVar();self._active=tk.StringVar();self._ownership=tk.StringVar();self._verification=tk.StringVar()
         self._status=tk.StringVar();self._edit_vars={};self._edit_choices={}
         self._choice_cache={};self._row_map={}
-        self.columnconfigure(0,weight=1);self.rowconfigure(1,weight=1)
-        top=ttk.Frame(self,padding=10);top.grid(row=0,column=0,sticky='ew')
+        self.columnconfigure(0,weight=1);self.rowconfigure(2,weight=1)
+        header=ttk.Frame(self,style='Library.Header.TFrame');header.grid(row=0,column=0,sticky='ew',padx=MD,pady=(MD,SM))
+        self._header_title=ttk.Label(header,style='Library.Title.TLabel');self._header_title.grid(row=0,column=0,sticky='w')
+        self._header_subtitle=ttk.Label(header,style='Library.Subtitle.TLabel');self._header_subtitle.grid(row=1,column=0,sticky='w',pady=(SM//2,0))
+        top=ttk.Frame(self,padding=SM,style='Library.Card.TFrame');top.grid(row=1,column=0,sticky='ew',padx=MD,pady=(0,SM))
         for column in range(3): top.columnconfigure(column, weight=1 if column==1 else 0)
         self._group_box=ttk.Combobox(top,textvariable=self._group,state='readonly',width=28)
         self._group_box.grid(row=0,column=0,sticky='ew',padx=(0,8))
         self._category_box=ttk.Combobox(top,textvariable=self._category,state='readonly',width=30)
         self._category_box.grid(row=0,column=1,sticky='ew',padx=(0,8))
-        self._parent_box=ttk.Combobox(top,textvariable=self._parent,state='readonly',width=30)
+        self._parent_box=ttk.Combobox(top,textvariable=self._parent,state='readonly',width=30,style='Library.TCombobox')
         self._parent_box.grid(row=0,column=2,sticky='ew')
         self._group_box.bind('<<ComboboxSelected>>',self._choose_group)
         self._category_box.bind('<<ComboboxSelected>>',self._choose_category)
         self._parent_box.bind('<<ComboboxSelected>>',self._choose_parent)
         self._group_box.grid_remove();self._category_box.grid_remove()
-        self._search_label=ttk.Label(top);self._search_label.grid(row=0,column=0,sticky='w')
-        ttk.Entry(top,textvariable=self._search).grid(row=0,column=1,sticky='ew',padx=8)
-        self._advanced_button=ttk.Button(top,command=self._toggle_filters)
+        self._search_label=ttk.Label(top,style='Library.Heading.TLabel');self._search_label.grid(row=0,column=0,sticky='w')
+        ttk.Entry(top,textvariable=self._search,style='Library.TEntry').grid(row=0,column=1,sticky='ew',padx=8)
+        self._advanced_button=ttk.Button(top,command=self._toggle_filters,style='Library.Secondary.TButton')
         self._advanced_button.grid(row=0,column=2,sticky='e')
-        self._parent_label=ttk.Label(top)
+        self._parent_label=ttk.Label(top,style='Library.Field.TLabel')
         self._parent_label.grid(row=1,column=0,sticky='w',pady=(6,0))
         self._parent_box.grid_configure(row=1,column=1,columnspan=2,pady=(6,0))
-        filters=self._advanced_filters=ttk.Frame(top)
+        filters=self._advanced_filters=ttk.Frame(top,style='Library.Body.TFrame')
         filters.grid(row=2,column=0,columnspan=3,sticky='ew',pady=(8,0))
         filters.grid_remove()
         self._filter_labels=[]
         self._filter_boxes=[]
         for col,var in enumerate((self._active,self._ownership,self._verification)):
-            box=ttk.Combobox(filters,textvariable=var,state='readonly',width=21)
+            box=ttk.Combobox(filters,textvariable=var,state='readonly',width=21,style='Library.TCombobox')
             filters.columnconfigure(col,weight=1)
-            label=ttk.Label(filters);label.grid(row=0,column=col,sticky='w');self._filter_labels.append(label)
+            label=ttk.Label(filters,style='Library.Field.TLabel');label.grid(row=0,column=col,sticky='w');self._filter_labels.append(label)
             box.grid(row=1,column=col,sticky='ew',padx=(0,6));box.bind('<<ComboboxSelected>>',lambda _:self._render_rows())
             self._filter_boxes.append(box)
-        panes=ttk.Panedwindow(self,orient='horizontal');panes.grid(row=1,column=0,sticky='nsew',padx=10)
-        style=ttk.Style(self)
-        style.configure('Library.Data.Treeview',rowheight=30)
-        style.map('Library.Data.Treeview',background=[('selected',colors.NAVY)],foreground=[('selected',colors.WHITE)])
-        style.configure('LibraryNav.Treeview',rowheight=26,background=colors.CARD_SURFACE,fieldbackground=colors.CARD_SURFACE,font=typography.BODY)
-        style.map('LibraryNav.Treeview',background=[('selected',colors.NAVY)],foreground=[('selected',colors.WHITE)])
-        navigation=ttk.Frame(panes)
+        panes=self._panes=ttk.Panedwindow(self,orient='horizontal');panes.grid(row=2,column=0,sticky='nsew',padx=MD)
+        navigation=ttk.Frame(panes,style='Library.Card.TFrame',width=205)
         navigation.columnconfigure(0,weight=1);navigation.rowconfigure(0,weight=1)
         self._navigation=ttk.Treeview(navigation,show='tree',selectmode='browse',style='LibraryNav.Treeview')
-        self._navigation.column('#0',width=205,minwidth=155,stretch=True)
+        self._navigation.column('#0',width=190,minwidth=155,stretch=True)
         self._navigation.grid(row=0,column=0,sticky='nsew')
         nav_scroll=ttk.Scrollbar(navigation,orient='vertical',command=self._navigation.yview)
         nav_scroll.grid(row=0,column=1,sticky='ns');self._navigation.configure(yscrollcommand=nav_scroll.set)
         self._navigation.tag_configure('group',font=typography.BODY_BOLD,foreground=colors.TEXT_SECONDARY)
         self._navigation.bind('<<TreeviewSelect>>',self._choose_navigation)
-        listing=ttk.Frame(panes);listing.columnconfigure(0,weight=1);listing.rowconfigure(1,weight=1)
-        ttk.Label(listing,textvariable=self._category,style='DialogTitle.TLabel').grid(row=0,column=0,sticky='w',pady=(0,6))
+        listing=ttk.Frame(panes,style='Library.Card.TFrame',width=430);listing.columnconfigure(0,weight=1);listing.rowconfigure(1,weight=1)
+        ttk.Label(listing,textvariable=self._category,style='Library.Heading.TLabel').grid(row=0,column=0,sticky='w',pady=(0,6))
         self._record_count=tk.StringVar()
-        ttk.Label(listing,textvariable=self._record_count).grid(row=0,column=1,sticky='e',padx=8)
-        self._tree=ttk.Treeview(listing,columns=('name','value','ownership','active'),show='headings',selectmode='browse',style='Library.Data.Treeview')
+        ttk.Label(listing,textvariable=self._record_count,style='Library.Field.TLabel').grid(row=0,column=1,sticky='e',padx=8)
+        self._tree=ttk.Treeview(listing,columns=('name','value','ownership','verification','active'),show='headings',selectmode='browse',style='Library.Data.Treeview')
         self._tree.grid(row=1,column=0,columnspan=2,sticky='nsew')
         scrollbar=ttk.Scrollbar(listing,orient='vertical',command=self._tree.yview)
         scrollbar.grid(row=1,column=2,sticky='ns');self._tree.configure(yscrollcommand=scrollbar.set)
         horizontal=ttk.Scrollbar(listing,orient='horizontal',command=self._tree.xview)
         horizontal.grid(row=2,column=0,columnspan=2,sticky='ew');self._tree.configure(xscrollcommand=horizontal.set)
-        for key,width in (('name',230),('value',90),('ownership',160),('active',100)):
+        for key,width in (('name',190),('value',80),('ownership',130),('verification',150),('active',90)):
             self._tree.column(key,width=width,minwidth=80,stretch=(key=='name'))
         self._tree.tag_configure('even',background=colors.CARD_SURFACE)
         self._tree.tag_configure('odd',background=colors.RESULT_SURFACE)
-        self._table_empty=ttk.Label(self._tree,wraplength=280,justify='center')
+        self._table_empty=ttk.Label(self._tree,wraplength=280,justify='center',style='Library.Muted.TLabel')
         self._tree.bind('<<TreeviewSelect>>',self._select_record)
-        scroll=ScrollableFrame(panes);scroll.set_wheel_active(True);self._body=scroll.content
+        scroll=self._detail_scroll=ScrollableFrame(panes,width=320,style='Library.Card.TFrame');scroll.set_wheel_active(True);self._body=scroll.content
+        self._body.configure(style='Library.Body.TFrame')
+        self._body.bind('<Configure>',self._fit_detail_text,add='+')
         self._body.columnconfigure(1,weight=1)
-        panes.add(navigation,weight=1);panes.add(listing,weight=3);panes.add(scroll,weight=3)
-        actions=ttk.Frame(self,padding=10);actions.grid(row=2,column=0,sticky='ew')
+        for pane,weight in zip((navigation,listing,scroll),PANE_WEIGHTS): panes.add(pane,weight=weight)
+        panes.bind('<Configure>',self._balance_panes,add='+')
+        actions=ttk.Frame(self,padding=SM,style='Library.Workspace.TFrame');actions.grid(row=3,column=0,sticky='ew',padx=SM)
         self._buttons={}
         for col,(key,command) in enumerate((('new',self._new),('edit',self._edit),('save',self._save),('cancel',self._cancel),('refresh',self._reload))):
-            button=ttk.Button(actions,command=command);button.grid(row=0,column=col,padx=(0,8));self._buttons[key]=button
-        ttk.Label(self,textvariable=self._status,wraplength=1050).grid(row=3,column=0,sticky='ew',padx=10,pady=(0,8))
+            button=ttk.Button(actions,command=command,style='Library.Primary.TButton' if key in ('new','save') else 'Library.Secondary.TButton');button.grid(row=0,column=col,padx=(0,8));self._buttons[key]=button
+        ttk.Label(self,textvariable=self._status,wraplength=1050,style='Library.Muted.TLabel').grid(row=4,column=0,sticky='ew',padx=10,pady=(0,8))
         self._search.trace_add('write',lambda *_:self._render_rows())
         self.protocol('WM_DELETE_WINDOW',self._close)
         owner.register_localizable(self)
@@ -148,6 +163,8 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         if self._controller.mode is not EditMode.BROWSE: self._capture_draft()
         tr=self._translate
         self.title(tr('library2.title'))
+        self._header_title.configure(text=tr('library.visual.title'))
+        self._header_subtitle.configure(text=tr('library.visual.subtitle'))
         self._search_label.configure(text=tr('library2.search'))
         self._advanced_button.configure(text=tr('library2.filters'))
         self._parent_label.configure(text=tr('library2.relationship'))
@@ -174,7 +191,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         for box,var,choices in zip(self._filter_boxes,(self._active,self._ownership,self._verification),self._filters):
             box.configure(values=tuple(choices));var.set(next(iter(choices)))
         for key,button in self._buttons.items(): button.configure(text=tr(f'library2.{key}'))
-        for key in ('name','value','ownership','active'): self._tree.heading(key,text=tr(f'library2.{key}'))
+        for key in ('name','value','ownership','verification','active'): self._tree.heading(key,text=tr(f'library2.{key}'))
         self._render_rows()
         self._render_editor() if self._controller.mode is not EditMode.BROWSE else self._render_details()
 
@@ -192,10 +209,14 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
             owner=c.service.ownership(c.category,row)
             active=getattr(row,'is_active',None)
             self._tree.insert('', 'end',iid=key,tags=('even' if index%2==0 else 'odd',),values=(record_label(row,self._translate) or self._translate(f'library2.category.{c.category}'),display,self._translate(f'library2.ownership.{owner}'),
+                self._translate(f'formula2.verification_status.{record_verification(row).value}') if record_verification(row) else '',
                 self._translate('library2.active' if active else 'library2.inactive') if active is not None else ''))
         self._record_count.set(f"{len(rows)} {self._translate('library2.record_count')}")
         if rows: self._table_empty.place_forget()
-        else: self._table_empty.place(relx=.5,rely=.5,anchor='center')
+        else:
+            filtered=bool(self._search.get()) or any(choices.get(var.get()) is not None for choices,var in zip(self._filters,(self._active,self._ownership,self._verification)))
+            self._table_empty.configure(text=self._translate('library.visual.no_matches' if filtered else 'library2.no_records'))
+            self._table_empty.place(relx=.5,rely=.5,anchor='center')
         if selected and selected[0] in self._row_map and c.mode is EditMode.BROWSE:
             self._tree.selection_set(selected[0])
 
@@ -214,44 +235,45 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         self._buttons['refresh'].configure(state='normal')
         for key in ('save','cancel'): self._buttons[key].configure(state='disabled')
         if c.selected is None:
-            ttk.Label(self._body,text=tr('library2.read_first'),wraplength=420).grid(row=0,column=0,columnspan=2,sticky='w')
+            ttk.Label(self._body,text=tr('library2.read_first'),wraplength=260,style='Library.Muted.TLabel').grid(row=0,column=0,columnspan=2,sticky='w')
             return
         detail=c.service.details(c.category,c.selected)
         heading=record_label(c.selected,tr)
-        ttk.Label(self._body,text=heading if len(heading)<=140 else heading[:137]+'…',wraplength=360,
-                  style='DialogTitle.TLabel').grid(row=0,column=0,columnspan=2,sticky='ew',pady=(0,6))
+        ttk.Label(self._body,text=heading if len(heading)<=140 else heading[:137]+'…',wraplength=260,
+                  style='Library.Heading.TLabel').grid(row=0,column=0,columnspan=2,sticky='ew',pady=(0,6))
         state=tr('library2.editable' if detail.editable else 'library2.read_only')
         ttk.Label(self._body,text=f"{tr(f'library2.ownership.{detail.ownership}')} · {state}",
-                  wraplength=360).grid(row=1,column=0,columnspan=2,sticky='w',pady=(0,8))
+                  wraplength=260,style='Library.Info.TLabel' if detail.editable else 'Library.Muted.TLabel').grid(row=1,column=0,columnspan=2,sticky='w',pady=(0,8))
         groups={}
         for key,value in detail.values:
-            groups.setdefault(detail_group(key),[]).append((key,value))
+            if visible_detail(value): groups.setdefault(detail_group(key),[]).append((key,value))
         row=2
         for group,items in groups.items():
-            if group in ('technical','relationships'):
-                region=DetailDisclosure(self._body,tr(f'library2.section.{group}'))
+            if group in ('technical','relationships','source'):
+                region=DetailDisclosure(self._body,tr(f'library2.section.{group}'),style='Library.Body.TFrame',body_style='Library.Body.TFrame')
                 body=region.body
             else:
-                region=ttk.LabelFrame(self._body,text=tr(f'library2.section.{group}'),padding=8)
+                region=ttk.LabelFrame(self._body,text=tr(f'library2.section.{group}'),padding=SM,style='Library.Section.TLabelframe')
                 body=region
             region.grid(row=row,column=0,columnspan=2,sticky='ew',pady=(0,8))
             body.columnconfigure(1,weight=1)
             for index,(key,value) in enumerate(items):
+                value_style='Library.'+verification_role(value)+'.TLabel' if isinstance(value,VerificationStatus) else 'Library.Value.TLabel'
                 if isinstance(value,bool):
                     value=tr(('library2.active' if value else 'library2.inactive') if key=='is_active' else ('library2.yes' if value else 'library2.no'))
                 elif isinstance(value,VerificationStatus): value=tr(f'formula2.verification_status.{value.value}')
                 elif isinstance(value,float): value=number(value)
                 elif hasattr(value,'isoformat'): value=value.isoformat()
-                ttk.Label(body,text=tr(f'library2.field.{key}'),wraplength=320).grid(row=index*2,column=0,columnspan=2,sticky='w',pady=(5,1))
-                ttk.Label(body,text=str(value),wraplength=320,justify='left').grid(row=index*2+1,column=0,columnspan=2,sticky='ew',pady=(0,3))
+                ttk.Label(body,text=tr(f'library2.field.{key}'),wraplength=260,style='Library.Field.TLabel').grid(row=index*2,column=0,columnspan=2,sticky='w',pady=(5,1))
+                ttk.Label(body,text=str(value),wraplength=260,justify='left',style=value_style).grid(row=index*2+1,column=0,columnspan=2,sticky='ew',pady=(0,3))
             row+=1
         for source in detail.sources:
             rows=source_rows(source,tr)
-            primary=' · '.join(value for key,value in rows if key in (tr('formula2.source.source_organization'),tr('formula2.source.document'),tr('formula2.source.verification_status')))
-            region=DetailDisclosure(self._body,tr('library2.source_details'),primary,wraplength=360)
+            primary=' · '.join(value for key in (tr('formula2.source.verification_status'),tr('formula2.source.source_type')) for name,value in rows if name==key)
+            region=DetailDisclosure(self._body,tr('library2.source_details'),primary,wraplength=260,style='Library.Body.TFrame',body_style='Library.Body.TFrame',summary_style='Library.'+verification_role(source.verification_status)+'.TLabel')
             region.grid(row=row,column=0,columnspan=2,sticky='ew',pady=(0,8))
             for index,(key,value) in enumerate(rows):
-                ttk.Label(region.body,text=f'{key}: {value}',wraplength=360,justify='left').grid(row=index,column=0,sticky='w',pady=2)
+                ttk.Label(region.body,text=f'{key}: {value}',wraplength=260,justify='left',style='Library.Field.TLabel').grid(row=index,column=0,sticky='w',pady=2)
             row+=1
         self._status.set(tr('library2.protected') if not detail.editable else '')
 
@@ -299,18 +321,18 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         self._tree.configure(selectmode='none')
         for key in ('new','edit','refresh'): self._buttons[key].configure(state='disabled')
         for key in ('save','cancel'): self._buttons[key].configure(state='normal')
-        ttk.Label(self._body,text=tr('library2.new' if c.mode is EditMode.CREATE else 'library2.edit'),
-                  style='DialogTitle.TLabel').grid(row=0,column=0,columnspan=2,sticky='w',pady=(0,8))
+        ttk.Label(self._body,text=tr('library.visual.create_mode' if c.mode is EditMode.CREATE else 'library.visual.edit_mode'),
+                  style='Library.Heading.TLabel').grid(row=0,column=0,columnspan=2,sticky='w',pady=(0,8))
         row=1
         previous_group=None
-        for field in CATEGORY_BY_CODE[c.category].fields:
+        for field in ordered_editor_fields(CATEGORY_BY_CODE[c.category].fields):
             group=detail_group(field.name)
             if group!=previous_group:
-                ttk.Label(self._body,text=tr(f'library2.section.{group}'),style='FormulaSectionTitle.TLabel').grid(
-                    row=row,column=0,columnspan=2,sticky='w',pady=(8,4))
+                ttk.Label(self._body,text=tr(f'library2.section.{group}'),style='Library.Heading.TLabel').grid(
+                    row=row*2,column=0,columnspan=2,sticky='w',pady=(SM,4))
                 previous_group=group;row+=1
             label_key=f'formula2.source.{field.name}' if c.category=='sources' else f'library2.field.{field.name}'
-            ttk.Label(self._body,text=tr(label_key)).grid(row=row,column=0,sticky='nw',padx=(0,8),pady=3)
+            ttk.Label(self._body,text=tr(label_key),wraplength=260,style='Library.Field.TLabel').grid(row=row*2,column=0,columnspan=2,sticky='nw',pady=(SM,3))
             raw=c.draft.get(field.name)
             if field.kind=='bool':
                 var=tk.BooleanVar(value=True if raw is None else raw)
@@ -329,18 +351,36 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
                         current=f'{tr("library2.missing_reference")} {raw}';choices[current]=raw
                     self._edit_choices[field.name]=choices
                     var=tk.StringVar(value=current)
-                    widget=ttk.Combobox(self._body,textvariable=var,values=tuple(choices),state='readonly',width=34)
+                    widget=ttk.Combobox(self._body,textvariable=var,values=tuple(choices),state='readonly',width=26,style='Library.TCombobox')
                     if field.name=='system_id': widget.bind('<<ComboboxSelected>>',self._editor_system_changed)
                 else:
                     var=tk.StringVar(value='' if raw is None else raw.isoformat() if hasattr(raw,'isoformat') else str(raw))
-                    widget=ttk.Entry(self._body,textvariable=var,width=36)
+                    widget=ttk.Entry(self._body,textvariable=var,width=26,style='Library.TEntry')
                 self._edit_vars[field.name]=var
             self._edit_vars[field.name]=var
             if c.mode is EditMode.EDIT and field.name==CATEGORY_BY_CODE[c.category].key_field:
                 widget.configure(state='disabled')
-            widget.grid(row=row,column=1,sticky='ew',pady=3)
+            widget.grid(row=row*2+1,column=0,columnspan=2,sticky='ew',pady=3)
             row+=1
         self._status.set(tr('library2.edit_notice'))
+
+    def _fit_detail_text(self, _event: object = None) -> None:
+        """Wrap mounted text to its local viewport, without reading records again."""
+        width=max(160,self._detail_scroll.canvas.winfo_width()-48)
+        def fit(parent):
+            for child in parent.winfo_children():
+                if isinstance(child,ttk.Label) and abs(int(float(child.cget('wraplength') or 0))-width)>8:
+                    child.configure(wraplength=width)
+                fit(child)
+        fit(self._body)
+
+    def _balance_panes(self, event: tk.Event) -> None:
+        """Apply shared proportions on window resize; retain manual sash adjustments."""
+        if event.width<800 or getattr(self,'_pane_layout_width',None)==event.width:
+            return
+        self._pane_layout_width=event.width
+        for index,position in enumerate(pane_positions(event.width)):
+            self._panes.sashpos(index,position)
 
     def _capture_draft(self) -> None:
         for key,var in self._edit_vars.items():

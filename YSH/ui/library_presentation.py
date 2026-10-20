@@ -18,3 +18,11 @@ def detail_group(name: str) -> str:
                 "display_name", "ship_name", "key", "property_name"):
         return "basic"
     return "engineering"
+
+
+def ordered_editor_fields(fields: tuple) -> tuple:
+    """Keep each visual section contiguous without changing the field allowlist."""
+    groups = {}
+    for field in fields:
+        groups.setdefault(detail_group(field.name), []).append(field)
+    return tuple(field for group in groups.values() for field in group)

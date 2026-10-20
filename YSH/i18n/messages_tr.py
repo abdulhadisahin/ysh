@@ -733,3 +733,6 @@ MESSAGES.update({'transfer.design.volume.label': 'Transfer hacmi Vtransfer', 'tr
 
 # Formula View presentation chrome.
 MESSAGES.update({'formula.view_title': 'Formül Görünümü', 'formula.visual.historical': 'Geçmiş Kayıt · Salt Okunur', 'formula.visual.previous': 'Önceki', 'formula.visual.next': 'Sonraki'})
+
+# Engineering Library presentation chrome.
+MESSAGES.update({'library.visual.title': 'Kütüphaneler', 'library.visual.subtitle': 'Mühendislik verileri ve referans kaynakları', 'library.visual.no_matches': 'Arama ve filtrelere uygun kayıt bulunamadı.', 'library.visual.edit_mode': 'Düzenleme Modu', 'library.visual.create_mode': 'Yeni Kayıt', 'library2.verification': 'Doğrulama'})
