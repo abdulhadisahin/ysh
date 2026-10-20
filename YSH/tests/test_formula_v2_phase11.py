@@ -289,7 +289,7 @@ def test_generic_renderer_uses_vertical_sections_and_existing_equation_renderer(
     for name in ('LabelFrame','Frame','Label','Button'):
         monkeypatch.setattr(view.ttk,name,Widget)
     class Disclosure(Widget):
-        def __init__(self,parent,title,summary=''):
+        def __init__(self,parent,title,summary='',**kwargs):
             super().__init__(parent,text=title)
             self.body=Widget()
     monkeypatch.setattr(view,'DetailDisclosure',Disclosure)

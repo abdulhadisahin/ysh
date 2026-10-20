@@ -73,6 +73,12 @@ class FormulaBlock:
     sections: tuple[FormulaSection, ...]
 
 
+def active_step_id(steps: tuple, previous: str | None) -> str | None:
+    """Keep display selection only while its frozen step is still present."""
+    ids = tuple(step.step_id for step in steps)
+    return previous if previous in ids else (ids[0] if ids else None)
+
+
 class FormulaReferencePanel(ttk.Frame):
     """Present FormulaStep explanations on demand without recalculating."""
 
@@ -86,6 +92,8 @@ class FormulaReferencePanel(ttk.Frame):
         step_provider: Callable[[], tuple] | None = None,
         *,
         separate_window: bool = False,
+        module_key: str | None = None,
+        historical: bool = False,
     ) -> None:
         """Create a collapsed panel backed by a page-owned section provider."""
         super().__init__(parent)
@@ -94,6 +102,13 @@ class FormulaReferencePanel(ttk.Frame):
         self._translate = translate or (lambda key: key)
         self._content_available = content_available
         self._step_provider = step_provider
+        self._module_key = module_key
+        self._historical = historical
+        self._active_step_id = None
+        self._steps = ()
+        self._rendered_signature = None
+        from ui.theme.formula_visuals import identity
+        self._visual_prefix = identity(module_key)[0]
         self._expanded = False
         self._separate_window = separate_window
         self._dialog: tk.Toplevel | None = None
@@ -115,8 +130,8 @@ class FormulaReferencePanel(ttk.Frame):
 
     def _create_content(self, parent: tk.Misc) -> ttk.LabelFrame:
         content = ttk.LabelFrame(
-            parent, text=self._translate("formula.view_title" if self._separate_window else "formula.reference"),
-            style="FormulaCard.TLabelframe", padding=MD,
+            parent, text="" if self._step_provider else self._translate("formula.view_title" if self._separate_window else "formula.reference"),
+            style="FVContainer.TLabelframe" if self._step_provider else "FormulaCard.TLabelframe", padding=MD,
         )
         content.columnconfigure(0, weight=1)
         return content
@@ -127,6 +142,10 @@ class FormulaReferencePanel(ttk.Frame):
             self._dialog.destroy()
         self._dialog = None
         self._content = None
+        self._rendered_signature = None
+        self._steps = ()
+        self._disclosures = []
+        self._step_regions = {}
         self._formula_strips.clear()
         self._equation_images.clear()
         self._formula_asset_images.clear()
@@ -142,10 +161,11 @@ class FormulaReferencePanel(ttk.Frame):
         self._dialog = tk.Toplevel(self)
         self._dialog.title(self._translate("formula.view_title" if self._separate_window else "formula.reference"))
         self._dialog.transient(self.winfo_toplevel())
-        self._dialog.geometry("920x640")
+        self._dialog.geometry("1100x750")
         self._dialog.minsize(700, 450)
         self._dialog.protocol("WM_DELETE_WINDOW", self._close_dialog)
         host = ScrollableFrame(self._dialog)
+        self._scroll_host = host
         host.pack(fill="both", expand=True)
         host.set_wheel_active(True)
         self._content = self._create_content(host.content)
@@ -201,7 +221,7 @@ class FormulaReferencePanel(ttk.Frame):
     def refresh_texts(self) -> None:
         """Refresh panel chrome while retaining its expanded/collapsed state."""
         if self._content is not None:
-            self._content.configure(text=self._translate("formula.view_title" if self._separate_window else "formula.reference"))
+            self._content.configure(text="" if self._step_provider else self._translate("formula.view_title" if self._separate_window else "formula.reference"))
         if self._dialog is not None:
             self._dialog.title(self._translate("formula.view_title" if self._separate_window else "formula.reference"))
         self._toggle.configure(
@@ -211,35 +231,86 @@ class FormulaReferencePanel(ttk.Frame):
         )
         self._configure_toggle_stable_texts()
         if self._expanded:
+            self._rendered_signature = None
             self.refresh()
 
     def refresh(self) -> None:
         """Render current authoritative static and dynamic page sections."""
         if self._content is None:
             return
+        available = self._content_available is None or self._content_available()
+        provider = getattr(self, "_step_provider", None)
+        steps = provider() if available and provider is not None else ()
+        if steps:
+            from engineering.formula.models import ordered_steps
+            steps = ordered_steps(steps)
+            selected_id = active_step_id(steps, self._active_step_id)
+            if getattr(self, '_rendered_signature', None) == (steps, selected_id):
+                return  # Preserve disclosure/focus state on unrelated page reflows.
+        self._rendered_signature = None
+        self._steps = ()
+        self._disclosures = []
+        self._step_regions = {}
         for child in self._content.winfo_children():
             child.destroy()
         self._formula_strips.clear()
         self._equation_images.clear()
         self._formula_asset_images.clear()
         self._section_marker_images.clear()
-        if self._content_available is not None and not self._content_available():
+        if not available:
             EmptyState(
                 self._content, "formula", "Formül referansı henüz hazır değil",
                 "Önce hesaplama yapın. Formül, değişkenler ve yerine koyma adımları burada gösterilecektir.",
                 image_size=190,
             ).grid(row=0, column=0, sticky="ew", pady=SM)
             return
-        provider = getattr(self, "_step_provider", None)
-        steps = provider() if provider is not None else ()
         if steps:
-            from engineering.formula.models import ordered_steps
             from ui.widgets.formula_steps import render_step
-            for row, step in enumerate(ordered_steps(steps)):
-                render_step(self, step, row)
+            self._steps = steps
+            self._active_step_id = active_step_id(self._steps, self._active_step_id)
+            self._render_step_header()
+            selected = next(step for step in self._steps if step.step_id == self._active_step_id)
+            render_step(self, selected, 1)
+            self._rendered_signature = (steps, self._active_step_id)
             return
         for row, block in enumerate(self._blocks()):
             self._render_block(block, row)
+
+    def _render_step_header(self) -> None:
+        """Compact identity and selection chrome; only stored display steps are read."""
+        from ui.theme.formula_visuals import identity
+        prefix, _, _, _, module_label = identity(self._module_key)
+        header = ttk.Frame(self._content, style=prefix+'Header.TFrame')
+        header.grid(row=0, column=0, sticky='ew', pady=(0, SM))
+        header.columnconfigure(1, weight=1)
+        ttk.Label(header, text='ƒx', style=prefix+'Title.TLabel').grid(row=0, column=0, rowspan=2, padx=(0, MD))
+        ttk.Label(header, text=self._translate('formula.view_title'), style=prefix+'Title.TLabel').grid(row=0,column=1,sticky='w')
+        ttk.Label(header, text=self._translate(module_label), style=prefix+'Module.TLabel').grid(row=1,column=1,sticky='w')
+        if self._historical:
+            ttk.Label(header, text=self._translate('formula.visual.historical'), style='FVMuted.TLabel').grid(row=0,column=2,sticky='e')
+        nav = ttk.Frame(header, style=prefix+'Header.TFrame')
+        nav.grid(row=2,column=0,columnspan=3,sticky='ew',pady=(SM,0)); nav.columnconfigure(1,weight=1)
+        index = next(i for i,s in enumerate(self._steps) if s.step_id == self._active_step_id)
+        self._previous = ttk.Button(nav,text=self._translate('formula.visual.previous'),command=lambda:self._select_step(index-1))
+        self._previous.grid(row=0,column=0,sticky='w',padx=(0,SM))
+        self._previous.configure(state='disabled' if index==0 else 'normal')
+        self._step_selector = ttk.Combobox(nav,state='readonly',width=26,style=prefix+'Selector.TCombobox',
+            values=tuple(f'{i+1}. {self._translate(s.title_key)}' for i,s in enumerate(self._steps)))
+        self._step_selector.grid(row=0,column=1,sticky='ew'); self._step_selector.current(index)
+        self._step_selector.bind('<<ComboboxSelected>>',lambda event:self._select_step(self._step_selector.current()))
+        self._next = ttk.Button(nav,text=self._translate('formula.visual.next'),command=lambda:self._select_step(index+1))
+        self._next.grid(row=0,column=2,sticky='e',padx=(SM,0))
+        self._next.configure(state='disabled' if index==len(self._steps)-1 else 'normal')
+
+    def _select_step(self, index: int) -> None:
+        """Select by position without changing any FormulaStep or evaluating equations."""
+        if not 0 <= index < len(self._steps):
+            return
+        self._active_step_id = self._steps[index].step_id
+        self.refresh()
+        host = getattr(self, '_scroll_host', None)
+        if host is not None:
+            host.canvas.yview_moveto(0)
 
     def _blocks(self) -> tuple[FormulaBlock, ...]:
         """Group consecutive page-owned sections into engineering stages."""

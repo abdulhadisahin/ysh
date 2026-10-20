@@ -120,7 +120,8 @@ class CalculationHistoryWindow(tk.Toplevel):
         ttk.Button(self._body, text='PDF Raporu Oluştur',
                    command=lambda: save_snapshot_pdf(self, snapshot)).grid(row=3, column=0, sticky='w', pady=8)
         panel=FormulaReferencePanel(self._body,lambda:[],tr,
-                                    step_provider=lambda:snapshot.formula_steps)
+                                    step_provider=lambda:snapshot.formula_steps,
+                                    module_key=snapshot.module_code.value, historical=True)
         panel.grid(row=1,column=0,sticky='ew',pady=8)
         panel.toggle()
         self._raw(snapshot.evidence,2)

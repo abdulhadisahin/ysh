@@ -9,6 +9,7 @@ from . import colors, typography
 from .spacing import SM
 from .pipe_pilot import configure_pipe_pilot
 from .module_visuals import configure_module_visuals
+from .formula_visuals import configure_formula_visuals
 
 
 def apply_theme(root: tk.Misc) -> None:
@@ -339,6 +340,7 @@ def apply_theme(root: tk.Misc) -> None:
     style.configure("ChartSummary.TLabel", background=colors.CARD_SURFACE, foreground=colors.TEXT_SECONDARY, font=typography.MUTED)
     configure_pipe_pilot(style)
     configure_module_visuals(style)
+    configure_formula_visuals(style)
 
 
 def _configure_button(style: ttk.Style, name: str, background: str, active: str, foreground: str) -> None:

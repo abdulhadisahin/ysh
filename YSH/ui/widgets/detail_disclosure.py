@@ -9,9 +9,10 @@ class DetailDisclosure(ttk.Frame):
     """Keep a summary visible while the complete original detail remains available."""
 
     def __init__(self, parent: tk.Misc, title: str, summary: str = "", *,
-                 wraplength: int = 620) -> None:
+                 wraplength: int = 620, style: str = "", summary_style: str = "",
+                 body_style: str = "") -> None:
         """Create a collapsed detail body without discarding any of its data."""
-        super().__init__(parent)
+        super().__init__(parent, style=style)
         self.columnconfigure(0, weight=1)
         self._title = title
         self.expanded = False
@@ -19,9 +20,9 @@ class DetailDisclosure(ttk.Frame):
                                   style="Secondary.TButton")
         self._toggle.grid(row=0, column=0, sticky="w")
         if summary:
-            ttk.Label(self, text=summary if len(summary) <= 180 else summary[:177] + "…", wraplength=wraplength, justify="left").grid(
+            ttk.Label(self, text=summary if len(summary) <= 180 else summary[:177] + "…", wraplength=wraplength, justify="left", style=summary_style).grid(
                 row=1, column=0, sticky="ew", pady=(3, 0))
-        self.body = ttk.Frame(self)
+        self.body = ttk.Frame(self, style=body_style)
         self.body.grid(row=2, column=0, sticky="ew", pady=(6, 0))
         self.body.grid_remove()
 

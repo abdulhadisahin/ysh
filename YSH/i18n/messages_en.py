@@ -715,3 +715,6 @@ MESSAGES["pipe.wall_calculated"] = 'Wall thickness: {value} mm'
 
 # Calculation-page visual field captions; engineering keys remain unchanged.
 MESSAGES.update({'transfer.design.volume.label': 'Transfer volume Vtransfer', 'transfer.design.target_time.label': 'Target transfer time tdef', 'transfer.design.pump_capacity.label': 'Selected pump capacity Qtulumba (optional)', 'field.npsh_required_optional': 'Required NPSH NPSHr (optional)'})
+
+# Formula View presentation chrome.
+MESSAGES.update({'formula.view_title': 'Formula View', 'formula.visual.historical': 'Historical record · Read only', 'formula.visual.previous': 'Previous', 'formula.visual.next': 'Next'})

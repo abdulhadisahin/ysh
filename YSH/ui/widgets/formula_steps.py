@@ -106,51 +106,83 @@ def step_sections(step: FormulaStep, translate: Callable[[str], str]) -> tuple[S
     return tuple(sections)
 
 
+def verification_style(section: StepSection, translate: Callable[[str], str]) -> str:
+    """Color only the recorded verification label; source presence is never proof."""
+    status_label = translate('formula2.source.verification_status')
+    value = next((value for label, value in section.rows if label == status_label), '')
+    for status, role in (('VERIFIED','Verified'), ('PARTIALLY_VERIFIED','Warning'),
+                         ('USER_SUPPLIED','Info'), ('UNVERIFIED','Warning'), ('DEPRECATED','Error')):
+        if value == translate('formula2.verification_status.'+status):
+            return 'FV'+role+'.TLabel'
+    return 'FVMuted.TLabel'
+
+
+def source_summary(section: StepSection, translate: Callable[[str], str]) -> str:
+    """Keep verification visible even when document metadata is very long."""
+    values = dict(section.rows)
+    return ' · '.join(values[key] for key in (
+        translate('formula2.source.verification_status'), translate('formula2.source.source_type'))
+        if key in values) or section.text
+
+
 def render_step(panel: object, step: FormulaStep, row: int) -> None:
-    """Render a vertical engineering card using existing equation fallbacks."""
+    """Present one selected, precomputed step; asset resolution and evidence stay intact."""
+    from ui.theme.spacing import XS, SM, MD
     tr = panel._translate
-    card = ttk.LabelFrame(panel._content, text=tr(step.title_key), padding=12,
-                          style="FormulaStage.TLabelframe")
-    card.grid(row=row, column=0, sticky="ew", pady=(0, 12))
+    prefix = getattr(panel, '_visual_prefix', 'FVNeutral')
+    card = ttk.LabelFrame(panel._content, text=tr(step.title_key), padding=MD,
+                          style=prefix+'Stage.TLabelframe')
+    card.grid(row=row, column=0, sticky='ew', pady=(0, MD))
     card.columnconfigure(0, weight=1)
-    header = ttk.Frame(card, style="FormulaDocument.TFrame")
-    header.grid(row=0, column=0, sticky="ew")
-    header.columnconfigure(1, weight=1)
-    ttk.Label(header, text=tr(f"formula2.classification.{step.classification.value}"),
-              style="FormulaBadge.TLabel").grid(row=0, column=0, sticky="w")
-    sources = tuple(step.sources) + tuple(v.source for v in step.variables if v.source) + tuple(v.source for v in step.used_values)
-    statuses = tuple(dict.fromkeys(s.verification_status for s in sources if s.verification_status))
-    if statuses:
-        ttk.Label(header, text=" · ".join(tr(f"formula2.verification_status.{status.value}") for status in statuses),
-                  style="FormulaDocument.TLabel", wraplength=360).grid(row=0, column=1, sticky="e")
+    panel._step_card = card
+    panel._step_regions = {}
+    panel._disclosures = []
+    ttk.Frame(card, style=prefix+'Accent.TFrame').grid(row=0,column=0,sticky='ew',pady=(0,SM))
+    header = ttk.Frame(card, style='FVBody.TFrame')
+    header.grid(row=1,column=0,sticky='ew');header.columnconfigure(0,weight=1)
+    ttk.Label(header, text=tr(f'formula2.classification.{step.classification.value}'),
+              style='FVMetadata.TLabel', wraplength=640).grid(row=0,column=0,sticky='w')
     from ui.widgets.formula_view import FormulaSection
-    for index, section in enumerate(step_sections(step, tr), 1):
-        if section.details:
-            region = DetailDisclosure(card, tr(f"formula2.{section.key}"), section.text)
+    for index, section in enumerate(step_sections(step, tr), 2):
+        if section.details or section.key == 'source':
+            summary = source_summary(section,tr) if section.key=='source' else section.text
+            region = DetailDisclosure(card, tr(f'formula2.{section.key}'), summary,
+                style='FVBody.TFrame', body_style='FVBody.TFrame',
+                summary_style=verification_style(section,tr) if section.key=='source' else 'FVMetadata.TLabel')
+            panel._disclosures.append(region)
             body = region.body
         else:
-            region = ttk.Frame(card, style="FormulaDocument.TFrame")
-            ttk.Label(region, text=tr(f"formula2.{section.key}"),
-                      style="FormulaSectionTitle.TLabel").grid(row=0, column=0, sticky="w")
-            body = ttk.Frame(region, style="FormulaDocument.TFrame")
-            body.grid(row=1, column=0, sticky="ew", pady=(3, 0))
-        region.grid(row=index, column=0, sticky="ew", pady=(8, 0))
-        region.columnconfigure(0, weight=1)
-        body.columnconfigure(0, weight=1)
-        if section.key == "formula":
-            panel._render_section_content(
-                body, FormulaSection("FORMULA", section.text, asset_names=step_asset_names(step)),
-                "FormulaEquation",
-            )
+            region = ttk.Frame(card, style='FVBody.TFrame')
+            ttk.Label(region, text=tr(f'formula2.{section.key}'),
+                      style=prefix+'Heading.TLabel').grid(row=0,column=0,sticky='w')
+            body = ttk.Frame(region, style='FVBody.TFrame')
+            body.grid(row=1,column=0,sticky='ew',pady=(XS,0))
+        panel._step_regions.setdefault(section.key, []).append(region)
+        region.grid(row=index,column=0,sticky='ew',pady=(SM,0))
+        region.columnconfigure(0,weight=1);body.columnconfigure(0,weight=1)
+        if section.key == 'formula':
+            panel._render_section_content(body,
+                FormulaSection('FORMULA',section.text,asset_names=step_asset_names(step)), 'FormulaEquation')
             if STEP_ASSET_KEYS.get(step.step_id) in QUARANTINED_ASSETS:
-                ttk.Label(body, text=tr("formula2.asset_unverified"), wraplength=620,
-                          style="FormulaDocument.TLabel").grid(row=3, column=0, columnspan=5, sticky="w", pady=(4, 0))
+                ttk.Label(body,text=tr('formula2.asset_unverified'),wraplength=620,
+                          style='FVMetadata.TLabel').grid(row=3,column=0,columnspan=5,sticky='w',pady=(XS,0))
         elif section.rows:
-            for r, cells in enumerate(section.rows):
-                for c, value in enumerate(cells):
-                    body.columnconfigure(c, weight=1 if c == 1 else 0)
-                    ttk.Label(body, text=value, wraplength=420 if c == 1 else 180,
-                              justify="left", style="FormulaDocument.TLabel").grid(row=r, column=c, sticky="nw", padx=(0, 12), pady=2)
+            # Small native tables wrap inside the narrowest accepted window.
+            columns = len(section.rows[0])
+            widths = (72,220,110,80) if columns==4 else (90,140,70,160,130) if columns==5 else (180,440)
+            for r,cells in enumerate(section.rows):
+                for c,value in enumerate(cells):
+                    body.columnconfigure(c,weight=1 if c==1 else 0)
+                    style='FVTableHeader.TLabel' if r==0 and section.key in ('variables','used_values') else 'FVText.TLabel'
+                    if section.key=='source': style='FVMetadata.TLabel'
+                    if section.key=='used_values' and r>0 and step.used_values[r-1].is_overridden:
+                        style='FVOverride.TLabel'
+                    ttk.Label(body,text=value,wraplength=widths[min(c,len(widths)-1)],justify='left',
+                              style=style).grid(row=r,column=c,sticky='nw',padx=(0,SM),pady=2)
         else:
-            ttk.Label(body, text=section.text, wraplength=680, justify="left",
-                      style="FormulaDocumentResult.TLabel" if section.key == "result" else "FormulaDocument.TLabel").grid(sticky="ew")
+            style = prefix+'Result.TLabel' if section.key=='result' else (
+                'FVInfo.TLabel' if section.key=='reason' else 'FVSubstitution.TLabel' if section.key=='substitution' else 'FVText.TLabel')
+            if section.key=='check' and step.check:
+                role={'PASS':'Verified','WARNING':'Warning','FAIL':'Error'}.get(step.check.status.value,'Muted')
+                style='FV'+role+'.TLabel'
+            ttk.Label(body,text=section.text,wraplength=640,justify='left',style=style).grid(sticky='ew')

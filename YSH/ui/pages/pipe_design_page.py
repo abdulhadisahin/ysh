@@ -783,6 +783,7 @@ class PipeDesignPage(ttk.Frame):
             lambda: bool(self._diameter_result or self._wall_result),
             step_provider=self._formula_steps,
             separate_window=True,
+            module_key="pipe_design",
         )
         self._formula_panel.grid(row=3, column=0, sticky="ew", pady=(10, 0))
         self._responsive_layout_mode = ""
