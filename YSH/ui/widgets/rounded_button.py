@@ -9,6 +9,9 @@ from collections.abc import Callable
 from tkinter import font as tkfont
 from tkinter import ttk
 
+from ui.theme.module_visuals import MODULES
+from ui.theme import colors
+
 from ui.assets import action_icon_fit_mode, action_icon_path
 from ui.widgets.asset_loader import AssetImageLoader, LoadedImage
 from ui.widgets.tooltip import Tooltip
@@ -25,27 +28,17 @@ class RoundedButtonPalette:
     focus_border: str
 
 
-TRANSFER_PRIMARY_PALETTE = RoundedButtonPalette(
-    normal=("#102B46", "#B58A2A"),
-    hover=("#163957", "#D3B66A"),
-    pressed=("#091B2D", "#B58A2A"),
-    disabled=("#31465A", "#516275"),
-    focus_border="#F0D58D",
-)
-DISCHARGE_PRIMARY_PALETTE = RoundedButtonPalette(
-    normal=("#102B46", "#B58A2A"),
-    hover=("#163957", "#D3B66A"),
-    pressed=("#091B2D", "#B58A2A"),
-    disabled=("#31465A", "#516275"),
-    focus_border="#F0D58D",
-)
-SUCTION_PRIMARY_PALETTE = RoundedButtonPalette(
-    normal=("#35698F", "#244B69"),
-    hover=("#477B9F", "#244B69"),
-    pressed=("#244B69", "#18344B"),
-    disabled=("#C8D7E1", "#B2C3D0"),
-    focus_border="#244B69",
-)
+def _module_palette(key: str) -> RoundedButtonPalette:
+    """Use the master module identity without altering action semantics or sizes."""
+    _, accent, dark, _, _ = MODULES[key]
+    return RoundedButtonPalette(normal=(dark, accent), hover=(colors.NAVY, accent),
+        pressed=(colors.DEEP_NAVY, dark), disabled=(colors.TEXT_SECONDARY, colors.STRONG_BORDER),
+        focus_border=accent)
+
+
+TRANSFER_PRIMARY_PALETTE = _module_palette('transfer_pump')
+DISCHARGE_PRIMARY_PALETTE = _module_palette('discharge_head_loss')
+SUCTION_PRIMARY_PALETTE = _module_palette('suction_npsh')
 ADD_BUTTON_PALETTE = RoundedButtonPalette(
     normal=("#F0FAF7", "#159A55"),
     hover=("#E2F6EE", "#218F59"),

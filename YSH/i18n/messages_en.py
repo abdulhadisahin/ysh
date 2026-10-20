@@ -712,3 +712,6 @@ MESSAGES.update({
 })
 
 MESSAGES["pipe.wall_calculated"] = 'Wall thickness: {value} mm'
+
+# Calculation-page visual field captions; engineering keys remain unchanged.
+MESSAGES.update({'transfer.design.volume.label': 'Transfer volume Vtransfer', 'transfer.design.target_time.label': 'Target transfer time tdef', 'transfer.design.pump_capacity.label': 'Selected pump capacity Qtulumba (optional)', 'field.npsh_required_optional': 'Required NPSH NPSHr (optional)'})

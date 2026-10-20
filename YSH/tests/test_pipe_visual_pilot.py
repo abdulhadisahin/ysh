@@ -6,6 +6,7 @@ import pytest
 
 from ui.theme import colors
 from ui.theme import pipe_pilot as pilot
+from ui.theme.module_visuals import MODULES
 from ui.widgets.scrollable_page_host import ScrollablePageHost
 
 ROOT = Path(__file__).parents[1]
@@ -39,8 +40,8 @@ def test_pilot_registers_only_pipe_prefixed_styles() -> None:
 
 
 @pytest.mark.parametrize('key', ['pipe_design', 'transfer_pump', 'discharge_head_loss', 'suction_npsh'])
-def test_only_selected_pipe_tab_receives_teal_identity(monkeypatch, key: str) -> None:
-    """Changing tabs restores the accepted navy/gold treatment for non-pilot modules."""
+def test_selected_tab_receives_accepted_module_identity(monkeypatch, key: str) -> None:
+    """Changing tabs selects its identity without changing Pipe teal."""
     import ui.widgets.scrollable_page_host as module
     style = Style()
     monkeypatch.setattr(module.ttk, 'Style', lambda parent: style)
@@ -48,8 +49,8 @@ def test_only_selected_pipe_tab_receives_teal_identity(monkeypatch, key: str) ->
     owner = SimpleNamespace(select=lambda: str(frame), _page_keys={key: frame})
     ScrollablePageHost._apply_active_tab_color(owner)
     state = style.maps['YSH.TNotebook.Tab']
-    assert state['background'][0] == ('selected', pilot.PIPE_DARK if key == 'pipe_design' else colors.DEEP_NAVY)
-    assert state['foreground'][0] == ('selected', colors.WHITE if key == 'pipe_design' else colors.GOLD)
+    assert state['background'][0] == ('selected', pilot.PIPE_DARK if key == 'pipe_design' else MODULES[key][2])
+    assert state['foreground'][0] == ('selected', colors.WHITE)
 
 
 @pytest.mark.parametrize('page', ['transfer_pump_page', 'discharge_head_loss_page', 'suction_npsh_page'])

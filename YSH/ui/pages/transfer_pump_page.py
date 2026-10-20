@@ -1,6 +1,7 @@
 """TTK calculation page for fuel-transfer pump capacity estimates."""
 
 from __future__ import annotations
+from ui.widgets.module_visuals import apply_module_visuals
 
 import tkinter as tk
 import logging
@@ -290,6 +291,7 @@ class TransferPumpPage(ttk.LabelFrame):
         self._estimate_actions.bind("<Configure>", self._on_action_configure, add="+")
         self.after_idle(self._reflow_layout)
         self._sync_result_empty_state()
+        apply_module_visuals(self, "transfer_pump")
 
     @staticmethod
     def _create_formula_toggle(parent: tk.Misc, text: str, command: Callable[[], None]) -> ttk.Button:

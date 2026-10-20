@@ -14,12 +14,14 @@ def _source(path: str) -> str:
 
 
 def test_non_pipe_primary_palettes_are_solid_module_actions() -> None:
-    """Transfer follows D243 navy/gold while remaining modules retain their identities."""
-    source = _source("ui/widgets/rounded_button.py")
-
-    for fill in ('normal=("#102B46", "#B58A2A")', 'normal=("#35698F", "#244B69")'):
-        assert fill in source
-    assert source.count('normal=("#102B46", "#B58A2A")') >= 2
+    """The accepted master propagation keeps solid actions with coordinated identities."""
+    from ui.theme.module_visuals import MODULES
+    from ui.widgets.rounded_button import (
+        TRANSFER_PRIMARY_PALETTE, DISCHARGE_PRIMARY_PALETTE, SUCTION_PRIMARY_PALETTE,
+    )
+    for key, palette in zip(MODULES, (TRANSFER_PRIMARY_PALETTE, DISCHARGE_PRIMARY_PALETTE, SUCTION_PRIMARY_PALETTE)):
+        _, accent, dark, _, _ = MODULES[key]
+        assert palette.normal == (dark, accent)
 
 
 def test_primary_buttons_use_white_live_text_and_crud_stays_restrained() -> None:

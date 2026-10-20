@@ -1,6 +1,7 @@
 """Tkinter page for suction-line loss and ENPY/NPSH calculations."""
 
 from __future__ import annotations
+from ui.widgets.module_visuals import apply_module_visuals
 
 import tkinter as tk
 import logging
@@ -122,10 +123,10 @@ class SuctionNPSHPage(ttk.Frame):
         fluid = self._fluid_card
         fluid.grid(row=1, column=0, sticky="nsew", padx=(0, 6))
         for row, (key, label, suffix) in enumerate((
-            ("diameter", "field.pipe_inside_diameter", " Di, mm"),
-            ("flow", "field.flow_rate", " Q, m³/h"),
+            ("diameter", "field.pipe_inside_diameter", " Di"),
+            ("flow", "field.flow_rate", " Q"),
             ("viscosity", "field.kinematic_viscosity", ""),
-            ("length", "field.pipe_length", " L, m"),
+            ("length", "field.pipe_length", " L"),
         )):
             label_widget = ttk.Label(fluid, text=f"{self._translate(label)}{suffix}")
             label_widget.grid(row=row, column=0, sticky="w", pady=3)
@@ -133,6 +134,8 @@ class SuctionNPSHPage(ttk.Frame):
             entry = ttk.Entry(fluid, textvariable=self._fields[key], width=22)
             entry.grid(row=row, column=1, sticky="w", padx=(12, 0), pady=3)
             self._pipe_entries[key] = entry
+            unit = {"diameter":"mm", "flow":"m³/h", "length":"m"}.get(key)
+            if unit: ttk.Label(fluid, text=unit).grid(row=row, column=2, sticky="w", padx=8)
         self._viscosity_box = ttk.Combobox(
             fluid, textvariable=self._viscosity_unit, values=("cSt", "m²/s"),
             state="readonly", width=10,
@@ -152,10 +155,11 @@ class SuctionNPSHPage(ttk.Frame):
         self._material_box = ttk.Combobox(fluid, textvariable=self._material, state="readonly", width=34)
         self._material_box.grid(row=5, column=1, columnspan=2, sticky="w", padx=(12, 0), pady=3)
         self._material_box.bind("<<ComboboxSelected>>", self._load_selected_roughness)
-        self._active_roughness_label = ttk.Label(fluid, text=f"{self._translate('field.active_roughness')}, mm")
+        self._active_roughness_label = ttk.Label(fluid, text=self._translate("field.active_roughness"))
         self._active_roughness_label.grid(row=6, column=0, sticky="w", pady=3)
         self._roughness_entry = ttk.Entry(fluid, textvariable=self._fields["roughness"], width=22)
         self._roughness_entry.grid(row=6, column=1, sticky="w", padx=(12, 0), pady=3)
+        ttk.Label(fluid, text="mm").grid(row=6, column=2, sticky="w", padx=8)
         self._warning_fluid_label = ttk.Label(fluid, text=self._translate("field.system_fluid"))
         self._warning_fluid_label.grid(row=7, column=0, sticky="w", pady=3)
         self._warning_fluid_box = ttk.Combobox(fluid, textvariable=self._warning_fluid, state="readonly", width=22)
@@ -196,13 +200,15 @@ class SuctionNPSHPage(ttk.Frame):
         self._enpy_card.configure(text=self._translate("section.enpy_calculation"))
         for row, (key, label, suffix) in enumerate((
             ("pressure", "field.suction_pressure", " PE"), ("vapour", "field.vapour_pressure", " Pb"),
-            ("density", "field.fluid_density", " ρ, kg/m³"), ("height", "field.static_suction_height", " HEgeo, m"),
-            ("required", "field.npsh_required", ", m (optional)"),
+            ("density", "field.fluid_density", " ρ"), ("height", "field.static_suction_height", " HEgeo"),
+            ("required", "field.npsh_required_optional", ""),
         )):
             label_widget = ttk.Label(enpy, text=f"{self._translate(label)}{suffix}")
             label_widget.grid(row=row, column=0, sticky="w", pady=3)
             setattr(self, f"_field_label_{key}", (label_widget, label, suffix))
             ttk.Entry(enpy, textvariable=self._fields[key], width=22).grid(row=row, column=1, sticky="w", padx=(12, 0), pady=3)
+            unit = {"density":"kg/m³", "height":"m", "required":"m"}.get(key)
+            if unit: ttk.Label(enpy, text=unit).grid(row=row, column=2, sticky="w", padx=8)
         for row, variable in ((0, self._pressure_unit), (1, self._vapour_unit)):
             box = ttk.Combobox(enpy, textvariable=variable, values=("Pa", "kPa", "bar"), state="readonly", width=10)
             box.grid(row=row, column=2, sticky="w", padx=8)
@@ -284,6 +290,7 @@ class SuctionNPSHPage(ttk.Frame):
         actions.bind("<Configure>", self._on_actions_configure, add="+")
         self.after_idle(self._reflow_layout)
         self._sync_result_empty_state()
+        apply_module_visuals(self, "suction_npsh")
 
     @staticmethod
     def _create_formula_toggle(parent: tk.Misc, text: str, command: Callable[[], None]) -> ttk.Button:
@@ -394,7 +401,7 @@ class SuctionNPSHPage(ttk.Frame):
         self._enpy_metric.set_label(self._translate("result.available_npsh"))
         self._roughness_source_label.configure(text=self._translate("field.roughness_source"))
         self._material_label.configure(text=self._translate("field.material"))
-        self._active_roughness_label.configure(text=f"{self._translate('field.active_roughness')}, mm")
+        self._active_roughness_label.configure(text=self._translate("field.active_roughness"))
         self._warning_fluid_label.configure(text=self._translate("field.system_fluid"))
         self._load_warning_fluids()
         self._warning_panel.refresh_texts()

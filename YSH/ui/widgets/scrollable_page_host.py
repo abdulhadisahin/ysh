@@ -79,14 +79,15 @@ class ScrollablePageHost(ttk.Notebook):
             (key for key, host in self._page_keys.items() if str(host) == selected),
             None,
         )
-        # D243 navigation is product-led rather than page-color-led: Gold
-        # identifies the selected engineering module without borrowing purple
-        # or other legacy module colors into the shell.
+        from ui.theme.module_visuals import MODULES
         selected_foreground = colors.GOLD
         selected_background = colors.DEEP_NAVY
         if page_key == "pipe_design":
             from ui.theme.pipe_pilot import PIPE_DARK
             selected_background = PIPE_DARK
+            selected_foreground = colors.WHITE
+        elif page_key in MODULES:
+            selected_background = MODULES[page_key][2]
             selected_foreground = colors.WHITE
         style = ttk.Style(self)
         style.configure(

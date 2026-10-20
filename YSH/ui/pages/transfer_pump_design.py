@@ -39,6 +39,7 @@ class TransferPumpDesignPanel(ttk.Frame):
             label = ttk.Label(self._inputs)
             label.grid(row=row,column=0,sticky='w',pady=4)
             ttk.Entry(self._inputs,textvariable=self._fields[key],width=20).grid(row=row,column=1,padx=8,pady=4)
+            ttk.Label(self._inputs, text={'volume':'m³', 'target_time':'h', 'pump_capacity':'m³/h'}[key]).grid(row=row, column=2, sticky='w', padx=(0,8))
             self._labels[key] = label
         self._calculate = create_rounded_button(self._inputs, '', self.calculate,
             style='TransferRoundedPrimary.TButton', palette=TRANSFER_PRIMARY_PALETTE,
@@ -113,7 +114,7 @@ class TransferPumpDesignPanel(ttk.Frame):
         self._inputs.configure(text=self._translate('transfer.design.inputs'))
         self._results.configure(text=self._translate('transfer.design.results'))
         for key,label in self._labels.items():
-            label.configure(text=self._translate(f'transfer.design.{key}'))
+            label.configure(text=self._translate(f'transfer.design.{key}.label'))
         self._calculate.configure(text=self._translate('calculation.calculate'))
         self._clear.configure(text=self._translate('common.clear'))
         self._flow_metric.set_label(self._translate('transfer.design.required_flow'))

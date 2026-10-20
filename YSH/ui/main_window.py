@@ -1269,7 +1269,10 @@ class MainWindow:
                 page._pdf_snapshot = None
                 page._pdf_button = ttk.Button(page._formula_panel,
                     text='PDF Raporu Oluştur (son kayıt)', state='disabled',
-                    style="PipeSecondary.TButton" if code == "pipe_design" else "TButton",
+                    style=("PipeSecondary.TButton" if code == "pipe_design" else
+                           {"transfer_pump": "TransferSecondary.TButton",
+                            "discharge_head_loss": "DischargeSecondary.TButton",
+                            "suction_npsh": "SuctionSecondary.TButton"}.get(code, "TButton")),
                     command=lambda target=page: save_snapshot_pdf(self._root, target._pdf_snapshot))
                 page._pdf_button.grid(row=0, column=1, sticky='e', padx=(12, 0))
             if code == 'transfer_pump' and hasattr(page,'_design_panel'):

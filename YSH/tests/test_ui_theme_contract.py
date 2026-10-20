@@ -264,7 +264,7 @@ def test_module_rollout_uses_distinct_outlined_palettes_and_semantic_actions() -
         assert style in transfer or style in discharge or style in suction
 
 
-def test_suction_identity_uses_naval_blue_and_formula_uses_gold() -> None:
+def test_suction_identity_uses_master_accent_and_formula_uses_gold() -> None:
     """Shared visual semantics no longer introduce purple controls."""
     rounded_source = (ROOT / "ui/widgets/rounded_button.py").read_text(encoding="utf-8")
     colors_source = (ROOT / "ui/theme/colors.py").read_text(encoding="utf-8")
@@ -272,7 +272,7 @@ def test_suction_identity_uses_naval_blue_and_formula_uses_gold() -> None:
     assert 'SUCTION = "#35698F"' in colors_source
     assert 'FORMULA = GOLD_DARK' in colors_source
     suction_palette = rounded_source.split("SUCTION_PRIMARY_PALETTE", 1)[1].split("ADD_BUTTON_PALETTE", 1)[0]
-    assert '"#35698F"' in suction_palette
+    assert "_module_palette('suction_npsh')" in suction_palette
     assert '"#2600FF"' not in suction_palette
 
 

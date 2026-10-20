@@ -727,3 +727,6 @@ MESSAGES.update({
 })
 
 MESSAGES["pipe.wall_calculated"] = 'Et kalınlığı: {value} mm'
+
+# Calculation-page visual field captions; engineering keys remain unchanged.
+MESSAGES.update({'transfer.design.volume.label': 'Transfer hacmi Vtransfer', 'transfer.design.target_time.label': 'Hedef transfer süresi tdef', 'transfer.design.pump_capacity.label': 'Seçili tulumba kapasitesi Qtulumba (isteğe bağlı)', 'field.npsh_required_optional': 'Gerekli ENPY NPSHr (isteğe bağlı)'})
