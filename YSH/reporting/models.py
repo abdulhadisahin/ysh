@@ -18,7 +18,9 @@ Scalar: TypeAlias = str | float | int | bool
 _TR = Translator('tr').translate
 MODULES = {'pipe_design': 'Boru Tasarımı', 'transfer_pump': 'Yakıt Transfer Tulumbası',
            'discharge_head_loss': 'Tulumba Basma Yük Kaybı',
-           'suction_npsh': 'Tulumba Emme Yük Kaybı ve ENPY'}
+           'suction_npsh': 'Tulumba Emme Yük Kaybı ve ENPY',
+           'fire_foam_system': _TR('fire.history.foam'),
+           'fire_hazen_williams': _TR('fire.history.hw')}
 
 
 @dataclass(frozen=True, slots=True)
@@ -169,18 +171,24 @@ def adapt_snapshot(snapshot: CalculationSnapshot) -> EngineeringReport:
         elif isinstance(node, list):
             for item in node:
                 visit(item)
-    visit(snapshot.evidence['facts'])
+    is_fire = snapshot.module_code.value in ('fire_foam_system','fire_hazen_williams')
+    if not is_fire:
+        visit(snapshot.evidence['facts'])
     visit(snapshot.evidence.get('findings', []))
     for source in snapshot.evidence.get('finding_sources', []):
         sources.append(ReportSource(tuple((label, str(source[key])) for key, label in
             (('title', 'Doküman'), ('note', 'Notlar')) if source.get(key))))
     results = tuple(ReportField(_TR(step.title_key), step.result_symbol, step.result_value, step.result_unit) for step in steps)
-    return EngineeringReport(str(snapshot.snapshot_id), MODULES[snapshot.module_code.value], snapshot.stage,
+    report = EngineeringReport(str(snapshot.snapshot_id), MODULES[snapshot.module_code.value], snapshot.stage,
         snapshot.created_at, tuple(identification), tuple(inputs), tuple(dict.fromkeys(selections)), steps, results,
         tuple(dict.fromkeys(warnings)), tuple(sources),
         (ReportField('Snapshot şeması', '', snapshot.schema_version),
          ReportField('Hesap modeli', '', snapshot.model_version),
          ReportField('Bağlam revizyonu', '', snapshot.context.revision)))
+    if is_fire:
+        from reporting.fire import enrich_fire_report
+        return enrich_fire_report(snapshot, report)
+    return report
 
 
 def format_number(value: Scalar) -> str:

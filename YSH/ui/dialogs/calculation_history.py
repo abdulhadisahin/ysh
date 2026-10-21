@@ -11,8 +11,8 @@ from ui.widgets.formula_view import FormulaReferencePanel
 from ui.widgets.scrollable_frame import ScrollableFrame
 from ui.widgets.detail_disclosure import DetailDisclosure
 from ui.history_presentation import (MODULE_LABELS, scalar, result_text, context_names,
-    summary_values, primary_result, stage_label, recorded_checks, recorded_warnings, recorded_state, recorded_sources, frozen_pipe, timestamp)
-from ui.theme.history_visuals import configure_history_visuals, HISTORY_SOFT
+    summary_values, primary_result, stage_label, recorded_checks, recorded_warnings, recorded_state, recorded_sources, frozen_pipe, timestamp, fire_details)
+from ui.theme.history_visuals import configure_history_visuals, HISTORY_SOFT, HISTORY_MODULE_ACCENTS
 from ui.theme.pipe_pilot import MODULE_ACCENTS
 from ui.theme import colors, typography
 from ui.theme.spacing import SM,MD
@@ -54,7 +54,7 @@ class CalculationHistoryWindow(tk.Toplevel):
         horizontal=ttk.Scrollbar(frame,orient='horizontal',command=self._tree.xview);horizontal.grid(row=2,column=0,sticky='ew');self._tree.configure(xscrollcommand=horizontal.set)
         for key,width in zip(self._columns,(205,185,130,130,190,160)): self._tree.column(key,width=width,minwidth=100,stretch=key=='summary')
         self._tree.tag_configure('even',background=colors.WHITE);self._tree.tag_configure('odd',background=colors.RESULT_SURFACE)
-        for key,accent in MODULE_ACCENTS.items():self._tree.tag_configure(key,foreground=accent)
+        for key,accent in HISTORY_MODULE_ACCENTS.items():self._tree.tag_configure(key,foreground=accent)
         self._empty=ttk.Label(self._tree,style='History.Badge.TLabel',wraplength=320,justify='center')
         self._scroll=scroll=ScrollableFrame(panes,style='History.Card.TFrame');self._body=scroll.content
         self._body.configure(style='History.Body.TFrame');self._body.columnconfigure(0,weight=1);scroll.set_wheel_active(True)
@@ -160,10 +160,16 @@ class CalculationHistoryWindow(tk.Toplevel):
             if name=='mode':value=tr('discharge.pipe.linked' if value=='LINKED' else 'discharge.pipe.manual')
             elif name=='status':value=tr('discharge.pipe.status.'+value)
             self._text(context,f"{tr('history.visual.pipe_'+name)}: {scalar(value)}",row=index)
+        for index,text in enumerate(fire_details(evidence,tr),len(frozen_pipe(evidence))+1):
+            self._text(context,text,row=index)
         status=self._section('status',5);checks=recorded_checks(evidence)
         for i,check in enumerate(checks):self._text(status,tr('formula2.check.'+check['status']),row=i)
         if not checks:self._text(status,tr('history.visual.no_status'))
         for i,finding in enumerate(recorded_warnings(evidence),len(checks)+1):
+            if finding.get('message_key'):
+                message=tr(finding['message_key'])
+                if finding.get('source_status'):message+=' · '+finding['source_status']
+                self._text(status,message,'History.Warning.TLabel',i);continue
             if finding.get('recorded_text'):
                 self._text(status,finding['recorded_text'],'History.Warning.TLabel',i);continue
             code=finding.get('code','');message=tr('history.visual.velocity_warning' if code.startswith('velocity.') else 'warning.npsh.message' if code=='npsh.available_not_above_required' else 'history.visual.stored_warning')

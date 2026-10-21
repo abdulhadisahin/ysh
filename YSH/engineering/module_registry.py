@@ -11,6 +11,9 @@ class ModuleCode(StrEnum):
     TRANSFER_PUMP = "transfer_pump"
     DISCHARGE = "discharge_head_loss"
     SUCTION_NPSH = "suction_npsh"
+    # Historical identities only; deliberately absent from live navigation MODULES.
+    FIRE_FOAM_SYSTEM = "fire_foam_system"
+    FIRE_HAZEN_WILLIAMS = "fire_hazen_williams"
 
 
 @dataclass(frozen=True, slots=True)

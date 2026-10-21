@@ -4,6 +4,7 @@ from ui.theme import colors, typography
 from ui.theme.module_visuals import MODULES
 from ui.theme.pipe_pilot import PIPE_ACCENT, PIPE_DARK, PIPE_SOFT, PIPE_INPUT_BORDER
 from ui.theme.spacing import XS, SM, MD
+from ui.theme.fire_identity import FIRE_ACCENT, FIRE_DARK, FIRE_SOFT, FIRE_LABELS
 
 IDENTITIES = {
     'pipe_design': ('FVPipe', PIPE_ACCENT, PIPE_DARK, PIPE_SOFT, 'page.pipe.tab'),
@@ -12,17 +13,19 @@ IDENTITIES = {
         'suction_npsh':'page.suction.tab'}[key]) for key,value in MODULES.items()},
 }
 DEFAULT_IDENTITY = ('FVNeutral', colors.NAVY, colors.NAVY, colors.INFO_SURFACE, 'formula.view_title')
+HISTORICAL_IDENTITIES = {key: ('FVFire', FIRE_ACCENT, FIRE_DARK, FIRE_SOFT, label)
+                         for key, label in FIRE_LABELS.items()}
 
 
 def identity(module_key: str | None) -> tuple:
     """Unknown/legacy callers keep neutral chrome; no inference from engineering values."""
-    return IDENTITIES.get(module_key, DEFAULT_IDENTITY)
+    return IDENTITIES.get(module_key, HISTORICAL_IDENTITIES.get(module_key, DEFAULT_IDENTITY))
 
 
 def configure_formula_visuals(style: ttk.Style) -> None:
     """Add opt-in formula roles; no main module or Library style is overwritten."""
     style.configure('FVContainer.TLabelframe', background=colors.WHITE, borderwidth=0, padding=MD)
-    for prefix,accent,dark,soft,_ in (*IDENTITIES.values(), DEFAULT_IDENTITY):
+    for prefix,accent,dark,soft,_ in (*IDENTITIES.values(), *HISTORICAL_IDENTITIES.values(), DEFAULT_IDENTITY):
         style.configure(prefix+'Header.TFrame', background=soft, padding=(MD, SM))
         style.configure(prefix+'Title.TLabel', background=soft, foreground=dark, font=typography.SECTION_TITLE)
         style.configure(prefix+'Module.TLabel', background=soft, foreground=colors.TEXT_SECONDARY, font=typography.BODY)

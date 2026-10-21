@@ -2,9 +2,11 @@
 from ui.widgets.formula_steps import number
 
 MODULE_LABELS={'pipe_design':'page.pipe.tab','transfer_pump':'page.transfer.tab',
-               'discharge_head_loss':'page.discharge.tab','suction_npsh':'page.suction.tab'}
+               'discharge_head_loss':'page.discharge.tab','suction_npsh':'page.suction.tab',
+               'fire_foam_system':'fire.history.foam','fire_hazen_williams':'fire.history.hw'}
 PRIMARY={'pipe_design':('s','D','Di'),'transfer_pump':('Qgerekli','Qpump','ttransfer'),
-         'discharge_head_loss':('Hs',),'suction_npsh':('ENPYm','he')}
+         'discharge_head_loss':('Hs',),'suction_npsh':('ENPYm','he'),
+         'fire_foam_system':('Vfoam',),'fire_hazen_williams':('ΔpHW',)}
 
 
 def stage_label(stage: str, translate) -> str:
@@ -77,6 +79,11 @@ def recorded_sources(evidence: dict) -> tuple[dict,...]:
 def frozen_pipe(evidence: dict) -> tuple[tuple[str,object],...]:
     """Read only applied pipe metadata serialized at calculation time."""
     facts=evidence.get('facts') or {}
+    fire_pipe=(facts.get('fire') or {}).get('pipe_selection')
+    if fire_pipe:
+        return tuple((key,value) for key,value in (
+            ('mode',fire_pipe.get('mode')),('status',fire_pipe.get('status')),
+            ('revision',fire_pipe.get('source_revision'))) if value is not None)
     pipe=next((value.get('pipe_input') for name in ('input','hydraulic_input')
                if isinstance(value:=facts.get(name),dict) and value.get('pipe_input')),None)
     if not pipe: return ()
@@ -90,3 +97,25 @@ def timestamp(value) -> str:
     """Retain the prior local-time conversion and expose its UTC offset explicitly."""
     local=value.astimezone()
     return local.strftime('%d.%m.%Y · %H:%M:%S %z')
+
+
+def fire_details(evidence: dict, translate) -> tuple[str,...]:
+    """Explicit historical Fire details; never infer values from current context."""
+    fire=(evidence.get('facts') or {}).get('fire') or {}
+    if not fire:return ()
+    labels={'protected_area_m2':'fire.foam.area','application_density_lpm_m2':'fire.foam.density',
+            'application_duration_min':'fire.foam.duration','foam_fraction':'fire.foam.fraction',
+            'flow_lpm':'fire.hw.flow','inside_diameter_mm':'fire.hw.diameter',
+            'pipe_length_m':'fire.hw.length','hazen_williams_c':'fire.hw.c'}
+    rows=[]
+    for key,value in (fire.get('normalized_inputs') or {}).items():
+        if key in labels and value is not None:
+            rows.append(f"{translate(labels[key])}: {scalar(value)} {(fire.get('input_units') or {}).get(key,'')}")
+    for key in ('mixture_basis','service','applicability','source_readiness','workflow_version'):
+        if fire.get(key):
+            value=fire[key] if key=='workflow_version' else translate('fire.value.'+fire[key])
+            rows.append(translate('fire.record.'+key)+': '+value)
+    for item in fire.get('provenance') or ():
+        if item.get('field_name') in labels and item.get('source_status'):
+            rows.append(translate(labels[item['field_name']])+': '+item['source_status'])
+    return tuple(rows)
