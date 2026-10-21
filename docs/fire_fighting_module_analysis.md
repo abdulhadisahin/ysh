@@ -674,3 +674,73 @@ Belgenin dışında tracked dosya değişmemesi, referans hash'inin aynı kalmas
 git index'in Excel dosyasını içermemesi teslim öncesi kontrol edilir.
 Production hesap davranışı değişikliği yoktur. Uygulamalı Fire hesap veya görsel
 kabul yapılmadı; bu faz yalnızca teknik analizdir.
+
+## 20. FIRE PHASE 0 — SOURCE RESOLUTION (2026-10-21)
+
+Bu bölüm önceki workbook bulgularını değiştirmez. Yukarıdaki §1–19 ilk analiz
+fazının tarihsel kaydıdır; oradaki “İnternet araştırması yapılmadı” ifadesi o faza
+aittir. Phase 0'da kullanıcı talimatıyla resmî/üretici kaynakları araştırıldı.
+Güncel karar kontratı: [fire_fighting_source_decisions.md](fire_fighting_source_decisions.md).
+Orada kaynak envanteri, edition/URL/madde bilgisi, rule-decision/applicability
+tabloları, unit contract, sayısal karşılaştırmalar ve gate'ler birlikte bulunur.
+
+Başlangıç branch `d243-v2-handoff`, HEAD
+`9d1448702708f3aefeaa4a2173a1b4280f881db7`. Baseline **1552 passed, 0 failed**,
+62.73 s. Tek onaylı istisna salt okunur workbook'tur. SHA-256 öncekiyle aynı:
+`bd9aa871454c184afdb45e14bd0c008818d49701d5cc92e1de7ca89126159474`.
+Bu fazda workbook değiştirilmez/stage edilmez/commit edilmez.
+
+### Workbook fact / external source / inference / decision ayrımı
+
+| Konu | Değişmeyen workbook fact | Phase 0 kararı |
+|---|---|---|
+| q5/t30 | Sabit örnek girdiler, kaynak/koruma tipi yok | Genel dayanak SOURCE_REQUIRED; yeni projede açık USER_PROJECT_ASSUMPTION, evrensel default yok |
+| c=.03 | Boyutsuz .03 girişi | Üretici çözeltinin hacmine göre oranı tanımlıyor; değer ürün/risk özelinde SOURCE_VERIFIED_CONTEXT_DEPENDENT olabilir, tüm sistemlerde3% değil |
+| E30=.97 | Hardcode, yanlış/çelişkili konsantre etiketi ve bağlantısız hücre | Yeni volumetric modelde DERIVED_FROM_FOAM_FRACTION karar etiketi; kaynak sınıfı DERIVED_FROM_VERIFIED_RULE. Tarihsel niyet kanıtlanmadı |
+| G12=14.94,H12=15 | Hesap ve ayrı yaklaşık hardcode | DISPLAY_OR_MANUAL_SELECTION_ONLY; ham14.94 korunur, hidden margin/round-up yok |
+| HW605000,1.85,4.87 | As-found formül ve sayılar aynı | Yayımlanmış pratik birim paketi bulundu: L/min, Di mm, L m, bar/m→bar; seawater uygulanabilirliği ayrıca SOURCE_REQUIRED |
+| C9satır | Aynı özgün label/değerler | Resmî NFPA komite taslağında8satır eşleşmesi; galvaniz “all120” çatışması; nihai güncel normatif default doğrulaması0/9 |
+| Nozul K×P^-2 | Aynı metin, sayısal fixture yok | Kaynaklı cihaz ilişkisi K√p; WORKBOOK_TRANSCRIPTION_ERROR_LIKELY. Cihaz/legacy mapping bilinmediğinden issue SOURCE_REQUIRED |
+
+Phase 0 formal kaynak sınıfları: SOURCE_VERIFIED,
+SOURCE_VERIFIED_CONTEXT_DEPENDENT, WORKBOOK_REFERENCE_ONLY,
+USER_PROJECT_ASSUMPTION, DERIVED_FROM_VERIFIED_RULE, SOURCE_REQUIRED,
+SOURCE_CONFLICT, SOURCE_IDENTIFIED_BUT_NOT_ACCESSIBLE, NOT_CONFIGURED,
+OUT_OF_SCOPE. Önceki §1–19 sınıfları değiştirilmedi; sonraki uygulama kararında
+bu yeni source-decision belgesindeki sınıflar kullanılır.
+
+Kaynak kararlarının önemli sınırları:
+
+- IMO'nun erişilen MSC.98(73) metni tarihsel as-adopted sürümdür; 2026 konsolide
+  FSS tam metni yerine kullanılamaz. Güncel TL normatif metni ve NFPA13-2025
+  tam metni edinilemedi; bu kaynaklar SOURCE_IDENTIFIED_BUT_NOT_ACCESSIBLE.
+- NFPA komite ballot'ı resmî kaynaktır ama nihai yürürlükteki standart değildir.
+  Library'ye değer aktarılmaz. Wet/dry, lining, condition ve source edition
+  olmadan salt material→CHW eşlemesi yapılamaz. CHW ≠ Darcy k korunur.
+- HW sonucu pressure-loss olarak adlandırılır. Sınırlı su hesabı bir seawater,
+  sıcaklık/rejim veya marine compliance onayı değildir. Kaynakta kullanılan
+  1.85 konvansiyonu farklı 1.852 biçimiyle katsayı değiştirilmeden karıştırılmaz.
+- Köpük çözeltisi akışı ile expanded foam hacmi ayrıdır; solution-volume
+  fraksiyonundan Qfoam/Qwater/Vfoam türetme nominal karışım modelidir.
+  q/t/Cfoam bağımsız provenance taşır. Güncel ürün/uygunluk seçimi ayrı iştir.
+- Nozul için NO_NUMERIC_FIXTURE; rastgele K ile workbook onayı yaratılmadı.
+  Kaynak ilişkisi çözülmesi legacy issue'nun tamamını çözmez.
+
+### Güncellenen kapsam ve sonraki faz
+
+FOAM **READY**: kullanıcı/proje kriterleri ve kaynaklı nominal hacimsel
+karışım tanımıyla required flow/volume hesabı; default/compliance yok.
+HW **READY**: yalnız source-decision belgesinde tanımlı su/düz-hat pratik birim
+hesabı. **Seawater HW SOURCE_REQUIRED**, kapsam dışında blocked kalır.
+NOZZLE **BLOCKED**: cihaz ve K/formül eşlemesi çözülmeden üretime alınmaz.
+
+V1 önerisi ortak Foam workspace + sınırlı su HW; tam yangın pompası
+boyutlandırması/head/local-loss/network ve marine compliance bu gate'e dahil değil.
+Mimari ana düzen korunur; pressure unit ve mixture basis daha açık hale gelir.
+
+**Fire Phase 1 entry criteria: YES**, kullanıcı ayrıca başlatırsa yalnız
+domain/units/provenance/context ve NOT_CONFIGURED/SOURCE_REQUIRED kontratları.
+Sonraki faz: **FIRE PHASE 1 — Domain Models, Units & Provenance Contracts**.
+Bu dokümantasyon fazında production kodu, UI, DB, Library, Formula View,
+snapshot, History ve PDF değişikliği yoktur. Phase 1 otomatik başlamaz.
+Phase 0 genel sonuç: **SOURCE_RESOLUTION_PASS_WITH_BLOCKERS**.
