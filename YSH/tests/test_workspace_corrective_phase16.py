@@ -20,10 +20,12 @@ def test_modules_keep_typed_formula_provider_and_compact_entry(page):
     assert 'self.watermark_surfaces = ' not in source
 
 
-def test_historical_view_retains_inline_frozen_provider():
+def test_historical_view_opens_frozen_provider_on_explicit_action():
     source = (ROOT / 'ui/dialogs/calculation_history.py').read_text(encoding='utf-8')
     assert 'step_provider=lambda:snapshot.formula_steps' in source
-    assert 'separate_window=True' not in source
+    assert 'separate_window=True' in source
+    assert 'module_key=snapshot.module_code.value, historical=True' in source
+    assert 'panel.toggle()' not in source
 
 
 def test_live_view_is_lazy_and_closes_reopens_without_duplicates(monkeypatch):
