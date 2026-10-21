@@ -713,6 +713,26 @@ MESSAGES.update({
 
 MESSAGES["pipe.wall_calculated"] = 'Wall thickness: {value} mm'
 
+# Headless Fire Foam FormulaStep contracts; no visible Fire entry point.
+MESSAGES.update({
+    'fire.foam.area': 'Protected area',
+    'fire.foam.density': 'Foam solution application density',
+    'fire.foam.duration': 'Application duration',
+    'fire.foam.fraction': 'Concentrate volume fraction of solution',
+    'fire.foam.solution_flow': 'Required Foam Solution Flow',
+    'fire.foam.concentrate_flow': 'Required Foam Concentrate Flow',
+    'fire.foam.water_flow': 'Required Water Flow',
+    'fire.foam.concentrate_volume': 'Required Foam Concentrate Volume',
+    'fire.foam.source.SOURCE_VERIFIED_CONTEXT_DEPENDENT': 'Source applicability to this context requires confirmation.',
+    'fire.foam.source.USER_PROJECT_ASSUMPTION': 'User/project assumption recorded.',
+    'fire.foam.source.WORKBOOK_REFERENCE_ONLY': 'The value is supported only by the reference workbook.',
+    'fire.foam.source.SOURCE_REQUIRED': 'Source verification is required for this input.',
+    'fire.foam.source.SOURCE_CONFLICT': 'An unresolved source conflict exists for this input.',
+    'fire.foam.source.SOURCE_IDENTIFIED_BUT_NOT_ACCESSIBLE': 'The identified source text could not be accessed.',
+    'fire.foam.source.NOT_CONFIGURED': 'The source context for this input is not configured.',
+    'fire.foam.source.OUT_OF_SCOPE': 'The input source scope does not cover this application.',
+})
+
 # Calculation-page visual field captions; engineering keys remain unchanged.
 MESSAGES.update({'transfer.design.volume.label': 'Transfer volume Vtransfer', 'transfer.design.target_time.label': 'Target transfer time tdef', 'transfer.design.pump_capacity.label': 'Selected pump capacity Qtulumba (optional)', 'field.npsh_required_optional': 'Required NPSH NPSHr (optional)'})
 

@@ -728,6 +728,26 @@ MESSAGES.update({
 
 MESSAGES["pipe.wall_calculated"] = 'Et kalınlığı: {value} mm'
 
+# Headless Fire Foam FormulaStep contracts; no visible Fire entry point.
+MESSAGES.update({
+    'fire.foam.area': 'Korunan alan',
+    'fire.foam.density': 'Köpük çözeltisi uygulama yoğunluğu',
+    'fire.foam.duration': 'Uygulama süresi',
+    'fire.foam.fraction': 'Konsantrenin çözelti hacmine oranı',
+    'fire.foam.solution_flow': 'Gerekli Köpük Çözeltisi Debisi',
+    'fire.foam.concentrate_flow': 'Gerekli Köpük Konsantresi Debisi',
+    'fire.foam.water_flow': 'Gerekli Su Debisi',
+    'fire.foam.concentrate_volume': 'Gerekli Köpük Konsantresi Hacmi',
+    'fire.foam.source.SOURCE_VERIFIED_CONTEXT_DEPENDENT': 'Kaynağın bu uygulamaya uygunluğu ayrıca doğrulanmalıdır.',
+    'fire.foam.source.USER_PROJECT_ASSUMPTION': 'Kullanıcı/proje varsayımı kaydedildi.',
+    'fire.foam.source.WORKBOOK_REFERENCE_ONLY': 'Değer yalnızca referans çalışma kitabına dayanıyor.',
+    'fire.foam.source.SOURCE_REQUIRED': 'Girdi için kaynak doğrulaması gerekli.',
+    'fire.foam.source.SOURCE_CONFLICT': 'Girdinin kaynakları arasında çözülmemiş çelişki var.',
+    'fire.foam.source.SOURCE_IDENTIFIED_BUT_NOT_ACCESSIBLE': 'Tanımlanan kaynağın tam metnine erişilemedi.',
+    'fire.foam.source.NOT_CONFIGURED': 'Girdinin kaynak bağlamı yapılandırılmamış.',
+    'fire.foam.source.OUT_OF_SCOPE': 'Girdinin kaynak kapsamı bu uygulamayı karşılamıyor.',
+})
+
 # Calculation-page visual field captions; engineering keys remain unchanged.
 MESSAGES.update({'transfer.design.volume.label': 'Transfer hacmi Vtransfer', 'transfer.design.target_time.label': 'Hedef transfer süresi tdef', 'transfer.design.pump_capacity.label': 'Seçili tulumba kapasitesi Qtulumba (isteğe bağlı)', 'field.npsh_required_optional': 'Gerekli ENPY NPSHr (isteğe bağlı)'})
 
