@@ -1,6 +1,7 @@
 """Live Fire views consume application results, never engineering equations."""
 import tkinter as tk
 from tkinter import ttk
+from collections.abc import Mapping
 
 from engineering.fire.enums import FireSourceStatus
 from engineering.fire.hazen_williams_workflow import HWService
@@ -15,6 +16,24 @@ from ui.widgets.detail_disclosure import DetailDisclosure
 from ui.widgets.formula_steps import number
 
 
+class _FireSubviews(Mapping):
+    """Stable two-view lookup; indexing creates once, passive refresh uses created only."""
+    def __init__(self,workspace):
+        self.workspace=workspace
+        self.created={}
+
+    def __iter__(self):return iter(('foam','hw'))
+    def __len__(self):return 2
+
+    def __getitem__(self,kind):
+        if kind not in ('foam','hw'):raise KeyError(kind)
+        if kind not in self.created:
+            view=FireCalculatorPage(self.workspace._slots[kind],self.workspace,kind)
+            view.pack(fill='x',expand=True)
+            self.created[kind]=view
+        return self.created[kind]
+
+
 class FireWorkspacePage(ttk.Frame):
     """One cached family workspace; both subviews share existing shell services."""
     def __init__(self,parent,translate,*,sources,context,project,on_snapshot,on_dirty,state=None):
@@ -26,21 +45,24 @@ class FireWorkspacePage(ttk.Frame):
         self.columnconfigure(0,weight=1);self.rowconfigure(1,weight=1)
         self.title=ttk.Label(self,style='Fire.Title.TLabel');self.title.grid(row=0,column=0,sticky='w',padx=12,pady=8)
         self.host=ScrollablePageHost(self);self.host.grid(row=1,column=0,sticky='nsew')
-        self.views={kind:self.host.add_scrollable_page('',lambda parent,k=kind:FireCalculatorPage(parent,self,k),kind)
-                    for kind in ('foam','hw')}
+        self._slots={kind:self.host.add_scrollable_page('',lambda parent:ttk.Frame(parent,style='Fire.TFrame'),kind)
+                     for kind in ('foam','hw')}
+        self.views=_FireSubviews(self)
         self.host.select(self.host._page_keys[self.model.active])
+        self.views[self.model.active]
         self.host.bind('<<NotebookTabChanged>>',self._active,add='+')
         self.sources.subscribe(self.observe)
         self.refresh_texts();self.observe()
 
     def _active(self,event=None):
         active=next((key for key,host in self.host._page_keys.items() if str(host)==self.host.select()),'foam')
+        self.views[active]
         if self.model.active!=active:self.model.active=active;self.on_dirty()
 
     def refresh_texts(self):
         self.title.configure(text=self.tr('fire.system'))
-        for kind,view in self.views.items():
-            self.host.set_page_title(kind,self.tr('fire.ui.'+kind));view.refresh_texts()
+        for kind in self.views:self.host.set_page_title(kind,self.tr('fire.ui.'+kind))
+        for view in tuple(self.views.created.values()):view.refresh_texts()
 
     def observe(self):
         self.model.set_context(self.context_provider())
@@ -48,13 +70,14 @@ class FireWorkspacePage(ttk.Frame):
         if snap:
             current=next((s for s in self.sources.available() if s.selection_id==snap.source_selection_id),None)
             self.model.observe(current)
-        for view in self.views.values():view.sync()
+        for view in tuple(self.views.created.values()):view.sync()
 
     def export_state(self):return self.model.export_state()
 
     def load_state(self,state):
         self.model=FireWorkspace.from_state(state)
-        for view in self.views.values():view.load_fields()
+        self.views[self.model.active]
+        for view in tuple(self.views.created.values()):view.load_fields()
         self.host.select(self.host._page_keys[self.model.active]);self.observe()
 
     def clear_state(self):self.load_state({})
@@ -111,7 +134,7 @@ class FireCalculatorPage(ttk.Frame):
         self.formula=FormulaReferencePanel(self,lambda:[],self.tr,step_provider=self.steps,
             module_key='fire_foam_system' if kind=='foam' else 'fire_hazen_williams',separate_window=True)
         self.formula.grid(row=7,column=0,sticky='ew',pady=6)
-        self.load_fields();self.loading=False;self.refresh_texts()
+        self.load_fields();self.loading=False
 
     @property
     def model(self):return self.workspace.model

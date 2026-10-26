@@ -175,3 +175,98 @@ compliance eklenmedi. Referans workbook runtime bağımlılığı yoktur.
 Önerilen sonraki adım: kullanıcı ortamında manuel Fire UI kabulü ve ölçülen
 first-paint davranışının incelenmesi. Fire Library genişlemesi/nozul uygulaması
 otomatik başlatılmaz. Sonuç: **PHASE5_PASS_WITH_BLOCKERS**.
+
+## PHASE 5A — Visual Acceptance & First-Paint Review
+
+Tarih2026-10-26. Başlangıç `1b52ff9d0a30bb5c68b6238c9a7fe4ca4e29216a`.
+Baseline **1808 passed, 0 failed**,106.17s. Tek Python3.14.8/Tcl-Tk9.0.4.
+Workbook önceki SHA-256 ile aynı ve approved untracked reference input kalır.
+
+### Gerçek Windows görsel kabul sınırı
+
+Gerçek main.py ayrı LOCALAPPDATA ve görünür pencere ile açıldı. Computer Use
+oturumu sıfırlanıp returned window yeniden seçildi/activate edildi. İki ekran
+yakalama denemesi yine `FrameArrived timed out: timed out waiting on channel`
+ve `window capture timed out: timed out waiting on channel` verdi.
+Bu nedenle Foam/HW/TR/EN, dört pencere boyutu, navigation/style/contrast/DPI
+görsel kabulü **DOĞRULANAMADI**. MANUAL_VISUAL_PASS verilmez. Kullanıcıdan
+gerçek görsel bulgular istendi; yanıt gelmeden görsel onay varsayılmaz.
+Görsel bulgu olmadan padding/radius/color veya mevcut modüller değiştirilmedi.
+
+### Ölçüm yöntemi ve kanıt
+
+Enstrümantasyon yalnız repository dışındaki geliştirme harness'indedir;
+production timing/logging/update çağrısı eklenmedi. Aynı normal Windows/Tk
+ortamında cProfile ve perf_counter kullanıldı. Navigation çağrısı, constructor,
+alt görünüm, ilk update_idletasks ve sonra update ayrı ölçüldü. Bu senkron
+Tk event-drain süreleri, ekranda görülen ilk piksel zamanıyla aynı kabul edilmez.
+Native Tcl/Tk çağrısı içindeki OS boyama/bekleme ayrımını Python profiler çözmez.
+
+| Adım | Önce | Sonra | İkinci sonra ölçümü |
+|---|---:|---:|---:|
+| Navigation/Fire constructor | .206312s | .139298s | .140867s |
+| Foam constructor | .086125s | .102779s | .102169s |
+| HW constructor, ilk Foam açılışında | .083713s | oluşturulmadı | oluşturulmadı |
+| update_idletasks / idle yerleşim | 1.754093s | 1.773141s | 1.771656s |
+| Sonraki update/event döngüsü | 1.079150s | 1.035797s | 1.169763s |
+| İlk açılış toplamı | 3.039555s | 2.948236s | 3.082286s |
+| Cached family dönüşü | .003945s | .003914s | .005198s |
+| Scroll host init (2 hafif host) | .007728s | .009697s | .013701s |
+| Scroll configure toplamı | .022341s/7 | .011032s/4 | .013086s/4 |
+| Canvas genişlik sync | .000240s | .000270s | .000233s |
+| Fire style init | .001582s | .000819s | .001002s |
+| Localization setup | .054996s/6 | .017358s/2 | .017936s/2 |
+| Translation lookups | .002527s/302 | .000831s/90 | .000776s/90 |
+| Formula shell construction | .004729s/2 | .003542s/1 | .002946s/1 |
+| Font object construction | .000531s/5 | .000585s/5 | .000501s/5 |
+| Controller/state hydration | ölçülmedi | ölçülmedi | .000233s/1 |
+| ttk widget construction count |151|77|77|
+
+İlk açılış aralığında PhotoImage construction0; Fire path'inde resim/asset
+ön yüklemesi veya workbook/History/PDF üretimi yoktur. Formula shell yalnız
+toggle/provider taşır; formula render/Matplotlib/PDF üretimi açılışta çalışmaz.
+Scroll tree recursion'ın inclusive süreleri iç içe toplandığı için tabloda
+parent scroll-configure toplamı kullanıldı. Geometri callback'leri ölçümde
+onlarca milisaniyedir; saniyelik Python Configure döngüsü saptanmadı.
+
+Profilin çoğu `_tkinter.tkapp.call` native sınırındadır (önce cumulative2.990s,
+sonra2.923s). Bu, gecikmenin native Tk idle/update yolunda kaldığını gösterir;
+tek başına belirli bir Windows scheduling/driver hatasını kanıtlamaz.
+Safe software fix ile çok saniyelik gecikmenin çözüldüğü iddia edilmez.
+
+### Hedefli düzeltme
+
+İki alt görünümün eager creation'ı kaldırıldı. Fire shell iki hafif viewport
+slot'u oluşturur; yalnız model.active alt görünümü gerçek widget'lara dönüşür.
+İlk diğer sekme seçimi bir defa oluşturur; sonraki dönüşler cached nesneyi kullanır.
+Language refresh/observe/export açılmamış alt görünümü oluşturmaz. Kaydedilmiş
+active HW ile doğrudan HW açılışı desteklenir. Pasif işlemler yalnız created
+view'ları yeniler; public keyed lookup gerektiğinde oluşturur. Constructor'daki
+yinelenen localization refresh kaldırıldı. Paylaşılan scroll host, tema, mevcut
+modüller, mühendislik/controller/state/snapshot anlamları değiştirilmedi.
+
+Sonuç: Python/widget işi belirgin azalır; constructor yaklaşık üçte bir kısalır.
+Native idle/update değişimi ölçüm varyansı içindedir. İlk açılış hâlâ yaklaşık3s;
+2.35s historical paint notunun kapandığı söylenemez. Daha geniş shared-scroll
+rewrite veya after/update workaround'ı için ölçüm dayanağı yoktur.
+
+### Startup, scaling ve regresyon
+
+Phase5 source-startup5.17s idi. Bu fazda gerçek main.py source-entry→mainloop
+ölçümü **5.69s**; aynı5–7s sınıfında, yapısal startup regresyonu görülmedi.
+Profiler'ın app.run→mainloop ayrı saati before4.463s/after4.112s/3.889s'dir;
+bu saat app construction/import süresini kapsamaz, source-startup ile karıştırılmaz.
+Gözlenen Tk scaling **1.334647**, winfo_fpixels(1i) **96.09DPI**.
+Başka Windows scaling ayarı değiştirilmedi veya doğrulanmış gösterilmedi.
+
+5 yeni lifecycle testi: yalnız ilk view, passive refresh, cached selection,
+uncreated view state/dil korunması, saved-HW-first, stale Formula/PDF semantiği.
+Mevcut Phase5 testi35 ile odaklı **40 passed**,16.51s; nested cache yazma
+uyarısı vardı. Tam regresyon **1813 passed, 0 failed**,109.60s; uyarı yok.
+Eski sayısal/historical testler bu tam suite kapsamındadır; elle görsel PASS
+bu testlerden türetilmez. Hiçbir görsel spacing/color correction yapılmadı.
+
+**Final acceptance: MANUAL_VISUAL_BLOCKED. Overall: PHASE5A_BLOCKED.**
+Kalan işler: capture ortamı veya kullanıcı tarafından gerçek görsel inceleme;
+native Tk event-drain gecikmesinin daha alt seviyede incelenmesi. Sonraki adım
+bu kabulün tamamlanmasıdır. Fire Library/nozzle/seawater geliştirmesi başlatılmaz.
