@@ -3,6 +3,9 @@
 from i18n.terminology import terminology_messages
 
 MESSAGES = {
+    'fire.ui.percent_help': 'Enter as percent. Example: enter 3 for 3%.',
+    'fire.ui.recommended_percent': 'Recommended (%)',
+    'fire.ui.percent_low': 'The entered value is below 1%. This field expects a percentage; enter 3 for 3%.',
     "app.title": "D243",
     "app.subtitle": "Fuel System Engineering",
     "app.workspace": "Engineering Calculation Workspace",

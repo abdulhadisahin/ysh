@@ -1,5 +1,6 @@
 """Detached, display-only historical summaries. Never resolves live engineering data."""
 from ui.widgets.formula_steps import number
+from engineering.fire.units import fraction_to_percent
 
 MODULE_LABELS={'pipe_design':'page.pipe.tab','transfer_pump':'page.transfer.tab',
                'discharge_head_loss':'page.discharge.tab','suction_npsh':'page.suction.tab',
@@ -110,6 +111,9 @@ def fire_details(evidence: dict, translate) -> tuple[str,...]:
     rows=[]
     for key,value in (fire.get('normalized_inputs') or {}).items():
         if key in labels and value is not None:
+            if key=='foam_fraction' and (fire.get('input_units') or {}).get(key)=='1':
+                rows.append(f"{translate('fire.ui.concentration')}: {scalar(fraction_to_percent(value))} %")
+                continue
             rows.append(f"{translate(labels[key])}: {scalar(value)} {(fire.get('input_units') or {}).get(key,'')}")
     for key in ('mixture_basis','service','applicability','source_readiness','workflow_version'):
         if fire.get(key):
@@ -119,3 +123,12 @@ def fire_details(evidence: dict, translate) -> tuple[str,...]:
         if item.get('field_name') in labels and item.get('source_status'):
             rows.append(translate(labels[item['field_name']])+': '+item['source_status'])
     return tuple(rows)
+
+
+def historical_override_values(module: str, value: dict) -> tuple[str,str]:
+    """Format saved recommendation/used independently of current form settings."""
+    def display(number):
+        if module=='fire_foam_system' and value.get('symbol')=='Cfoam' and value.get('unit')=='1' and number is not None:
+            return scalar(fraction_to_percent(number))+' %'
+        return scalar(number)
+    return display(value.get('recommended_value')),display(value.get('used_value'))

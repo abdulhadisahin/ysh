@@ -14,6 +14,7 @@ from ui.widgets.scrollable_page_host import ScrollablePageHost
 from ui.widgets.formula_view import FormulaReferencePanel
 from ui.widgets.detail_disclosure import DetailDisclosure
 from ui.widgets.formula_steps import number
+from ui.fire_input_presentation import foam_percent_clarifications
 
 
 class _FireSubviews(Mapping):
@@ -100,6 +101,13 @@ class FireCalculatorPage(ttk.Frame):
             self.entries[name]=entry
             ttk.Label(self.input_card,text=unit,style='Fire.TLabel').grid(row=index,column=2,padx=8)
             variable.trace_add('write',lambda *_,n=name:self._edit(n))
+        self.clarifications=()
+        if kind=='foam':
+            self.concentration_help=ttk.Label(self.input_card,style='Fire.TLabel',wraplength=540)
+            self.concentration_help.grid(row=4,column=0,columnspan=3,sticky='ew',pady=(3,5))
+            self.concentration_warning=ttk.Label(self.input_card,style='Fire.Status.TLabel',wraplength=540)
+            self.concentration_warning.grid(row=5,column=0,columnspan=3,sticky='ew',pady=4)
+            self.concentration_warning.grid_remove()
         self.scope=ttk.Label(self,style='Fire.TLabel',wraplength=540);self.scope.grid(row=1,column=0,sticky='ew',pady=6)
         if kind=='hw':self._link_controls()
         self.disclosure=DetailDisclosure(self,'','',style='Fire.TFrame',body_style='Fire.TFrame')
@@ -112,7 +120,7 @@ class FireCalculatorPage(ttk.Frame):
             self.meta_vars[name]={}
             for row,field in enumerate(('status','document','recommended','reason')):
                 label=ttk.Label(group,style='Fire.TLabel');label.grid(row=row,column=0,sticky='w',padx=(0,8),pady=3)
-                self.meta_labels.append((label,'fire.ui.'+field))
+                self.meta_labels.append((label,'fire.ui.recommended_percent' if kind=='foam' and name=='foam_fraction' and field=='recommended' else 'fire.ui.'+field))
                 variable=tk.StringVar(self);self.meta_vars[name][field]=variable
                 if field=='status':
                     widget=ttk.Combobox(group,textvariable=variable,state='readonly',width=34)
@@ -158,6 +166,7 @@ class FireCalculatorPage(ttk.Frame):
 
     def _edit(self,name):
         if self.loading:return
+        if self.kind=='foam' and name=='foam_fraction':self.entries[name].state(['!invalid'])
         self.model.set_field(self.kind,name,self.variables[name].get());self._dirty()
 
     def _meta(self,name,field):
@@ -228,6 +237,12 @@ class FireCalculatorPage(ttk.Frame):
         self.model.invalidate(self.kind);self.load_fields();self.workspace.on_dirty();self.sync()
 
     def sync(self,message=None):
+        if self.kind=='foam':
+            self.clarifications=foam_percent_clarifications(self.variables['foam_fraction'].get())
+            if self.clarifications:
+                self.concentration_warning.configure(text=self.tr(self.clarifications[0].message_key))
+                self.concentration_warning.grid()
+            else:self.concentration_warning.grid_remove()
         result=self.model.results[self.kind]
         state='normal' if result else 'disabled'
         self.pdf_button.configure(state=state);self.formula._toggle.configure(state=state)
@@ -260,6 +275,7 @@ class FireCalculatorPage(ttk.Frame):
 
     def refresh_texts(self):
         self.input_card.configure(text=self.tr('fire.ui.inputs'))
+        if self.kind=='foam':self.concentration_help.configure(text=self.tr('fire.ui.percent_help'))
         for name,(key,unit) in self.spec.items():self.labels[name].configure(text=self.tr(key))
         self.scope.configure(text=self.tr('fire.ui.mixture' if self.kind=='foam' else 'fire.ui.water_scope'))
         self.disclosure._title=self.tr('fire.ui.provenance')

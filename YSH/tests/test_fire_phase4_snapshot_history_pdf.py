@@ -84,7 +84,8 @@ def test_foam_override_used_recommended_reason_and_sources_survive_pdf():
     assert report.results[-1].value==1890
     text='\n'.join(p.extract_text() for p in PdfReader(BytesIO(render_pdf(report))).pages)
     assert 'Project-selected approved concentrate' in text
-    assert '0,03' in text and '0,06' in text and '1890,00' in text
+    assert '3,00' in text and '6,00' in text and '1890,00' in text
+    assert {row.value for row in report.selections if row.symbol=='Cfoam' and row.unit=='%'}>={3,6}
 
 
 @pytest.mark.parametrize('c,expected',[(120,2.3717829024660286),(140,1.7832957445009588)])

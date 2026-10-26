@@ -11,7 +11,7 @@ from ui.widgets.formula_view import FormulaReferencePanel
 from ui.widgets.scrollable_frame import ScrollableFrame
 from ui.widgets.detail_disclosure import DetailDisclosure
 from ui.history_presentation import (MODULE_LABELS, scalar, result_text, context_names,
-    summary_values, primary_result, stage_label, recorded_checks, recorded_warnings, recorded_state, recorded_sources, frozen_pipe, timestamp, fire_details)
+    summary_values, primary_result, stage_label, recorded_checks, recorded_warnings, recorded_state, recorded_sources, frozen_pipe, timestamp, fire_details, historical_override_values)
 from ui.theme.history_visuals import configure_history_visuals, HISTORY_SOFT, HISTORY_MODULE_ACCENTS
 from ui.theme.pipe_pilot import MODULE_ACCENTS
 from ui.theme import colors, typography
@@ -185,7 +185,8 @@ class CalculationHistoryWindow(tk.Toplevel):
             self._text(provenance.body,text or '—',row=i)
         overrides=[v for step in evidence.get('steps',()) for v in step.get('used_values',()) if v.get('override_reason')]
         for i,value in enumerate(overrides,len(sources)):
-            text=f"{tr('formula2.overridden')} · {value.get('symbol') or ''}\n{tr('formula2.recommended')}: {scalar(value.get('recommended_value'))} · {tr('formula2.used')}: {scalar(value.get('used_value'))}\n{value['override_reason']}"
+            recommended,used=historical_override_values(module,value)
+            text=f"{tr('formula2.overridden')} · {value.get('symbol') or ''}\n{tr('formula2.recommended')}: {recommended} · {tr('formula2.used')}: {used}\n{value['override_reason']}"
             self._text(provenance.body,text,row=i)
         metadata=self._section('record',7)
         self._text(metadata,timestamp(snapshot.created_at)+'\n'+tr('history.visual.record_id')+': '+str(snapshot.snapshot_id)[:8]+'…\n'+scalar(snapshot.model_version),'History.Metadata.TLabel')

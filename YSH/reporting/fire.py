@@ -2,6 +2,7 @@
 from dataclasses import replace
 
 from reporting.models import ReportField, _TR
+from engineering.fire.units import fraction_to_percent
 
 INPUT_LABELS = {
     'protected_area_m2':('fire.foam.area','A'),
@@ -20,7 +21,14 @@ def enrich_fire_report(snapshot, report):
                               (payload.get('input_units') or {}).get(name,''))
                    for name,value in (payload.get('normalized_inputs') or {}).items()
                    if name in INPUT_LABELS and isinstance(value,(int,float)))
+    def percent_row(row):
+        if row.symbol=='Cfoam' and row.unit=='1' and isinstance(row.value,(int,float)):
+            return replace(row, value=fraction_to_percent(row.value), unit='%',
+                label=_TR('fire.ui.concentration') if row.label==_TR('fire.foam.fraction') else row.label)
+        return row
+    inputs=tuple(percent_row(row) for row in inputs)
     rows = list(report.selections)
+    rows = [percent_row(row) for row in rows]
     for key in ('mixture_basis','service','applicability','source_readiness','status'):
         if payload.get(key) is not None:
             value = payload[key]

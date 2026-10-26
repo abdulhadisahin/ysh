@@ -3,6 +3,9 @@
 from i18n.terminology import terminology_messages
 
 MESSAGES = {
+    'fire.ui.percent_help': 'Yüzde olarak giriniz. Örnek: %3 için 3 yazın.',
+    'fire.ui.recommended_percent': 'Önerilen (%)',
+    'fire.ui.percent_low': "Girilen değer %1'in altında. Bu alan yüzde bekler; %3 için 3 giriniz.",
     "app.title": "D243",
     "app.subtitle": "Boru ve Tulumba Boyutlandırma Programı",
     "app.workspace": "Mühendislik Hesaplama Çalışma Alanı",

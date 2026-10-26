@@ -270,3 +270,95 @@ bu testlerden türetilmez. Hiçbir görsel spacing/color correction yapılmadı.
 Kalan işler: capture ortamı veya kullanıcı tarafından gerçek görsel inceleme;
 native Tk event-drain gecikmesinin daha alt seviyede incelenmesi. Sonraki adım
 bu kabulün tamamlanmasıdır. Fire Library/nozzle/seawater geliştirmesi başlatılmaz.
+
+## PHASE 5B — Foam Concentration Percent Input Clarification
+
+Tarih2026-10-26. Başlangıç `bf31d46366c3587dd59e841a86f510b7e6afb824`.
+Baseline **1813 passed, 0 failed**,82.48s. Python yalnız `.venv314/Scripts/python.exe`
+(3.14.8). Başlangıçta yalnız approved untracked reference input workbook vardı.
+
+### Tek giriş konvansiyonu
+
+Workbook temsilindeki **.03 fraction**, canlı UI'da **3 percent** ile aynıdır.
+İç kontrat **0<foam_fraction<1** kalır. Görünür alan her zaman yüzde bekler;
+3→.03,3,00→.03,6→.06,0,03→.0003. Sessiz çift yorum, değer değiştirme,
+heuristic, yeni parser veya mühendislik defaultu yoktur. Kullanıcı0,03 girerse
+bu0.03% olur; yazılım niyetini3% olarak tahmin etmez.
+
+Alan yanındaki `%` birimi korundu. Doğrudan altında TR yardım:
+**Yüzde olarak giriniz. Örnek: %3 için 3 yazın.**
+EN: **Enter as percent. Example: enter 3 for 3%.**
+Placeholder için native Entry'ye yapay metin yazılmadı; gerçek değer boş başlar.
+Konsantrasyon provenance'ındaki öneri etiketi de **Önerilen (%) / Recommended (%)**
+oldu. Kullanılan değer ana inputta, yüzde birimiyle görünür; öneri fraksiyonmuş
+gibi yanlış etiketlenmez. Recommendation yokken gerekçe zorunluluğu eklenmedi.
+
+### Engellemeyen açıklama uyarısı
+
+Yalnız **0<visible_percent<1** koşulunda amber sunum uyarısı:
+**Girilen değer %1'in altında. Bu alan yüzde bekler; %3 için 3 giriniz.**
+EN: **The entered value is below 1%. This field expects a percentage; enter 3
+for 3%.**
+
+`ui/fire_input_presentation.py` küçük immutable InputClarification kaydı üretir;
+category **UI_INPUT_CLARIFICATION**. Mevcut parse_engineering_float kullanılır.
+Bu kayıt mühendislik ValidationError, SOURCE_REQUIRED veya mevzuat bulgusu
+değildir. Hesabı/PDF'yi engellemez, değeri değiştirmez, workflow warnings veya
+snapshot source statüsüne karışmaz. Boş/invalid input mevcut doğrulamaya bırakılır.
+1 ve üzerindeki yüzdelerde bu uyarı kalkar. %1 altı ürün girdileri geçerli kalır.
+
+### Snapshot, Formula View, History ve PDF
+
+Snapshot şeması/verisi değişmedi: raw_inputs.foam_fraction `{value:3,unit:'%'}`,
+normalized_inputs.foam_fraction `.03`; EngineeringValue.used_value `.03`,unit1.
+History saklanan normalize inputtan yalnız görüntü kopyasını yüzdeye çevirir:
+**Köpük Konsantrasyonu:3,00 %**. Cfoam override satırları önerilen3,00% /
+kullanılan6,00% gösterir; gerçek `.03/.06` ve gerekçe snapshot'ta kalır.
+Eski snapshot JSON'ları yeniden yazılmaz, current Library/proje verisi okunmaz.
+
+Fire PDF adapter'ında yalnız input/selections Cfoam numeric unit1 satırları
+mevcut fraction_to_percent helper'ıyla yüzde görünümüne çevrilir. Öneri/kullanılan
+değer için de aynı display-only kural uygulanır. Report hesap sonuçları değişmez.
+Formula View ve PDF equation adımları mevcut kanonik FormulaStep'leri aynen
+tutar: **Cfoam=.03 [1]**. Yüzde label'ıyla `.03%` gösterilmez; canonical0.03
+ve percent3 sunumu birbirinden ayrıdır. Formula View/History/PDF mimarisi veya
+renderer tasarımı değiştirilmedi. HW/PipeSelection/nozzle/seawater/DB/Library yok.
+
+### Regresyon ve kabul
+
+| A/q/t | Görünür konsantrasyon | İç fraksiyon | Sonuç / davranış |
+|---|---|---|---|
+|210/5/30|3 veya3,00|.03|1050/31.5/1018.5 L/min;945L; low-percent uyarısı yok|
+|210/5/30|6|.06|1890L; önerilen3%,used6%,gerekçe korunur|
+|210/5/30|0,03|.0003|9.45L; yalnız giriş konvansiyonu uyarısı|
+|210/5/30|0.5|.005|Geçerli hesap + giriş konvansiyonu uyarısı|
+|210/5/30|1|.01|Geçerli; low-percent uyarısı yok|
+|210/5/30|0/100/120/negatif|—|Mevcut validation hatası|
+
+19 yeni test conversion/threshold/classification, gerçek Tk yardım/adjacent%,
+nonblocking düşük yüzde hesabı, invalid boundary, TR/EN, narrow viewport help/
+warning sırası, canonical FormulaSteps, detached snapshot, History/override ve
+gerçek pypdf metnini doğrular. Önceki Phase4 PDF presentation testinin beklediği
+fraksiyon gösterimi3%/6%'ye güncellendi; numeric/workbook regression assert'leri
+değişmedi. Phase5B odaklı **19 passed**,5.33s; nested cache yazma uyarısı vardı.
+İlk geniş odaklı paket76 test geçti; son eklenen layout testiyle toplam19 yeni
+test vardır. Tam regresyon: **1832 passed, 0 failed**,91.72s; uyarı yok.
+
+İki örnek PDF (3% reference ve3%→6% override), mevcut renderer ile üretildi;
+4+5sayfanın tamamı Poppler PNG'lerinden görsel incelendi. Yüzde değerleri/birimleri,
+canonical formula değerleri, gerekçe ve sonuçlar okunabilir; rapor layout'u korunur.
+
+Gerçek main.py izole verilerle görünür açıldı. Windows Computer Use screenshot
+iki denemede `FrameArrived timed out` / `window capture timed out` verdi.
+Güncel yerleşik CUA app binding/accessibility tree çalıştı, screenshot yine
+`window capture timed out` verdi. Bu nedenle manuel alan girişi/görsel crowding
+kabulü doğrulanmış gösterilmez. Gerçek Tk otomatik testlerinde0,03% uyarısı,
+9.45L sonucu, PDF enabled, TR/EN metin ve1100×700 bounds/overlap kontrolü PASS.
+
+Foam domain/workflow formülleri ve iç fraction kontratı, q/t/c defaultları,
+workbook, HW, nozul/deniz suyu engelleri ve DB/Library değişmedi. Workbook hash'i
+`bd9aa871454c184afdb45e14bd0c008818d49701d5cc92e1de7ca89126159474` olarak kalır;
+approved untracked reference input, commit dışı.
+Sonuç **PHASE5B_PASS_WITH_MINOR_ISSUES**: istenen düzeltme ve regresyonlar geçti;
+manuel Windows görsel kontrolü erişim hatası nedeniyle açık. Sonraki adım bu
+dar görsel kontrolün tamamlanmasıdır; başka Fire özelliği başlatılmaz.
