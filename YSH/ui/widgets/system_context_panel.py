@@ -61,7 +61,7 @@ class SystemContextPanel(ttk.LabelFrame):
                 "circuit": self._service.circuits(self._context.system_id),
                 "fluid": self._service.fluids()}
         for key in self._values:
-            self._labels[key].configure(text=tr(f"context.{key}"))
+            self._labels[key].configure(text=tr("context.profile" if key == "system" else f"context.{key}"))
             choices = {tr(f"context.none.{key}"): None}
             for row in rows[key]:
                 language = getattr(getattr(tr, "__self__", None), "language", "en")

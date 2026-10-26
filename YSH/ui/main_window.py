@@ -54,6 +54,7 @@ from ui.widgets.status_bar import StatusBar
 from ui.widgets.scrollable_frame import ScrollableFrame
 from ui.widgets.scrollable_page_host import ScrollablePageHost
 from ui.widgets.system_context_panel import SystemContextPanel
+from ui.workspace_navigation import WorkspaceNavigation, FAMILIES
 from engineering.system_context import SystemContext
 from services.system_context_service import SystemContextService
 from ui.widgets.scrollable_treeview import ScrollableTreeview
@@ -275,11 +276,14 @@ class MainWindow:
         # Active-project details must not grow the fixed sidebar rows until the
         # only expanding row (the project list) collapses. Keep the lower area
         # bounded and independently scrollable, retaining all project metadata.
-        self._project_footer = ScrollableFrame(navigation, height=200)
-        self._project_footer.grid(row=4, column=0, sticky="ew", pady=(SM, 0))
+        self._project_footer = ScrollableFrame(navigation, height=144, style="Sidebar.TFrame")
+        self._project_footer.grid(row=5, column=0, sticky="ew", pady=(SM, 0))
         self._project_footer.grid_propagate(False)
         self._project_footer.set_wheel_active(True)
         self._project_footer.content.columnconfigure(0, weight=1)
+        if hasattr(navigation, 'tk'):
+            self._project_footer.canvas.configure(background=colors.SIDEBAR_SURFACE)
+            self._project_footer.content.configure(style='Sidebar.TFrame')
         actions = ttk.Frame(self._project_footer.content, style="SidebarActions.TFrame", padding=(0, SM, 0, 0))
         actions.grid(row=0, column=0, sticky="ew")
         actions.columnconfigure(0, weight=1)
@@ -297,27 +301,39 @@ class MainWindow:
         self._project_summary = ProjectSummary(self._project_footer.content, self._translate)
         self._project_summary.grid(row=1, column=0, sticky="ew", pady=(MD, 0))
 
+        self._navigation = WorkspaceNavigation()
+        self._family = 'fuel'
+        # Fixed, always-visible selector: scrolling project details cannot hide it.
+        self._family_frame = ttk.Frame(navigation, style='Sidebar.TFrame')
+        self._family_frame.grid(row=4, column=0, sticky='ew', pady=(SM, 0))
+        self._family_frame.columnconfigure(0, weight=1)
+        self._family_label = ttk.Label(self._family_frame, style="SidebarTitle.TLabel")
+        self._family_label.grid(row=0, column=0, sticky='w')
+        self._family_value = tk.StringVar()
+        self._family_selector = ttk.Combobox(self._family_frame,
+            textvariable=self._family_value, state='readonly', width=22)
+        self._family_selector.grid(row=1, column=0, sticky='ew', pady=(2, 4))
+        self._family_selector.bind('<<ComboboxSelected>>', self._select_family)
+        self._family_notice = ttk.Label(self._family_frame, wraplength=220,
+            justify='left', style='SidebarSearchLabel.TLabel')
+        self._family_notice.grid(row=2, column=0, sticky='ew')
+        self._family_notice.grid_remove()
         self._family_parent = content
-        self._family_bar = ttk.Frame(content)
-        self._family_bar.grid(row=0,column=0,sticky='ew',pady=(0,6))
-        self._existing_family_button=ttk.Button(self._family_bar,text=self._translate('fire.ui.existing'),command=lambda:self._show_family('existing'))
-        self._existing_family_button.pack(side='left',padx=(0,8))
-        self._fire_family_button=ttk.Button(self._family_bar,text=self._translate('fire.system'),command=lambda:self._show_family('fire'))
-        self._fire_family_button.pack(side='left')
-        self._family='existing'
+        self._workspace_row = 0
         self._page_host = ScrollablePageHost(content)
-        self._page_host.grid(row=1, column=0, sticky="nsew")
-        content.rowconfigure(0,weight=0);content.rowconfigure(1,weight=1)
+        self._page_host.grid(row=0, column=0, sticky="nsew")
         if getattr(self, "_system_context_service", None) is not None:
             self._context_panel = SystemContextPanel(
                 content, self._system_context_service, self._translate,
                 self._change_system_context, compact=True)
             self._context_panel.grid(row=0, column=0, sticky="ew")
-            self._family_bar.grid(row=1,column=0,sticky='ew')
-            self._page_host.grid(row=2, column=0, sticky="nsew")
+            self._workspace_row = 1
+            self._page_host.grid(row=1, column=0, sticky="nsew")
             content.rowconfigure(0, weight=0)
-            content.rowconfigure(1, weight=0);content.rowconfigure(2,weight=1)
+            content.rowconfigure(1, weight=1)
             self.register_localizable(self._context_panel)
+        self._page_host.bind('<<NotebookTabChanged>>', self._remember_module, add='+')
+        self._refresh_family_selector()
         if self._pipe_design_service is not None:
             self._pipe_design_page = self._add_scrollable_page("pipe_design", self._translate("page.pipe.tab"),lambda parent:PipeDesignPage(parent,self._pipe_design_service, self._translate))
             self._pipe_design_page.set_dirty_callback(self._mark_workspace_dirty)
@@ -365,7 +381,7 @@ class MainWindow:
             command,
             style="HeaderCommand.TButton",
             palette=HEADER_COMMAND_PALETTE,
-            outside_background=colors.NAVY,
+            outside_background=colors.HEADER_SURFACE,
             icon_name=icon_name,
             icon_only=True,
             tooltip_text=text,
@@ -410,12 +426,12 @@ class MainWindow:
         palette: RoundedButtonPalette,
         icon_name: str,
     ) -> tk.Widget:
-        """Create a project-sidebar action that blends into its neutral panel."""
+        """Create a project action on the navy sidebar, retaining icon geometry."""
         return create_rounded_button(
             parent,
             text,
             command,
-            style=style,
+            style="SidebarAction.TButton",
             palette=replace(palette, normal=(colors.SIDEBAR_SURFACE, colors.SIDEBAR_SURFACE)),
             outside_background=colors.SIDEBAR_SURFACE,
             icon_name=icon_name,
@@ -626,9 +642,8 @@ class MainWindow:
             self._page_host.set_page_title(page_name, self._translate(page_titles[page_name]))
         if selected_tab:
             self._page_host.select(selected_tab)
-        if hasattr(self,'_fire_family_button'):
-            self._fire_family_button.configure(text=self._translate('fire.system'))
-            self._existing_family_button.configure(text=self._translate('fire.ui.existing'))
+        if hasattr(self, '_family_selector'):
+            MainWindow._refresh_family_selector(self)
 
     def _export_all_page_states(self) -> dict[str, object]:
         """Collect page-owned persistence contracts into one V1 workspace."""
@@ -654,6 +669,9 @@ class MainWindow:
             state['fire_workspace']=self._fire_workspace.export_state()
         elif getattr(self,'_fire_pending_state',None):
             state['fire_workspace']=self._fire_pending_state
+        if hasattr(self, '_navigation'):
+            MainWindow._remember_module(self, dirty=False)
+            state['navigation'] = self._navigation.to_payload()
         return state
 
     def _load_all_page_states(self, state: dict[str, object]) -> None:
@@ -668,6 +686,7 @@ class MainWindow:
         if fire_state:
             from services.fire_workspace import FireWorkspace
             FireWorkspace.from_state(fire_state)
+        navigation = WorkspaceNavigation.from_workspace(state)
         self._fire_pending_state=fire_state
         if getattr(self,'_fire_workspace',None) is not None:self._fire_workspace.load_state(fire_state)
         for key, page in self._pages.items(): page.load_state(dict(state.get(key, {})))
@@ -679,6 +698,10 @@ class MainWindow:
                     page.set_transfer_state(transfer)
         if hasattr(self, "_system_context") or "system_context" in state:
             MainWindow._apply_system_context(self, context)
+
+        if hasattr(self, '_navigation'):
+            self._navigation = navigation
+            MainWindow._show_family(self, navigation.active_system_family, dirty=False, remember=False)
 
     def _clear_all_pages(self) -> None:
         """Restore clean/default state on every primary calculation page."""
@@ -692,6 +715,10 @@ class MainWindow:
         if hasattr(self, "_system_context"):
             from engineering.system_context import SystemContext
             MainWindow._apply_system_context(self, SystemContext())
+
+        if hasattr(self, '_navigation'):
+            self._navigation = WorkspaceNavigation()
+            MainWindow._show_family(self, 'fuel', dirty=False, remember=False)
 
     def _attach_dirty_callbacks(self) -> None:
         """Route page edits to optional project dirty tracking."""
@@ -1336,25 +1363,81 @@ class MainWindow:
         self._history_window=CalculationHistoryWindow(self._root,service,
             lambda:self._active_project.id if self._active_project else None,self._translate,self)
 
-    def _show_family(self, family: str) -> None:
-        """Keep four accepted pages intact; create the independent Fire family once."""
-        if family=='fire':
-            if getattr(self,'_fire_workspace',None) is None:
+    def _refresh_family_selector(self) -> None:
+        self._family_label.configure(text=self._translate('navigation.system'))
+        self._family_selector.configure(values=tuple(self._translate(key) for key in FAMILIES.values()))
+        self._family_value.set(self._translate(FAMILIES[self._family]))
+        MainWindow._refresh_family_notice(self)
+
+    def _refresh_family_notice(self) -> None:
+        if not hasattr(self, '_family_notice'):
+            return
+        profile = self._system_context.system
+        incompatible = profile is not None and (
+            (self._family == 'fire' and profile.code.upper() == 'FUEL') or
+            (self._family == 'fuel' and profile.code.upper() == 'FIRE'))
+        if incompatible:
+            self._family_notice.configure(text=self._translate('navigation.incompatible'))
+            self._family_notice.grid()
+        else:
+            self._family_notice.grid_remove()
+
+    def _select_family(self, _event=None) -> None:
+        index = self._family_selector.current()
+        if index >= 0:
+            self._show_family(tuple(FAMILIES)[index])
+
+    def _remember_module(self, _event=None, *, dirty=True) -> None:
+        if not hasattr(self, '_navigation'):
+            return
+        family = self._family
+        host = self._page_host if family == 'fuel' else self._fire_workspace.host
+        selected = host.select()
+        key = next((key for key, tab in host._page_keys.items() if str(tab) == selected), None)
+        if key and self._navigation.last_active_module_by_family[family] != key:
+            self._navigation.last_active_module_by_family[family] = key
+            if dirty:
+                self._mark_workspace_dirty()
+
+    def _show_family(self, family: str, *, dirty=True, remember=True) -> None:
+        """Switch cached hosts only; engineering values and results are untouched."""
+        if family not in FAMILIES:
+            raise ValueError('Unknown system family')
+        changed = family != getattr(self, '_family', 'fuel')
+        if remember:
+            MainWindow._remember_module(self, dirty=False)
+        if family == 'fire':
+            if getattr(self, '_fire_workspace', None) is None:
                 from ui.pages.fire_workspace_page import FireWorkspacePage
-                self._fire_workspace=FireWorkspacePage(self._family_parent,self._translate,
-                    sources=self._pipe_sources,context=lambda:self._system_context,
+                self._fire_workspace = FireWorkspacePage(self._family_parent, self._translate,
+                    sources=self._pipe_sources, context=lambda:self._system_context,
                     project=lambda:self._active_project.id if self._active_project else None,
                     on_snapshot=lambda snapshot:self._snapshot_history.append(snapshot),
-                    on_dirty=self._mark_workspace_dirty,state=getattr(self,'_fire_pending_state',{}))
+                    on_dirty=self._mark_workspace_dirty, state=getattr(self,'_fire_pending_state',{}))
                 self.register_localizable(self._fire_workspace)
+                self._fire_workspace.host.bind('<<NotebookTabChanged>>', self._remember_module, add='+')
             self._page_host.grid_remove()
-            row=int(self._page_host.grid_info().get('row',2 if hasattr(self,'_context_panel') else 1))
-            self._fire_workspace.grid(row=row,column=0,sticky='nsew')
-            self._fire_workspace.observe()
+            self._fire_workspace.grid(row=getattr(self, '_workspace_row', 1), column=0, sticky='nsew')
+            host = self._fire_workspace.host
         else:
-            if getattr(self,'_fire_workspace',None) is not None:self._fire_workspace.grid_remove()
+            if getattr(self,'_fire_workspace',None) is not None:
+                self._fire_workspace.grid_remove()
             self._page_host.grid()
-        self._family=family
+            host = self._page_host
+        self._family = family
+        if hasattr(self, '_navigation'):
+            self._navigation.active_system_family = family
+            key = self._navigation.last_active_module_by_family[family]
+            tab = host._page_keys.get(key)
+            if tab is not None and host.tab(tab, 'state') == 'normal':
+                host.select(tab)
+            if family == 'fire':
+                self._fire_workspace.model.active = key
+                self._fire_workspace.views[key]
+        if hasattr(self, '_family_selector'):
+            MainWindow._refresh_family_selector(self)
+        if changed and dirty and hasattr(self, '_mark_workspace_dirty'):
+            self._mark_workspace_dirty()
 
     def refresh_library_context_choices(self) -> None:
         """Refresh master choices after an explicit library refresh/close, preserving project truth."""
@@ -1413,3 +1496,4 @@ class MainWindow:
         if page is not None and hasattr(page, "set_project_context"):
             page.set_project_context(context)
         if getattr(self,'_fire_workspace',None) is not None:self._fire_workspace.observe()
+        MainWindow._refresh_family_notice(self)

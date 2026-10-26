@@ -240,10 +240,10 @@ def test_cached_family_navigation_and_shell_state_namespace(live):
     from ui.main_window import MainWindow
     root,page,saved,tr=live
     # Use the real shell method with existing host/page objects and optional services.
-    shell=SimpleNamespace(_fire_workspace=page,_page_host=page.host,_family='existing',
+    shell=SimpleNamespace(_fire_workspace=page,_page_host=page.host,_family='fuel',
         _context_panel=object(),_pages={},_fire_pending_state={},_system_context=SystemContext())
     for _ in range(3):
-        MainWindow._show_family(shell,'fire');MainWindow._show_family(shell,'existing')
+        MainWindow._show_family(shell,'fire');MainWindow._show_family(shell,'fuel')
     assert shell._fire_workspace is page
     state=MainWindow._export_all_page_states(shell)
     assert state['fire_workspace']['version']==1 and state['schema_version']==1

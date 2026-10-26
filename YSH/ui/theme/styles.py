@@ -23,43 +23,43 @@ def apply_theme(root: tk.Misc) -> None:
     style.configure(".", background=colors.BACKGROUND, foreground=colors.TEXT_PRIMARY, font=typography.BODY)
     style.configure("TFrame", background=colors.BACKGROUND)
     style.configure("Main.TFrame", background=colors.BACKGROUND)
-    style.configure("Header.TFrame", background=colors.NAVY)
-    style.configure("Toolbar.TFrame", background=colors.NAVY)
-    style.configure("HeaderBrand.TFrame", background=colors.NAVY)
-    style.configure("HeaderUtility.TFrame", background=colors.NAVY)
+    style.configure("Header.TFrame", background=colors.HEADER_SURFACE)
+    style.configure("Toolbar.TFrame", background=colors.HEADER_SURFACE)
+    style.configure("HeaderBrand.TFrame", background=colors.HEADER_SURFACE)
+    style.configure("HeaderUtility.TFrame", background=colors.HEADER_SURFACE)
     style.configure(
         "HeaderLogoPlate.TFrame",
-        background=colors.NAVY,
-        bordercolor=colors.NAVY,
+        background=colors.HEADER_SURFACE,
+        bordercolor=colors.HEADER_SURFACE,
         relief="flat",
         borderwidth=0,
     )
     style.configure(
         "HeaderLogoPlate.TLabel",
-        background=colors.NAVY,
+        background=colors.HEADER_SURFACE,
     )
-    style.configure("Ribbon.TFrame", background=colors.NAVY)
+    style.configure("Ribbon.TFrame", background=colors.HEADER_SURFACE)
     style.configure(
         "CommandGroup.TFrame",
-        background=colors.NAVY,
-        bordercolor=colors.NAVY,
+        background=colors.HEADER_SURFACE,
+        bordercolor=colors.HEADER_SURFACE,
         relief="flat",
         borderwidth=0,
     )
     style.configure(
         "CommandGroupCommands.TFrame",
-        background=colors.NAVY,
+        background=colors.HEADER_SURFACE,
     )
     style.configure(
         "CommandGroupTitle.TLabel",
-        background=colors.NAVY,
-        foreground=colors.GOLD,
+        background=colors.HEADER_SURFACE,
+        foreground=colors.NAVY,
         font=typography.SUBSECTION_TITLE,
     )
-    style.configure("Sidebar.TFrame", background=colors.SURFACE)
+    style.configure("Sidebar.TFrame", background=colors.SIDEBAR_SURFACE)
     style.configure("SidebarPanel.TFrame", background=colors.SIDEBAR_SURFACE, bordercolor=colors.BORDER, relief="solid", borderwidth=1)
     style.configure("SidebarActions.TFrame", background=colors.SIDEBAR_SURFACE)
-    style.configure("SidebarSearchLabel.TLabel", background=colors.SIDEBAR_SURFACE, foreground=colors.TEXT_SECONDARY, font=typography.MUTED)
+    style.configure("SidebarSearchLabel.TLabel", background=colors.SIDEBAR_SURFACE, foreground=colors.ON_ACCENT, font=typography.MUTED)
     style.configure("Workspace.TFrame", background=colors.BACKGROUND)
     style.configure("TableToolbar.TFrame", background=colors.CARD_SURFACE)
     style.configure("EmptyState.TFrame", background=colors.SURFACE_ALT)
@@ -90,10 +90,10 @@ def apply_theme(root: tk.Misc) -> None:
         foreground=[("readonly", colors.TEXT_PRIMARY), ("disabled", colors.TEXT_MUTED)],
         bordercolor=[("focus", colors.PRIMARY), ("disabled", colors.DIVIDER)],
     )
-    style.configure("HeaderTitle.TLabel", background=colors.NAVY, foreground=colors.ON_ACCENT, font=typography.APPLICATION_TITLE)
-    style.configure("HeaderSubtitle.TLabel", background=colors.NAVY, foreground=colors.HEADER_MUTED_TEXT, font=typography.APPLICATION_SUBTITLE)
-    style.configure("HeaderProject.TLabel", background=colors.NAVY, foreground=colors.HEADER_MUTED_TEXT, font=typography.MUTED)
-    style.configure("SidebarTitle.TLabel", background=colors.SIDEBAR_SURFACE, foreground=colors.NAVY, font=typography.SECTION_TITLE)
+    style.configure("HeaderTitle.TLabel", background=colors.HEADER_SURFACE, foreground=colors.NAVY, font=typography.APPLICATION_TITLE)
+    style.configure("HeaderSubtitle.TLabel", background=colors.HEADER_SURFACE, foreground=colors.NAVY, font=typography.APPLICATION_SUBTITLE)
+    style.configure("HeaderProject.TLabel", background=colors.HEADER_SURFACE, foreground=colors.NAVY, font=typography.MUTED)
+    style.configure("SidebarTitle.TLabel", background=colors.SIDEBAR_SURFACE, foreground=colors.GOLD, font=typography.SECTION_TITLE)
     style.configure("TLabelFrame", background=colors.SURFACE, bordercolor=colors.BORDER, relief="solid")
     style.configure("TLabelFrame.Label", background=colors.SURFACE, foreground=colors.TEXT_SECONDARY, font=typography.SECTION_TITLE)
     style.configure("ActiveProject.TLabelframe", background=colors.SURFACE_ALT, bordercolor=colors.PRIMARY)
@@ -293,14 +293,17 @@ def apply_theme(root: tk.Misc) -> None:
     _configure_rounded_outline_button(style, "RoundedFormula.TButton", colors.FORMULA)
     style.configure(
         "HeaderCommand.TButton",
-        background=colors.NAVY,
-        foreground=colors.ON_ACCENT,
+        background=colors.HEADER_SURFACE,
+        foreground=colors.NAVY,
         borderwidth=0,
         focusthickness=0,
         padding=0,
         relief="flat",
         font=typography.BODY_BOLD,
     )
+    _configure_rounded_outline_button(style, "SidebarAction.TButton", colors.ON_ACCENT)
+    style.map("SidebarAction.TButton", foreground=[("disabled", colors.HEADER_MUTED_TEXT),
+        ("pressed", colors.NAVY), ("active", colors.NAVY)])
     style.map("HeaderCommand.TButton", foreground=[("disabled", colors.HEADER_MUTED_TEXT)])
     _configure_button(style, "Transfer.Primary.TButton", colors.NAVY, colors.DEEP_NAVY, colors.ON_ACCENT)
     _configure_button(style, "Discharge.Primary.TButton", colors.NAVY, colors.DEEP_NAVY, colors.ON_ACCENT)

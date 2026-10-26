@@ -241,8 +241,11 @@ class FireCalculatorPage(ttk.Frame):
             self.clarifications=foam_percent_clarifications(self.variables['foam_fraction'].get())
             if self.clarifications:
                 self.concentration_warning.configure(text=self.tr(self.clarifications[0].message_key))
+                self.concentration_help.grid_remove()
                 self.concentration_warning.grid()
-            else:self.concentration_warning.grid_remove()
+            else:
+                self.concentration_warning.grid_remove()
+                self.concentration_help.grid()
         result=self.model.results[self.kind]
         state='normal' if result else 'disabled'
         self.pdf_button.configure(state=state);self.formula._toggle.configure(state=state)

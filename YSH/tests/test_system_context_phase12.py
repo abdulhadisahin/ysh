@@ -312,7 +312,7 @@ def test_context_selector_real_callbacks_filter_clear_and_localize(catalogs) -> 
     assert panel._events
     panel._translate=Translator('en').translate
     panel.refresh_texts()
-    assert panel._labels['system'].options['text']=='System'
+    assert panel._labels['system'].options['text']=='Engineering profile'
     assert any('User fuel' in label for label in panel._choices['system'])
 
 

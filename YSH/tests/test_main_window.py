@@ -75,6 +75,12 @@ class _DummyWidget:
     def grid(self, *args: object, **kwargs: object) -> None:
         """Accept grid calls without side effects."""
 
+    grid_configure = grid
+    grid_remove = grid
+
+    def bind(self, *args: object, **kwargs: object) -> None:
+        """Accept widget event registration."""
+
     def columnconfigure(self, *args: object, **kwargs: object) -> None:
         """Accept columnconfigure calls without side effects."""
 
@@ -244,6 +250,9 @@ def test_main_window_initializes_projects_tree(monkeypatch: object) -> None:
         def get(self) -> str:
             return self.value
 
+        def set(self, value: str) -> None:
+            self.value = value
+
         def trace_add(self, *args: object) -> None:
             del args
 
@@ -284,6 +293,7 @@ def test_main_window_initializes_projects_tree(monkeypatch: object) -> None:
         "StringVar": _DummyStringVar,
     }))
     monkeypatch.setattr(main_window_module.ttk, "Entry", _DummyWidget)
+    monkeypatch.setattr(main_window_module.ttk, "Combobox", _DummyWidget)
     monkeypatch.setattr(main_window_module.ttk, "Frame", _DummySidebarFrame)
     monkeypatch.setattr(main_window_module.ttk, "LabelFrame", _DummyWidget)
     monkeypatch.setattr(main_window_module.ttk, "Button", _DummyWidget)
@@ -314,7 +324,7 @@ def test_main_window_initializes_projects_tree(monkeypatch: object) -> None:
 
     assert hasattr(window, "_projects_tree")
     assert window._projects_tree is not None
-    assert window._project_footer.kwargs["height"] == 200
+    assert window._project_footer.kwargs["height"] == 144
     assert window._project_footer.propagate is False
     assert window._project_footer.wheel_active
     assert window._project_footer.args[0].rows[3] == {"weight": 1, "minsize": 120}

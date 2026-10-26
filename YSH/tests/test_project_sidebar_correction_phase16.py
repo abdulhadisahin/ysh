@@ -184,7 +184,7 @@ def test_shell_button_constructors_keep_factory_contract_and_interaction_states(
     options = control.kwargs
     assert options['command'] is callback and options['text'] == 'Visible command'
     palette = options['palette']
-    background = colors.NAVY if area == 'header' else colors.SIDEBAR_SURFACE
+    background = colors.HEADER_SURFACE if area == 'header' else colors.SIDEBAR_SURFACE
     assert palette.normal == (background, background)
     assert palette.hover != palette.normal and palette.pressed != palette.hover
     assert palette.disabled != palette.normal and palette.focus_border != background

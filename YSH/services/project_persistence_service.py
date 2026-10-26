@@ -46,9 +46,9 @@ class ProjectPersistenceService:
             raise ValidationError(ValidationIssue("project_selection_required"))
         # Existing pages export only their own keys. Preserve the opt-in namespace
         # when those pages save, including future namespace versions kept opaque.
-        if any(namespace not in state for namespace in ('pipe_transfer','system_context','fire_workspace')):
+        if any(namespace not in state for namespace in ('pipe_transfer','system_context','fire_workspace','navigation')):
             previous = self._states.get(self._active_project.id) or {}
-            for namespace in ("pipe_transfer", "system_context", "fire_workspace"):
+            for namespace in ("pipe_transfer", "system_context", "fire_workspace", "navigation"):
                 if namespace not in state and namespace in previous:
                     state = {**state, namespace: previous[namespace]}
         state["schema_version"] = 1

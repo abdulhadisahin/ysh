@@ -70,8 +70,8 @@ def test_theme_uses_navy_structure_and_native_input_state_treatment() -> None:
     """The final shell refinement avoids default ttk chrome without new widgets."""
     source = (ROOT / "ui/theme/styles.py").read_text(encoding="utf-8")
 
-    assert 'style.configure("Header.TFrame", background=colors.NAVY)' in source
-    assert 'style.configure("Ribbon.TFrame", background=colors.NAVY)' in source
+    assert 'style.configure("Header.TFrame", background=colors.HEADER_SURFACE)' in source
+    assert 'style.configure("Ribbon.TFrame", background=colors.HEADER_SURFACE)' in source
     assert "foreground=colors.GOLD" in source
     assert 'style.configure("Status.TFrame", background=colors.NAVY)' in source
     assert 'style.configure("YSH.TNotebook.Tab", background=colors.NAVY' in source

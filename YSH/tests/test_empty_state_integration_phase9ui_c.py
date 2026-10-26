@@ -48,7 +48,8 @@ def test_contextual_states_swap_instead_of_overlaying_live_content() -> None:
 def test_sidebar_state_is_contextual_and_keeps_actions_separate() -> None:
     source = _source("ui/main_window.py")
     assert "_project_empty_state" in source
-    assert "self._project_footer.grid(row=4" in source
+    assert "self._family_frame.grid(row=4" in source
+    assert "self._project_footer.grid(row=5" in source
     assert "actions.grid(row=0" in source
     assert "self._project_footer.grid_propagate(False)" in source
     assert "tree_container.grid_remove" in source

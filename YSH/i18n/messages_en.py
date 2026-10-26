@@ -3,9 +3,9 @@
 from i18n.terminology import terminology_messages
 
 MESSAGES = {
-    'fire.ui.percent_help': 'Enter as percent. Example: enter 3 for 3%.',
+    'fire.ui.percent_help': 'Enter foam concentration as percent.',
     'fire.ui.recommended_percent': 'Recommended (%)',
-    'fire.ui.percent_low': 'The entered value is below 1%. This field expects a percentage; enter 3 for 3%.',
+    'fire.ui.percent_low': 'This field expects percent. Enter 3 for 3%.',
     "app.title": "D243",
     "app.subtitle": "Fuel System Engineering",
     "app.workspace": "Engineering Calculation Workspace",
@@ -800,12 +800,11 @@ MESSAGES.update({
 
 # Live Fire workspace; no engineering defaults.
 MESSAGES.update({
-    'fire.ui.existing': 'Existing Calculations',
     'fire.ui.foam': 'Foam System',
     'fire.ui.hw': 'Hazen-Williams',
     'fire.ui.inputs': 'Design Inputs',
     'fire.ui.concentration': 'Foam Concentration',
-    'fire.ui.mixture': 'Mixture basis: concentrate volume / solution volume. Enter concentration as percent.',
+    'fire.ui.mixture': 'Mixture basis: concentrate volume / solution volume.',
     'fire.ui.water_scope': 'Water / straight pipe only. This calculation is unavailable for seawater and fuel.',
     'fire.ui.provenance': 'Source / Selection Details',
     'fire.ui.provenance_hint': 'Source, recommended value and override reason where applicable',
@@ -840,3 +839,5 @@ MESSAGES.update({
     'fire.ui.source.SOURCE_VERIFIED': 'Source verified',
     'fire.ui.source.DERIVED_FROM_VERIFIED_RULE': 'Derived from verified rule',
 })
+
+MESSAGES.update({'navigation.system': 'System', 'navigation.fuel': 'Fuel System', 'context.profile': 'Engineering profile', 'navigation.incompatible': 'Selected family conflicts with the engineering profile. Profile retained.'})

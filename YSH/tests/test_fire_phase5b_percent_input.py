@@ -43,7 +43,7 @@ def test_help_adjacent_unit_and_empty_initial_value(live):
     from tkinter import ttk
     root,page,saved,tr=live;view=page.views['foam']
     assert view.variables['foam_fraction'].get()==''
-    assert view.concentration_help['text']=='Yüzde olarak giriniz. Örnek: %3 için 3 yazın.'
+    assert view.concentration_help['text']=='Köpük konsantrasyonunu yüzde olarak giriniz.'
     assert view.concentration_warning.grid_info()=={}
     assert any(widget['text']=='Önerilen (%)' for widget,key in view.meta_labels if key=='fire.ui.recommended_percent')
     percent_label=next(w for w in view.input_card.winfo_children() if isinstance(w,ttk.Label) and w['text']=='%')
@@ -91,7 +91,7 @@ def test_clarification_localization(language,live):
     view.variables['foam_fraction'].set('0.5');view.refresh_texts()
     assert view.concentration_help['text']==view.tr('fire.ui.percent_help')
     assert view.concentration_warning['text']==view.tr('fire.ui.percent_low')
-    if language=='en':assert view.concentration_help['text']=='Enter as percent. Example: enter 3 for 3%.'
+    if language=='en':assert view.concentration_help['text']=='Enter foam concentration as percent.'
 
 
 def test_frozen_history_and_pdf_show_percent_with_canonical_formula_and_overrides(live):
@@ -141,5 +141,5 @@ def test_help_and_warning_fit_narrow_viewport_without_overlap(live):
     right=canvas.winfo_rootx()+canvas.winfo_width()
     assert view.concentration_help.winfo_rootx()+view.concentration_help.winfo_width()<=right+2
     assert view.concentration_warning.winfo_rootx()+view.concentration_warning.winfo_width()<=right+2
-    assert view.concentration_help.winfo_rooty()+view.concentration_help.winfo_height()<=view.concentration_warning.winfo_rooty()
+    assert not view.concentration_help.grid_info()
     assert view.concentration_warning.winfo_rooty()+view.concentration_warning.winfo_height()<=view.scope.winfo_rooty()

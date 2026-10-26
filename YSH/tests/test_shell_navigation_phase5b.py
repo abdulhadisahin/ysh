@@ -105,7 +105,7 @@ def test_header_rounded_commands_match_the_navy_shell_at_outer_corners() -> None
     button_source = (ROOT / "ui/widgets/rounded_button.py").read_text(encoding="utf-8")
 
     assert "def _create_header_button" in shell_source
-    assert "outside_background=colors.NAVY" in shell_source
+    assert "outside_background=colors.HEADER_SURFACE" in shell_source
     assert "outside_background: str | None = None" in button_source
     assert "self._outside_background or fill" in button_source
     assert "if self._outside_background is None:" in button_source
@@ -129,7 +129,7 @@ def test_sidebar_rounded_commands_match_their_neutral_panel_at_outer_corners() -
     ):
         action_statement = shell_source.split(f"{action} = ", 1)[1].split("\n", 1)[0]
         assert "self._create_sidebar_button" in action_statement
-    assert "outside_background=colors.NAVY" in shell_source
+    assert "outside_background=colors.HEADER_SURFACE" in shell_source
 
 
 def test_header_button_host_styles_are_derived_for_all_command_groups() -> None:
@@ -157,7 +157,7 @@ def test_command_group_structures_share_the_authoritative_navy_surface() -> None
     command_group_block = styles_source.split('"CommandGroup.TFrame"', 1)[1].split(
         'style.configure("Sidebar.TFrame"', 1
     )[0]
-    assert command_group_block.count("background=colors.NAVY") >= 3
+    assert command_group_block.count("background=colors.HEADER_SURFACE") >= 3
 
 
 def test_optional_naval_artwork_is_scoped_and_keeps_strong_references() -> None:

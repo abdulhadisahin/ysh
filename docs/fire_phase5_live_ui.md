@@ -362,3 +362,123 @@ approved untracked reference input, commit dışı.
 Sonuç **PHASE5B_PASS_WITH_MINOR_ISSUES**: istenen düzeltme ve regresyonlar geçti;
 manuel Windows görsel kontrolü erişim hatası nedeniyle açık. Sonraki adım bu
 dar görsel kontrolün tamamlanmasıdır; başka Fire özelliği başlatılmaz.
+
+## PHASE 5C — Foam Warning Cleanup
+
+Starting commit: `f0d8d76c2f6b8f6c00c789702fc8c82bb52497e6`, branch
+`d243-v2-handoff`, Python 3.14.8 from `.venv314`. Baseline: **1832 passed**
+(89.05 s). Only the approved untracked reference workbook was present.
+
+Normal/empty input shows one neutral helper:
+- TR: **Köpük konsantrasyonunu yüzde olarak giriniz.**
+- EN: **Enter foam concentration as percent.**
+
+For `0 < visible_percent < 1`, the helper is hidden and replaced by one amber,
+nonblocking clarification:
+- TR: **Bu alan yüzde bekler. %3 için 3 giriniz.**
+- EN: **This field expects percent. Enter 3 for 3%.**
+
+The mixture caption contains only the mixture basis. Correction to 3 or empty
+removes the warning and restores the helper. Empty/3/3,00/1 have zero warnings;
+0,5/0,03 have exactly one. Parsing and normalization remain deterministic:
+3 -> 0.03 and 0,03 -> 0.0003. Formula steps, provenance and results are unchanged.
+
+## PHASE 5D — Project-Level System Selection & Contextual Navigation
+
+### Semantic decision (reviewed before UI changes)
+
+A. The top `SystemContextPanel` selects `SystemContext.system`, a UUID-backed
+engineering system profile. Circuit and fluid are independent optional
+references. Existing applicability and engineering-context checks retain them.
+B. The former two-button family row only switched cached notebook hosts.
+C. The project sidebar now owns the navigation family (`fuel` / `fire`).
+D. Top profile/circuit/fluid controls remain engineering context. The profile
+caption explicitly says **Mühendislik profili / Engineering profile**. A family
+change never selects a profile, circuit or fluid, calculates, or clears results.
+
+### Navigation, visibility and compatibility
+
+One readonly combobox, labelled **Sistem / System**, selects **Yakıt Sistemi /
+Fuel System** or **Yangın Söndürme / Fire Fighting**. It sits in a fixed frame
+immediately below the project list and above project actions. Scrolling project
+details cannot hide it. The list retains its expanding row and 120px minimum;
+the actions/details viewport is 144px, reserving roughly the previous lower-panel
+budget for that viewport plus the compact fixed selector.
+
+The old central family row, buttons and unused localization key are removed,
+recovering one content row. Existing cached hosts are reused:
+- Fuel: Pipe, Transfer, Discharge, Suction/ENPY only.
+- Fire: Foam, Hazen-Williams only; subviews remain lazy and cached once.
+
+Last selected module is remembered independently for each family. Live inputs,
+valid results and frozen snapshots survive family switching. History and
+Library remain global. Family/profile conflicts (Fire/FUEL or Fuel/FIRE) produce
+a concise sidebar notice and retain the original engineering context.
+
+### Project state
+
+Existing project JSON contains an additive `navigation` version-1 namespace:
+`active_system_family` and `last_active_module_by_family`. Stored values are
+stable IDs, never widgets or translated labels. Partial saves preserve it.
+Missing/unknown navigation preferences use Fuel/Pipe and Fire/Foam defaults;
+new/cleared projects default to Fuel. No DB schema or migration was added.
+Fresh application restore directly into Fire/HW creates only the HW subview.
+
+### User-approved shell visual correction
+
+The user reported difficulty finding Fire and explicitly requested a navy left
+panel and gold top, retaining the accepted icon sizes. This extends the original
+phase's shell visual scope. Header/ribbon/logo/command hosts now share GOLD with
+navy text; the sidebar uses NAVY, gold titles and white labels. Its scroll canvas
+and content match. Data and summary cards retain light, readable surfaces.
+Sidebar action text is white normally and navy on light active surfaces.
+Upper artwork remains 79px on 86px targets; sidebar artwork remains 40px with a
+52px minimum control height. No icon assets were changed.
+
+The user reviewed the isolated current-build window and answered
+**Evet, görünüm uygun** for selector discoverability and the requested colors.
+The reported visual issue is resolved. Computer Use screenshots failed twice
+with `window capture timed out: timed out waiting on channel`. The remaining
+interaction/regression evidence comes from real-Tk/service tests; this is not a
+claim that all 19 manual acceptance steps were performed by the agent.
+
+### Validation and timings
+
+25 added tests cover warning counts/correction/localization, actual shell
+visibility, cached page identity, valid Pipe/Foam results, per-family module
+memory, project save/open, legacy/default preferences, partial saves, profile
+compatibility, fixed-selector visibility during footer scrolling, shell contrast,
+and TR/EN geometry at 1100x700 and 1440x900. Existing text/layout expectations
+were updated for the accepted labels and user-approved shell colors.
+
+Focused runs: **128 passed** (initial Fire/context/navigation suite, 47.16 s),
+then **81 passed** (final shell/theme/navigation suite, 24.83 s). A separate
+fresh-shell Fire/HW restore also passed. Final full regression: **1857 passed,
+0 failed (110.73 s)**, comprising 1832 existing and 25 new tests.
+
+Single local runtime samples (not a controlled benchmark):
+- Startup before 3.334 s; final 3.516 s.
+- Fuel -> Fire first: command 0.160 s, settled 2.393 s.
+- Fire -> Fuel: command 0.015 s, settled 0.477 s.
+- Cached Fuel -> Fire: command 0.005 s, settled 0.129 s.
+
+Settled includes Tk idle/update work. Lazy construction remains; there is no
+workbook, PDF or History preload. Four Fuel pages and at most two cached Fire
+subviews are retained without duplication.
+
+Engineering/domain/workflow formulas, numerical semantics, nozzle and seawater
+HW restrictions, snapshot schema, Formula View, PDF, History, Library and TL
+data are unchanged. The only persistence addition is navigation JSON.
+
+Reference workbook: **approved untracked reference input**, unchanged and
+excluded from staging/commit. SHA256:
+`bd9aa871454c184afdb45e14bd0c008818d49701d5cc92e1de7ca89126159474`.
+
+Remaining limitation: agent screenshot capture is unavailable; user visual
+approval covers the corrected selector/color layout. A complete human 19-step
+acceptance record is still optional follow-up; no further Fire feature is
+started. Recommended next step is recording that broader manual checklist.
+
+Overall: **PHASE5C5D_PASS_WITH_MINOR_ISSUES**. Implementation, regressions and
+user-approved visual corrections pass; the remaining limitation is the broader
+human acceptance record and unavailable agent screenshot capture.

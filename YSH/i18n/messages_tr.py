@@ -3,9 +3,9 @@
 from i18n.terminology import terminology_messages
 
 MESSAGES = {
-    'fire.ui.percent_help': 'Yüzde olarak giriniz. Örnek: %3 için 3 yazın.',
+    'fire.ui.percent_help': 'Köpük konsantrasyonunu yüzde olarak giriniz.',
     'fire.ui.recommended_percent': 'Önerilen (%)',
-    'fire.ui.percent_low': "Girilen değer %1'in altında. Bu alan yüzde bekler; %3 için 3 giriniz.",
+    'fire.ui.percent_low': "Bu alan yüzde bekler. %3 için 3 giriniz.",
     "app.title": "D243",
     "app.subtitle": "Boru ve Tulumba Boyutlandırma Programı",
     "app.workspace": "Mühendislik Hesaplama Çalışma Alanı",
@@ -815,12 +815,11 @@ MESSAGES.update({
 
 # Live Fire workspace; no engineering defaults.
 MESSAGES.update({
-    'fire.ui.existing': 'Mevcut Hesaplar',
     'fire.ui.foam': 'Köpük Sistemi',
     'fire.ui.hw': 'Hazen-Williams',
     'fire.ui.inputs': 'Tasarım Girdileri',
     'fire.ui.concentration': 'Köpük Konsantrasyonu',
-    'fire.ui.mixture': 'Karışım temeli: konsantre hacmi / çözelti hacmi. Konsantrasyonu yüzde olarak girin.',
+    'fire.ui.mixture': 'Karışım temeli: konsantre hacmi / çözelti hacmi.',
     'fire.ui.water_scope': 'Yalnız su / düz boru kapsamı. Deniz suyu ve yakıt için bu hesap kullanılamaz.',
     'fire.ui.provenance': 'Kaynak / Seçim Bilgisi',
     'fire.ui.provenance_hint': 'Kaynak, önerilen değer ve varsa değişiklik gerekçesi',
@@ -855,3 +854,5 @@ MESSAGES.update({
     'fire.ui.source.SOURCE_VERIFIED': 'Kaynak doğrulanmış',
     'fire.ui.source.DERIVED_FROM_VERIFIED_RULE': 'Kaynaklı kuraldan türetilmiş',
 })
+
+MESSAGES.update({'navigation.system': 'Sistem', 'navigation.fuel': 'Yakıt Sistemi', 'context.profile': 'Mühendislik profili', 'navigation.incompatible': 'Seçilen aile mühendislik profiliyle uyumlu değil. Profil korunmuştur.'})
