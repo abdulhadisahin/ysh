@@ -79,6 +79,20 @@ def selection_to_dict(selection: PipeSelection) -> dict[str, object]:
     return _encode(selection)
 
 
+def pipe_input_to_dict(state) -> dict[str, object]:
+    """Serialize one independent downstream owner without observing live selections."""
+    from engineering.pipe_design.transfer import PipeInputState
+    if not isinstance(state, PipeInputState):
+        raise TypeError('PipeInputState required')
+    return _encode(state)
+
+
+def pipe_input_from_dict(payload: dict[str, object]):
+    """Restore the exact supplied applied/observed state; no refresh on decode."""
+    from engineering.pipe_design.transfer import PipeInputState
+    return _decode(PipeInputState, payload)
+
+
 def selection_from_dict(payload: dict[str, object]) -> PipeSelection:
     """Restore identity, revision, rules and Phase 2 provenance explicitly."""
     return _decode(PipeSelection, payload)

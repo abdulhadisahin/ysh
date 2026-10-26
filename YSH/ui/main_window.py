@@ -297,16 +297,26 @@ class MainWindow:
         self._project_summary = ProjectSummary(self._project_footer.content, self._translate)
         self._project_summary.grid(row=1, column=0, sticky="ew", pady=(MD, 0))
 
+        self._family_parent = content
+        self._family_bar = ttk.Frame(content)
+        self._family_bar.grid(row=0,column=0,sticky='ew',pady=(0,6))
+        self._existing_family_button=ttk.Button(self._family_bar,text=self._translate('fire.ui.existing'),command=lambda:self._show_family('existing'))
+        self._existing_family_button.pack(side='left',padx=(0,8))
+        self._fire_family_button=ttk.Button(self._family_bar,text=self._translate('fire.system'),command=lambda:self._show_family('fire'))
+        self._fire_family_button.pack(side='left')
+        self._family='existing'
         self._page_host = ScrollablePageHost(content)
-        self._page_host.grid(row=0, column=0, sticky="nsew")
+        self._page_host.grid(row=1, column=0, sticky="nsew")
+        content.rowconfigure(0,weight=0);content.rowconfigure(1,weight=1)
         if getattr(self, "_system_context_service", None) is not None:
             self._context_panel = SystemContextPanel(
                 content, self._system_context_service, self._translate,
                 self._change_system_context, compact=True)
             self._context_panel.grid(row=0, column=0, sticky="ew")
-            self._page_host.grid(row=1, column=0, sticky="nsew")
+            self._family_bar.grid(row=1,column=0,sticky='ew')
+            self._page_host.grid(row=2, column=0, sticky="nsew")
             content.rowconfigure(0, weight=0)
-            content.rowconfigure(1, weight=1)
+            content.rowconfigure(1, weight=0);content.rowconfigure(2,weight=1)
             self.register_localizable(self._context_panel)
         if self._pipe_design_service is not None:
             self._pipe_design_page = self._add_scrollable_page("pipe_design", self._translate("page.pipe.tab"),lambda parent:PipeDesignPage(parent,self._pipe_design_service, self._translate))
@@ -616,6 +626,9 @@ class MainWindow:
             self._page_host.set_page_title(page_name, self._translate(page_titles[page_name]))
         if selected_tab:
             self._page_host.select(selected_tab)
+        if hasattr(self,'_fire_family_button'):
+            self._fire_family_button.configure(text=self._translate('fire.system'))
+            self._existing_family_button.configure(text=self._translate('fire.ui.existing'))
 
     def _export_all_page_states(self) -> dict[str, object]:
         """Collect page-owned persistence contracts into one V1 workspace."""
@@ -637,6 +650,10 @@ class MainWindow:
             state["pipe_transfer"] = transfer
         if hasattr(self, "_system_context"):
             state["system_context"] = self._system_context.to_payload()
+        if getattr(self,'_fire_workspace',None) is not None:
+            state['fire_workspace']=self._fire_workspace.export_state()
+        elif getattr(self,'_fire_pending_state',None):
+            state['fire_workspace']=self._fire_pending_state
         return state
 
     def _load_all_page_states(self, state: dict[str, object]) -> None:
@@ -647,6 +664,12 @@ class MainWindow:
         transfer = transfer_from_workspace(state)
         from engineering.system_context import SystemContext
         context = SystemContext.from_workspace(state)
+        fire_state=state.get('fire_workspace',{})
+        if fire_state:
+            from services.fire_workspace import FireWorkspace
+            FireWorkspace.from_state(fire_state)
+        self._fire_pending_state=fire_state
+        if getattr(self,'_fire_workspace',None) is not None:self._fire_workspace.load_state(fire_state)
         for key, page in self._pages.items(): page.load_state(dict(state.get(key, {})))
         if hasattr(self, "_pipe_sources"):
             self._pipe_sources.load(transfer)
@@ -661,6 +684,8 @@ class MainWindow:
         """Restore clean/default state on every primary calculation page."""
         for page in getattr(self, "_pages", {}).values():
             page.clear_state()
+        self._fire_pending_state={}
+        if getattr(self,'_fire_workspace',None) is not None:self._fire_workspace.clear_state()
         if hasattr(self, "_pipe_sources"):
             from engineering.pipe_design.transfer import PipeTransferProjectState
             self._pipe_sources.load(PipeTransferProjectState())
@@ -1311,6 +1336,26 @@ class MainWindow:
         self._history_window=CalculationHistoryWindow(self._root,service,
             lambda:self._active_project.id if self._active_project else None,self._translate,self)
 
+    def _show_family(self, family: str) -> None:
+        """Keep four accepted pages intact; create the independent Fire family once."""
+        if family=='fire':
+            if getattr(self,'_fire_workspace',None) is None:
+                from ui.pages.fire_workspace_page import FireWorkspacePage
+                self._fire_workspace=FireWorkspacePage(self._family_parent,self._translate,
+                    sources=self._pipe_sources,context=lambda:self._system_context,
+                    project=lambda:self._active_project.id if self._active_project else None,
+                    on_snapshot=lambda snapshot:self._snapshot_history.append(snapshot),
+                    on_dirty=self._mark_workspace_dirty,state=getattr(self,'_fire_pending_state',{}))
+                self.register_localizable(self._fire_workspace)
+            self._page_host.grid_remove()
+            row=int(self._page_host.grid_info().get('row',2 if hasattr(self,'_context_panel') else 1))
+            self._fire_workspace.grid(row=row,column=0,sticky='nsew')
+            self._fire_workspace.observe()
+        else:
+            if getattr(self,'_fire_workspace',None) is not None:self._fire_workspace.grid_remove()
+            self._page_host.grid()
+        self._family=family
+
     def refresh_library_context_choices(self) -> None:
         """Refresh master choices after an explicit library refresh/close, preserving project truth."""
         service = getattr(self, "_system_context_service", None)
@@ -1367,3 +1412,4 @@ class MainWindow:
         page = getattr(self, "_transfer_pump_page", None)
         if page is not None and hasattr(page, "set_project_context"):
             page.set_project_context(context)
+        if getattr(self,'_fire_workspace',None) is not None:self._fire_workspace.observe()
