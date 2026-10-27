@@ -28,7 +28,7 @@ def test_shared_rounded_button_supports_icon_only_native_commands_and_tooltips()
 def test_header_starts_commands_without_branding_gap_and_keeps_group_titles() -> None:
     shell = _source("ui/main_window.py")
 
-    assert 'toolbar.grid(row=0, column=0, sticky="w")' in shell
+    assert 'toolbar.grid(row=0, column=0, sticky="ew")' in shell
     assert "header.columnconfigure(0, weight=1)" in shell
     assert "icon_only=True" in shell
     assert "tooltip_text=text" in shell

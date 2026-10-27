@@ -517,3 +517,49 @@ human acceptance record and unavailable agent screenshot capture.
   save/open, active-family persistence, module memory, Formula View, History,
   PDF, Library, Foam and HW passed. Nozzle and seawater HW remain blocked.
   Result: **PHASE5E_PASS**, with automated geometry checks and user visual approval.
+
+## PHASE 5F — Full-height Sidebar + Large Logo Corrective
+
+The Project sidebar is now a direct child of the application root, spanning
+all three shell rows (header/content/status) on the left. The header, engineering
+workspace and status bar occupy the right column. The sidebar has a continuous
+navy surface with no floating-card border or outer bottom gap. The configured
+width changes from the former 248px request/minimum to a fixed 300px column.
+The main content keeps a small aligned internal gutter rather than the old
+sidebar-card layout assumptions.
+
+The existing approved logo is centered near the top at a cached 128px target
+(previously 64px), preserving aspect ratio. It is loaded once through the
+existing AssetImageLoader. The D243 header text/subtitle remain removed.
+Project list, fixed System combobox, actions and project-summary controls are
+reused. The list retains its expanding row and 120px minimum; actions/details
+remain scroll-reachable in their bounded viewport.
+
+Existing command groups reflow into additional rows when the right column is
+too narrow. This changes geometry only: command callbacks, icon sizes and
+navigation objects are retained. Cyan #27C4D4, Fire #C94454/#B51F32, module colors
+and amber warnings remain unchanged. Existing logo/icon artwork is retained;
+no new gold shell styles or watermark are introduced.
+
+Nine new structural tests cover TR/EN at 1100x700, 1280x800, 1440x900 and
+1700x1000: full-height edges, logo bounds/centering, project-list allocation,
+selector/action access, header-group bounds, usable calculation viewport,
+aspect ratio and retained logo/button identity through resize. They use
+relative geometry/invariants rather than screenshot goldens.
+
+Focused UI/layout suite: **86 passed (96.35s)**, including all nine new tests.
+Full regression: **1877 passed, 0 failed (201.49s)**: 1868 existing tests plus
+nine new layout tests. Fuel/Fire navigation, project save/open, active family,
+module memory, Foam/HW, Formula View, History, PDF and Library passed. Nozzle
+and seawater HW remain blocked.
+Manual visual acceptance: **pending user review**. The isolated main.py window
+is available with the PHASE 5F title. Computer Use capture failed twice with
+`window capture timed out: timed out waiting on channel`. Automated geometry
+checks passed, but are not presented as completed manual visual acceptance.
+Per the phase instruction, screenshot failure alone does not block completion.
+Overall: **PHASE5F_PASS_WITH_MINOR_ISSUES** (manual visual review remains open).
+Only one ordinary isolated launch checked startup: **15 seconds not exceeded**;
+no detailed repeated startup benchmarking or sub-second optimization is done.
+Calculations, navigation/persistence semantics, Formula View, History, PDF,
+Library, schema and Nozzle/seawater restrictions are unchanged. User Manual
+and Developer Guide remain explicitly deferred.

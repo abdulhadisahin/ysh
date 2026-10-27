@@ -20,7 +20,7 @@ def test_logo_selector_actions_and_header_fit(shell,language,size):
         assert 'D243' in root.title()
         logo=w._sidebar_logo
         assert logo.master is w._sidebar_brand
-        assert 0<w._sidebar_logo_image.width()<=64 and 0<w._sidebar_logo_image.height()<=64
+        assert 0<w._sidebar_logo_image.width()<=128 and 0<w._sidebar_logo_image.height()<=128
         assert logo.winfo_rooty()+logo.winfo_height()<=w._sidebar_title.winfo_rooty()
         assert w._project_tree_container.master.grid_bbox(0,3)[3]>=120
         assert logo.winfo_width()<=w._sidebar_brand.winfo_width()
@@ -28,7 +28,7 @@ def test_logo_selector_actions_and_header_fit(shell,language,size):
         toolbar=w._ribbon_project.master.master
         assert toolbar.grid_info()['column']==0
         assert toolbar.winfo_rootx()+toolbar.winfo_width()<=root.winfo_rootx()+root.winfo_width()
-        assert toolbar.master.winfo_height()<150
+        assert toolbar.master.winfo_height()<root.winfo_height()/2
         for family in ('fuel','fire'):
             w._show_family(family);root.update()
             combo=w._family_selector
@@ -85,7 +85,7 @@ def test_logo_not_reloaded_during_family_language_or_resize(shell,monkeypatch):
         for family in ('fire','fuel'):
             shell._show_family(family);shell._refresh_family_selector();shell._root.update()
     assert shell._sidebar_logo_image is logo
-    assert not any(len(args)>2 and args[2]==64 for args,_ in calls)
+    assert not any(len(args)>2 and args[2]==128 for args,_ in calls)
 
 
 def test_shell_cyan_does_not_replace_module_or_warning_colors(shell):

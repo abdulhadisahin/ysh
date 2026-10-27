@@ -78,7 +78,8 @@ from YSH.product import PRODUCT_FULL_NAME, PRODUCT_SHORT_NAME
 
 LOGGER = logging.getLogger(__name__)
 
-SIDEBAR_LOGO_TARGET_SIZE = 64
+SIDEBAR_LOGO_TARGET_SIZE = 128
+SIDEBAR_WIDTH = 300
 
 FILE_MENU_INDEX = {
     "new": 0,
@@ -162,19 +163,21 @@ class MainWindow:
         self._root.title(self._window_title())
 
     def _create_layout(self) -> None:
-        self._root.columnconfigure(0, weight=1)
+        self._root.columnconfigure(0, weight=0, minsize=SIDEBAR_WIDTH)
+        self._root.columnconfigure(1, weight=1)
         self._root.rowconfigure(1, weight=1)
         self._create_menu_bar()
 
-        header = ttk.Frame(self._root, style="Header.TFrame", padding=(LG, SM, LG, SM))
-        header.grid(row=0, column=0, sticky="ew")
+        header = ttk.Frame(self._root, style="Header.TFrame", padding=(MD, SM, MD, SM))
+        header.grid(row=0, column=1, sticky="ew")
+        self._shell_header = header
         header.columnconfigure(0, weight=1)
         # Branding belongs to the Project panel; no oversized header lockup.
         if self._localization is not None:
             self._language_value = tk.StringVar(value=self._language_display_name())
 
-        toolbar = ttk.Frame(header, style="Ribbon.TFrame", padding=(MD, 0, 0, 0))
-        toolbar.grid(row=0, column=0, sticky="w")
+        toolbar = ttk.Frame(header, style="Ribbon.TFrame")
+        toolbar.grid(row=0, column=0, sticky="ew")
         self._ribbon_project = self._create_ribbon_group(toolbar, "ribbon.project")
         self._toolbar_new = self._create_header_button(self._ribbon_project, self._translate("action.new"), self._open_new_project, style="RoundedAdd.TButton", palette=ADD_BUTTON_PALETTE, icon_name="new")
         self._toolbar_new.pack(side="left")
@@ -197,23 +200,29 @@ class MainWindow:
         self._toolbar_about = self._create_header_button(self._ribbon_help, self._translate("menu.help.about"), self._show_about, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="about")
         self._toolbar_about.pack(side="left")
 
-        workspace = ttk.Frame(self._root, style="Main.TFrame", padding=(LG, MD, LG, LG))
-        workspace.grid(row=1, column=0, sticky="nsew")
-        workspace.columnconfigure(0, minsize=248, weight=0)
-        workspace.columnconfigure(1, weight=1)
+        self._command_strip = toolbar
+        self._header_group_layout = None
+        header.bind('<Configure>', self._reflow_shell_header, add='+')
+
+        workspace = ttk.Frame(self._root, style="Main.TFrame", padding=MD)
+        workspace.grid(row=1, column=1, sticky="nsew")
+        workspace.columnconfigure(0, weight=1)
         workspace.rowconfigure(0, weight=1)
 
         navigation = ttk.Frame(
-            workspace,
+            self._root,
             style="SidebarPanel.TFrame",
             padding=MD,
-            width=248,
+            width=SIDEBAR_WIDTH,
         )
-        navigation.grid(row=0, column=0, sticky="nsew")
+        navigation.grid(row=0, column=0, rowspan=3, sticky="nsew")
+        navigation.grid_propagate(False)
+        self._sidebar = navigation
         navigation.columnconfigure(0, weight=1)
         navigation.rowconfigure(3, weight=1, minsize=120)
         self._sidebar_brand = ttk.Frame(navigation, style="Sidebar.TFrame")
         self._sidebar_brand.grid(row=0, column=0, sticky="ew")
+        self._sidebar_brand.columnconfigure(0, weight=1)
         self._sidebar_logo_source_image: tk.PhotoImage | None = None
         self._sidebar_logo_image: tk.PhotoImage | None = None
         self._add_sidebar_logo(self._sidebar_brand)
@@ -230,7 +239,7 @@ class MainWindow:
         self._project_search_entry.grid(row=2, column=0, sticky="ew", pady=(SM // 2, MD))
 
         content = ttk.Frame(workspace, style="Workspace.TFrame")
-        content.grid(row=0, column=1, sticky="nsew", padx=(LG, 0))
+        content.grid(row=0, column=0, sticky="nsew")
         content.columnconfigure(0, weight=1)
         content.rowconfigure(0, weight=1)
 
@@ -350,7 +359,7 @@ class MainWindow:
         self._attach_dirty_callbacks()
 
         self._status_bar = StatusBar(self._root, self._translate)
-        self._status_bar.grid(row=2, column=0, sticky="ew")
+        self._status_bar.grid(row=2, column=1, sticky="ew")
         self.register_localizable(self._status_bar)
 
     @staticmethod
@@ -392,7 +401,7 @@ class MainWindow:
             self._sidebar_logo_image = loaded.rendered
             self._sidebar_logo = ttk.Label(parent, image=self._sidebar_logo_image,
                                            style="SidebarLogo.TLabel")
-            self._sidebar_logo.grid(row=0, column=0, sticky="w", pady=(0, SM))
+            self._sidebar_logo.grid(row=0, column=0, pady=(SM, MD))
         except tk.TclError:
             LOGGER.warning("Unable to load optional D243 sidebar logo", exc_info=True)
 
@@ -525,6 +534,33 @@ class MainWindow:
         group._ribbon_label = label  # type: ignore[attr-defined]
         commands._ribbon_group = group  # type: ignore[attr-defined]
         return commands
+
+    def _reflow_shell_header(self, _event=None) -> None:
+        """Wrap existing command groups within the right column; no new controls."""
+        if not hasattr(self._root, 'tk'):
+            return
+        available = max(1, self._shell_header.winfo_width() - 2 * MD)
+        groups = [commands._ribbon_group for commands in
+                  (self._ribbon_project, self._ribbon_library, self._ribbon_help)]
+        row = column = used = 0
+        positions = []
+        for group in groups:
+            width = group.winfo_reqwidth()
+            if used and used + width > available:
+                row += 1
+                column = used = 0
+            positions.append((row, column))
+            used += width + SM
+            column += 1
+        layout = tuple(positions)
+        if layout == self._header_group_layout:
+            return
+        self._header_group_layout = layout
+        for group in groups:
+            group.pack_forget()
+        for group, (row, column) in zip(groups, positions):
+            group.grid(row=row, column=column, sticky='nw', padx=(0, SM),
+                       pady=(0, SM if row < positions[-1][0] else 0))
 
     def _add_scrollable_page(self,page_key:str,title:str,factory:Callable[[tk.Misc],tk.Misc])->tk.Misc:
         """Register every primary calculation page through the shared host."""

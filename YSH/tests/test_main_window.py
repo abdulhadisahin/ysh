@@ -78,6 +78,9 @@ class _DummyWidget:
     grid_configure = grid
     grid_remove = grid
 
+    def grid_propagate(self, enabled: bool) -> None:
+        self.propagate = enabled
+
     def bind(self, *args: object, **kwargs: object) -> None:
         """Accept widget event registration."""
 

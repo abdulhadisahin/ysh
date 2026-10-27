@@ -57,7 +57,7 @@ def apply_theme(root: tk.Misc) -> None:
         font=typography.SUBSECTION_TITLE,
     )
     style.configure("Sidebar.TFrame", background=colors.SIDEBAR_SURFACE)
-    style.configure("SidebarPanel.TFrame", background=colors.SIDEBAR_SURFACE, bordercolor=colors.BORDER, relief="solid", borderwidth=1)
+    style.configure("SidebarPanel.TFrame", background=colors.SIDEBAR_SURFACE, bordercolor=colors.SIDEBAR_SURFACE, relief="flat", borderwidth=0)
     style.configure("SidebarActions.TFrame", background=colors.SIDEBAR_SURFACE)
     style.configure("SidebarSearchLabel.TLabel", background=colors.SIDEBAR_SURFACE, foreground=colors.ON_ACCENT, font=typography.MUTED)
     style.configure("Workspace.TFrame", background=colors.BACKGROUND)

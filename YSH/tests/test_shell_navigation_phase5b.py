@@ -33,8 +33,8 @@ def test_command_ribbon_is_embedded_in_the_unified_navy_header() -> None:
     source = (ROOT / "ui" / "main_window.py").read_text(encoding="utf-8")
 
     assert 'toolbar = ttk.Frame(header, style="Ribbon.TFrame"' in source
-    assert 'toolbar.grid(row=0, column=0, sticky="w")' in source
-    assert 'workspace.grid(row=1, column=0, sticky="nsew")' in source
+    assert 'toolbar.grid(row=0, column=0, sticky="ew")' in source
+    assert 'workspace.grid(row=1, column=1, sticky="nsew")' in source
 
 
 def test_ribbon_contains_only_approved_shell_commands() -> None:
@@ -96,7 +96,7 @@ def test_header_logo_keeps_a_strong_tkinter_image_reference() -> None:
     assert "d243_main_logo_path" in source
     assert "Sidebar.TFrame" in source
     assert "SidebarLogo.TLabel" in source
-    assert "SIDEBAR_LOGO_TARGET_SIZE = 64" in source
+    assert "SIDEBAR_LOGO_TARGET_SIZE = 128" in source
 
 
 def test_header_rounded_commands_match_the_navy_shell_at_outer_corners() -> None:

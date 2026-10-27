@@ -42,7 +42,7 @@ def test_header_keeps_shell_command_hosts_and_packaged_asset_references() -> Non
 
     assert "outside_background=colors.HEADER_SURFACE" in window
     assert "d243_main_logo_path()" in window
-    assert "SIDEBAR_LOGO_TARGET_SIZE = 64" in window
+    assert "SIDEBAR_LOGO_TARGET_SIZE = 128" in window
     assert "AssetImageLoader.load" in window
     assert "self._sidebar_logo_source_image" in window
     assert "self._sidebar_logo_image" in window
