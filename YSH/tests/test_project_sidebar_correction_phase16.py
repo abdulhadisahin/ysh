@@ -195,7 +195,7 @@ def test_shell_button_constructors_keep_factory_contract_and_interaction_states(
     else:
         assert options['icon_size'] == 40 and options['minimum_height'] == 52
         assert options['horizontal_padding'] == 18 and not options['icon_only']
-        assert palette.hover == source_palette.hover and palette.focus_border == source_palette.focus_border
+        assert palette.hover == (colors.DEEP_NAVY, colors.SHELL_CYAN) and palette.focus_border == colors.SHELL_CYAN
 
 
 def test_new_shell_artwork_is_about_ten_percent_larger_and_undistorted() -> None:

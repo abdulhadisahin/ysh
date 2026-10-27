@@ -90,10 +90,24 @@ def apply_theme(root: tk.Misc) -> None:
         foreground=[("readonly", colors.TEXT_PRIMARY), ("disabled", colors.TEXT_MUTED)],
         bordercolor=[("focus", colors.PRIMARY), ("disabled", colors.DIVIDER)],
     )
+    style.configure("SidebarLogo.TLabel", background=colors.SIDEBAR_SURFACE)
+    # A per-control style: Fuel and Fire result/status styles are unaffected.
+    style.configure("FireFamily.TCombobox", fieldbackground=colors.FIRE_SELECTOR_ACTIVE,
+                    foreground=colors.WHITE, arrowcolor=colors.WHITE,
+                    bordercolor=colors.FIRE_SELECTOR_ACTIVE)
+    style.map("FireFamily.TCombobox",
+        fieldbackground=[("pressed", colors.FIRE_SELECTOR_PRESSED),
+                         ("active", colors.FIRE_SELECTOR_HOVER),
+                         ("readonly", colors.FIRE_SELECTOR_ACTIVE)],
+        foreground=[("readonly", colors.WHITE)],
+        selectbackground=[("readonly", colors.FIRE_SELECTOR_ACTIVE)],
+        selectforeground=[("readonly", colors.WHITE)],
+        arrowcolor=[("readonly", colors.WHITE)],
+        bordercolor=[("focus", colors.SHELL_CYAN), ("readonly", colors.FIRE_SELECTOR_ACTIVE)])
     style.configure("HeaderTitle.TLabel", background=colors.HEADER_SURFACE, foreground=colors.NAVY, font=typography.APPLICATION_TITLE)
     style.configure("HeaderSubtitle.TLabel", background=colors.HEADER_SURFACE, foreground=colors.NAVY, font=typography.APPLICATION_SUBTITLE)
     style.configure("HeaderProject.TLabel", background=colors.HEADER_SURFACE, foreground=colors.NAVY, font=typography.MUTED)
-    style.configure("SidebarTitle.TLabel", background=colors.SIDEBAR_SURFACE, foreground=colors.GOLD, font=typography.SECTION_TITLE)
+    style.configure("SidebarTitle.TLabel", background=colors.SIDEBAR_SURFACE, foreground=colors.SHELL_CYAN, font=typography.SECTION_TITLE)
     style.configure("TLabelFrame", background=colors.SURFACE, bordercolor=colors.BORDER, relief="solid")
     style.configure("TLabelFrame.Label", background=colors.SURFACE, foreground=colors.TEXT_SECONDARY, font=typography.SECTION_TITLE)
     style.configure("ActiveProject.TLabelframe", background=colors.SURFACE_ALT, bordercolor=colors.PRIMARY)
@@ -303,7 +317,7 @@ def apply_theme(root: tk.Misc) -> None:
     )
     _configure_rounded_outline_button(style, "SidebarAction.TButton", colors.ON_ACCENT)
     style.map("SidebarAction.TButton", foreground=[("disabled", colors.HEADER_MUTED_TEXT),
-        ("pressed", colors.NAVY), ("active", colors.NAVY)])
+        ("pressed", colors.WHITE), ("active", colors.WHITE)])
     style.map("HeaderCommand.TButton", foreground=[("disabled", colors.HEADER_MUTED_TEXT)])
     _configure_button(style, "Transfer.Primary.TButton", colors.NAVY, colors.DEEP_NAVY, colors.ON_ACCENT)
     _configure_button(style, "Discharge.Primary.TButton", colors.NAVY, colors.DEEP_NAVY, colors.ON_ACCENT)

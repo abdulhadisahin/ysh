@@ -74,11 +74,11 @@ from ui.theme import apply_theme, colors, configure_project_tree
 from ui.theme.spacing import LG, MD, SM, XL
 from i18n.manager import LocalizationManager
 from i18n.translator import Translator
-from YSH.product import PRODUCT_FULL_NAME, PRODUCT_SHORT_NAME, PRODUCT_SUBTITLE
+from YSH.product import PRODUCT_FULL_NAME, PRODUCT_SHORT_NAME
 
 LOGGER = logging.getLogger(__name__)
 
-HEADER_LOGO_TARGET_SIZE = 180
+SIDEBAR_LOGO_TARGET_SIZE = 64
 
 FILE_MENU_INDEX = {
     "new": 0,
@@ -168,30 +168,13 @@ class MainWindow:
 
         header = ttk.Frame(self._root, style="Header.TFrame", padding=(LG, SM, LG, SM))
         header.grid(row=0, column=0, sticky="ew")
-        header.columnconfigure(0, weight=0)
-        header.columnconfigure(1, weight=1)
-        identity = ttk.Frame(header, style="HeaderBrand.TFrame", padding=(0, SM // 2))
-        identity.grid(row=0, column=0, sticky="w")
-        self._header_logo_source_image: tk.PhotoImage | None = None
-        self._header_logo_image: tk.PhotoImage | None = None
-        self._add_header_logo(identity)
-        brand_text = ttk.Frame(identity, style="HeaderBrand.TFrame")
-        brand_text.pack(side="left")
-        self._header_title = ttk.Label(brand_text, text=PRODUCT_SHORT_NAME, style="HeaderTitle.TLabel")
-        self._header_title.pack(anchor="w")
-        self._header_subtitle = ttk.Label(
-            brand_text,
-            text=PRODUCT_SUBTITLE,
-            style="HeaderSubtitle.TLabel",
-        )
-        self._header_subtitle.pack(anchor="w", pady=(2, 0))
-        # The locked D243 emblem is displayed by ``_add_header_logo`` when
-        # supplied; legacy decorative ship art is not part of this shell.
+        header.columnconfigure(0, weight=1)
+        # Branding belongs to the Project panel; no oversized header lockup.
         if self._localization is not None:
             self._language_value = tk.StringVar(value=self._language_display_name())
 
         toolbar = ttk.Frame(header, style="Ribbon.TFrame", padding=(MD, 0, 0, 0))
-        toolbar.grid(row=0, column=1, sticky="e")
+        toolbar.grid(row=0, column=0, sticky="w")
         self._ribbon_project = self._create_ribbon_group(toolbar, "ribbon.project")
         self._toolbar_new = self._create_header_button(self._ribbon_project, self._translate("action.new"), self._open_new_project, style="RoundedAdd.TButton", palette=ADD_BUTTON_PALETTE, icon_name="new")
         self._toolbar_new.pack(side="left")
@@ -229,8 +212,13 @@ class MainWindow:
         navigation.grid(row=0, column=0, sticky="nsew")
         navigation.columnconfigure(0, weight=1)
         navigation.rowconfigure(3, weight=1, minsize=120)
-        self._sidebar_title = ttk.Label(navigation, text=self._translate("project.projects"), style="SidebarTitle.TLabel")
-        self._sidebar_title.grid(row=0, column=0, sticky="w", pady=(0, MD))
+        self._sidebar_brand = ttk.Frame(navigation, style="Sidebar.TFrame")
+        self._sidebar_brand.grid(row=0, column=0, sticky="ew")
+        self._sidebar_logo_source_image: tk.PhotoImage | None = None
+        self._sidebar_logo_image: tk.PhotoImage | None = None
+        self._add_sidebar_logo(self._sidebar_brand)
+        self._sidebar_title = ttk.Label(self._sidebar_brand, text=self._translate("project.projects"), style="SidebarTitle.TLabel")
+        self._sidebar_title.grid(row=1, column=0, sticky="w", pady=(0, MD))
         self._project_search_label = ttk.Label(
             navigation,
             style="SidebarSearchLabel.TLabel",
@@ -311,7 +299,8 @@ class MainWindow:
         self._family_label.grid(row=0, column=0, sticky='w')
         self._family_value = tk.StringVar()
         self._family_selector = ttk.Combobox(self._family_frame,
-            textvariable=self._family_value, state='readonly', width=22)
+            textvariable=self._family_value, state='readonly', width=22,
+            postcommand=self._prepare_family_choices)
         self._family_selector.grid(row=1, column=0, sticky='ew', pady=(2, 4))
         self._family_selector.bind('<<ComboboxSelected>>', self._select_family)
         self._family_notice = ttk.Label(self._family_frame, wraplength=220,
@@ -390,31 +379,22 @@ class MainWindow:
             square_size=86,
         )
 
-    def _add_header_logo(self, parent: ttk.Frame) -> None:
-        """Show the locked D243 emblem only when the approved asset exists."""
+    def _add_sidebar_logo(self, parent: ttk.Frame) -> None:
+        """Load the approved compact logo once through the existing asset cache."""
         logo_path = d243_main_logo_path()
         if logo_path is None:
             return
         try:
-            loaded = AssetImageLoader.load(self._root, logo_path, HEADER_LOGO_TARGET_SIZE)
+            loaded = AssetImageLoader.load(self._root, logo_path, SIDEBAR_LOGO_TARGET_SIZE)
             if loaded is None:
                 return
-            self._header_logo_source_image = loaded.source
-            self._header_logo_image = loaded.rendered
-            logo_plate = ttk.Frame(parent, style="HeaderLogoPlate.TFrame")
-            logo_plate.pack(side="left", padx=(0, MD))
-            logo = ttk.Label(
-                logo_plate,
-                image=self._header_logo_image,
-                style="HeaderLogoPlate.TLabel",
-            )
-            logo.pack()
+            self._sidebar_logo_source_image = loaded.source
+            self._sidebar_logo_image = loaded.rendered
+            self._sidebar_logo = ttk.Label(parent, image=self._sidebar_logo_image,
+                                           style="SidebarLogo.TLabel")
+            self._sidebar_logo.grid(row=0, column=0, sticky="w", pady=(0, SM))
         except tk.TclError:
-            LOGGER.warning(
-                "Unable to load optional D243 header logo: %s",
-                logo_path,
-                exc_info=True,
-            )
+            LOGGER.warning("Unable to load optional D243 sidebar logo", exc_info=True)
 
     @staticmethod
     def _create_sidebar_button(
@@ -432,7 +412,10 @@ class MainWindow:
             text,
             command,
             style="SidebarAction.TButton",
-            palette=replace(palette, normal=(colors.SIDEBAR_SURFACE, colors.SIDEBAR_SURFACE)),
+            palette=replace(palette, normal=(colors.SIDEBAR_SURFACE, colors.SIDEBAR_SURFACE),
+                            hover=(colors.DEEP_NAVY, colors.SHELL_CYAN),
+                            pressed=(colors.DEEP_NAVY, colors.SHELL_CYAN_DARK),
+                            focus_border=colors.SHELL_CYAN),
             outside_background=colors.SIDEBAR_SURFACE,
             icon_name=icon_name,
             # Sidebar labels retain their readable native text lane while
@@ -599,8 +582,6 @@ class MainWindow:
     def refresh_texts(self) -> None:
         """Refresh visible navigation and registered pages without recreating them."""
         self._refresh_window_title()
-        self._header_title.configure(text=PRODUCT_SHORT_NAME)
-        self._header_subtitle.configure(text=PRODUCT_SUBTITLE)
         self._toolbar_new.configure(text=self._translate("action.new"))
         self._toolbar_open.configure(text=self._translate("action.open"))
         self._toolbar_save.configure(text=self._translate("action.save"))
@@ -1367,7 +1348,28 @@ class MainWindow:
         self._family_label.configure(text=self._translate('navigation.system'))
         self._family_selector.configure(values=tuple(self._translate(key) for key in FAMILIES.values()))
         self._family_value.set(self._translate(FAMILIES[self._family]))
+        self._family_selector.configure(style='FireFamily.TCombobox' if self._family == 'fire' else 'TCombobox')
         MainWindow._refresh_family_notice(self)
+
+    def _prepare_family_choices(self) -> None:
+        # ttk populates its native listbox after postcommand returns.
+        self._family_selector.after_idle(self._style_family_choices)
+
+    def _style_family_choices(self) -> None:
+        """Keep the unselected Fire option visibly red in the native popup.
+
+        ttk has no per-item combobox style; the Tcl/Tk popup listbox supports it.
+        This only styles choices and never changes IDs, selection or navigation.
+        """
+        combo = self._family_selector
+        popup = combo.tk.call('ttk::combobox::PopdownWindow', str(combo))
+        choices = str(popup) + '.f.l'
+        index = tuple(FAMILIES).index('fire')
+        combo.tk.call(choices, 'itemconfigure', index,
+            '-background', colors.FIRE_SELECTOR_INACTIVE,
+            '-foreground', colors.FIRE_SELECTOR_TEXT,
+            '-selectbackground', colors.FIRE_SELECTOR_ACTIVE,
+            '-selectforeground', colors.WHITE)
 
     def _refresh_family_notice(self) -> None:
         if not hasattr(self, '_family_notice'):

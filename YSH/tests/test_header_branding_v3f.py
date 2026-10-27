@@ -13,16 +13,15 @@ def _source(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def test_brand_lockup_uses_a_transparent_emblem_on_the_gold_shell() -> None:
-    """The approved emblem no longer sits on a white rectangular backing plate."""
+def test_brand_lockup_moves_to_sidebar_without_large_header_text() -> None:
+    """The approved compact emblem belongs to the Project panel."""
     window = _source("ui/main_window.py")
     styles = _source("ui/theme/styles.py")
 
-    assert 'logo_plate = ttk.Frame(parent, style="HeaderLogoPlate.TFrame")' in window
-    assert 'logo_plate.pack(side="left", padx=(0, MD))' in window
-    assert 'brand_text.pack(side="left")' in window
-    assert 'self._header_title.pack(anchor="w")' in window
-    assert 'self._header_subtitle.pack(anchor="w", pady=(2, 0))' in window
+    assert 'self._add_sidebar_logo(self._sidebar_brand)' in window
+    assert 'self._header_title' not in window
+    assert 'self._header_subtitle' not in window
+    assert 'style="SidebarLogo.TLabel"' in window
     assert 'background=colors.NAVY' in styles
     assert 'bordercolor=colors.HEADER_SURFACE' in styles
     assert 'background=colors.CARD_SURFACE' not in styles.split('"HeaderLogoPlate.TFrame"', 1)[1].split('"Ribbon.TFrame"', 1)[0]
@@ -33,17 +32,17 @@ def test_shell_removes_temporary_ship_art_before_the_d243_emblem_is_supplied() -
     window = _source("ui/main_window.py")
 
     assert "d243_main_logo_path" in window
-    assert "legacy decorative ship art is not part of this shell" in window
+    assert "Branding belongs to the Project panel" in window
     assert "ysh_ship_top_right_path()," not in window
 
 
-def test_header_keeps_gold_command_hosts_and_packaged_asset_references() -> None:
+def test_header_keeps_shell_command_hosts_and_packaged_asset_references() -> None:
     """Brand polish cannot alter the accepted header button or resource architecture."""
     window = _source("ui/main_window.py")
 
     assert "outside_background=colors.HEADER_SURFACE" in window
     assert "d243_main_logo_path()" in window
-    assert "HEADER_LOGO_TARGET_SIZE = 180" in window
+    assert "SIDEBAR_LOGO_TARGET_SIZE = 64" in window
     assert "AssetImageLoader.load" in window
-    assert "self._header_logo_source_image" in window
-    assert "self._header_logo_image" in window
+    assert "self._sidebar_logo_source_image" in window
+    assert "self._sidebar_logo_image" in window

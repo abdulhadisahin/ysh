@@ -482,3 +482,38 @@ started. Recommended next step is recording that broader manual checklist.
 Overall: **PHASE5C5D_PASS_WITH_MINOR_ISSUES**. Implementation, regressions and
 user-approved visual corrections pass; the remaining limitation is the broader
 human acceptance record and unavailable agent screenshot capture.
+
+## PHASE 5E — Shell / Branding / Color Corrective
+
+- Fire selector: the native combobox popup shows the unselected Fire choice in
+  red (`#C94454`, white text); selecting Fire gives the closed selector a darker
+  red (`#B51F32`). Hover/pressed/focus colors use centralized style tokens.
+  Fuel retains the ordinary combobox style and its popup item is untouched.
+  Popup item styling is applied after native ttk list population. Fire result
+  cards and engineering status colors are not globally recolored.
+- Cyan shell conversion: `SHELL_CYAN = #27C4D4` replaces the gold header surface,
+  sidebar titles, command outlines/focus accents and navigation hover accents.
+  Navy identity and module-specific colors remain. Warning amber
+  (`#E98600`, `#FFF6E8`, `#7B5A17`) is unchanged. As explicitly requested by the
+  user, existing logo/icon PNG artwork, including its intrinsic gold, is retained.
+- Logo relocation: the approved D243 logo now sits above PROJELER in the left
+  panel at a maximum 64px, loaded once through the existing AssetImageLoader
+  cache. Resize, localization and family changes do not reload/resize it.
+- Removed header text: the large D243/title/subtitle block is removed. The
+  existing command strip starts directly in the first header column, with no
+  reserved branding gap. Native window identity remains D243.
+- Geometry checks: real Tk tests cover 1100x700, 1280x800, 1440x900 and
+  1700x1000 in TR/EN: logo bounds, no overlap with PROJELER, project list minimum
+  allocation, fixed system selector bounds, full command strip bounds and
+  scroll-reachable project actions. All passed. Computer Use screenshots failed
+  twice (`FrameArrived timed out` / `window capture timed out`); manual review
+  used the isolated PHASE 5E window. The user explicitly approved the small
+  sidebar logo, removed header block, cyan shell and red Fire selector:
+  **Evet, görünüm uygun**. Geometry checks are automated; screenshot inspection
+  by the agent was unavailable.
+- Regression: 92 focused tests passed (48.03s), including 11 new corrective
+  tests. Final full suite: **1868 passed, 0 failed (158.25s)**, comprising
+  1857 existing tests and 11 corrective tests. Fuel/Fire navigation, project
+  save/open, active-family persistence, module memory, Formula View, History,
+  PDF, Library, Foam and HW passed. Nozzle and seawater HW remain blocked.
+  Result: **PHASE5E_PASS**, with automated geometry checks and user visual approval.

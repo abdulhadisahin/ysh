@@ -25,11 +25,11 @@ def test_shared_rounded_button_supports_icon_only_native_commands_and_tooltips()
     assert 'widget.bind("<Leave>", self._hide, add="+")' in tooltip
 
 
-def test_header_reflows_commands_to_the_right_and_keeps_group_titles() -> None:
+def test_header_starts_commands_without_branding_gap_and_keeps_group_titles() -> None:
     shell = _source("ui/main_window.py")
 
-    assert 'toolbar.grid(row=0, column=1, sticky="e")' in shell
-    assert "header.columnconfigure(1, weight=1)" in shell
+    assert 'toolbar.grid(row=0, column=0, sticky="w")' in shell
+    assert "header.columnconfigure(0, weight=1)" in shell
     assert "icon_only=True" in shell
     assert "tooltip_text=text" in shell
     assert "icon_size=79" in shell

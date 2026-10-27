@@ -217,16 +217,16 @@ def test_system_selector_stays_visible_when_project_footer_scrolls(shell):
     w._project_footer.canvas.yview_moveto(0.0)
 
 
-def test_user_requested_gold_header_and_navy_sidebar_keep_icon_sizes(shell):
+def test_user_requested_cyan_header_and_navy_sidebar_keep_icon_sizes(shell):
     from tkinter import ttk
     from ui.theme import colors
     from ui.widgets.rounded_button import HEADER_COMMAND_PALETTE
     style=ttk.Style(shell._root)
-    assert style.lookup('Header.TFrame','background')==colors.GOLD
+    assert style.lookup('Header.TFrame','background')==colors.SHELL_CYAN
     assert style.lookup('HeaderTitle.TLabel','foreground')==colors.NAVY
     assert style.lookup('SidebarPanel.TFrame','background')==colors.NAVY
-    assert style.lookup('SidebarTitle.TLabel','foreground')==colors.GOLD
+    assert style.lookup('SidebarTitle.TLabel','foreground')==colors.SHELL_CYAN
     assert style.lookup('SidebarSearchLabel.TLabel','foreground')==colors.WHITE
-    assert HEADER_COMMAND_PALETTE.normal==(colors.GOLD,colors.GOLD)
+    assert HEADER_COMMAND_PALETTE.normal==(colors.SHELL_CYAN,colors.SHELL_CYAN)
     assert style.lookup('SidebarAction.TButton','foreground')==colors.WHITE
-    assert style.lookup('SidebarAction.TButton','foreground',('active',))==colors.NAVY
+    assert style.lookup('SidebarAction.TButton','foreground',('active',))==colors.WHITE

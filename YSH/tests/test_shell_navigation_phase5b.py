@@ -22,7 +22,7 @@ def test_calculation_tabs_have_stable_semantic_page_colors() -> None:
     assert colors.SUCTION == "#35698F"
     assert "self._page_keys" in source
     assert "YSH.TNotebook" in source
-    assert "selected_foreground = colors.GOLD" in source
+    assert "selected_foreground = colors.SHELL_CYAN" in source
     assert 'background=[("selected", selected_background)' in source
     assert 'if page_key == "pipe_design"' in source
     assert 'foreground=[("selected", selected_foreground)' in source
@@ -33,7 +33,7 @@ def test_command_ribbon_is_embedded_in_the_unified_navy_header() -> None:
     source = (ROOT / "ui" / "main_window.py").read_text(encoding="utf-8")
 
     assert 'toolbar = ttk.Frame(header, style="Ribbon.TFrame"' in source
-    assert 'toolbar.grid(row=0, column=1, sticky="e")' in source
+    assert 'toolbar.grid(row=0, column=0, sticky="w")' in source
     assert 'workspace.grid(row=1, column=0, sticky="nsew")' in source
 
 
@@ -91,12 +91,12 @@ def test_window_identity_uses_localized_product_title() -> None:
 def test_header_logo_keeps_a_strong_tkinter_image_reference() -> None:
     """The optional header symbol cannot disappear after widget construction."""
     source = (ROOT / "ui/main_window.py").read_text(encoding="utf-8")
-    assert "self._header_logo_image" in source
+    assert "self._sidebar_logo_image" in source
     assert "tk.PhotoImage" in source
     assert "d243_main_logo_path" in source
-    assert "HeaderLogoPlate.TFrame" in source
-    assert "HeaderLogoPlate.TLabel" in source
-    assert "HEADER_LOGO_TARGET_SIZE = 180" in source
+    assert "Sidebar.TFrame" in source
+    assert "SidebarLogo.TLabel" in source
+    assert "SIDEBAR_LOGO_TARGET_SIZE = 64" in source
 
 
 def test_header_rounded_commands_match_the_navy_shell_at_outer_corners() -> None:

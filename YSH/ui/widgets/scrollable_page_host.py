@@ -80,7 +80,7 @@ class ScrollablePageHost(ttk.Notebook):
             None,
         )
         from ui.theme.module_visuals import MODULES
-        selected_foreground = colors.GOLD
+        selected_foreground = colors.SHELL_CYAN
         selected_background = colors.DEEP_NAVY
         if page_key == "pipe_design":
             from ui.theme.pipe_pilot import PIPE_DARK
@@ -98,7 +98,7 @@ class ScrollablePageHost(ttk.Notebook):
         style.map(
             "YSH.TNotebook.Tab",
             background=[("selected", selected_background), ("active", colors.DEEP_NAVY)],
-            foreground=[("selected", selected_foreground), ("active", colors.GOLD)],
+            foreground=[("selected", selected_foreground), ("active", colors.SHELL_CYAN)],
         )
 
     def _activate_current_host(self) -> None:
