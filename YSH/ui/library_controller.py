@@ -6,6 +6,8 @@ from uuid import UUID
 
 from services.engineering_library_service import EngineeringLibraryService, LibraryError
 from services.library_catalog import CATEGORY_BY_CODE
+from engineering.fire.library import FIRE_CATEGORIES, UNITS
+from engineering.fire.enums import FireSourceStatus
 
 
 class EditMode(StrEnum):
@@ -75,6 +77,10 @@ class LibraryController:
                 if field.kind == 'bool': self.draft[field.name] = True
                 if field.name == definition.parent_field or field.name == definition.key_field:
                     if self.parent_id: self.draft[field.name] = self.parent_id
+        if create and self.category in FIRE_CATEGORIES:
+            self.draft['unit']=UNITS[FIRE_CATEGORIES[self.category]]
+            self.draft['source_status']=FireSourceStatus.SOURCE_REQUIRED
+            self.draft['service']='water' if self.category=='fire_hw' else 'foam'
         self.error_key = None
 
     def cancel(self) -> None:

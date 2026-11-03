@@ -841,3 +841,38 @@ MESSAGES.update({
 })
 
 MESSAGES.update({'navigation.system': 'System', 'navigation.fuel': 'Fuel System', 'context.profile': 'Engineering profile', 'navigation.incompatible': 'Selected family conflicts with the engineering profile. Profile retained.'})
+
+
+# Source-aware Fire Library; stable IDs remain untranslated.
+MESSAGES.update({'library2.group.fire': 'Fire Fighting',
+ 'library2.category.fire_foam_rate': 'Foam · Application rate',
+ 'library2.category.fire_foam_duration': 'Foam · Duration',
+ 'library2.category.fire_foam_concentration': 'Foam · Concentration',
+ 'library2.category.fire_hw': 'Hazen-Williams · C',
+ 'library2.field.context': 'Applicability / Subsystem (optional)',
+ 'library2.field.applicability': 'Source scope (optional)',
+ 'library2.field.service': 'Medium / service',
+ 'library2.field.source_status': 'Source status',
+ 'library2.field.parameter_type': 'Parameter',
+ 'library2.field.system_family': 'System family (from category)',
+ 'library2.field.revision': 'Revision',
+ 'fire.library.canonical_value': 'Canonical value (0–1 fraction for Cfoam)',
+ 'fire.library.title': 'Library recommendations and reason',
+ 'fire.library.context': 'Applicability / Subsystem (optional)',
+ 'fire.library.refresh': 'Refresh recommendations',
+ 'fire.library.use': 'Use',
+ 'fire.library.update': 'Update',
+ 'fire.library.keep': 'Keep current',
+ 'fire.library.manual': 'Manual',
+ 'fire.library.recommended': 'Recommended',
+ 'fire.library.used': 'Used',
+ 'fire.library.mismatch': 'Context does not match',
+ 'fire.library.stale': 'Recommendation changed',
+ 'fire.library.kept': 'Current revision retained',
+ 'fire.library.choose': 'Select an applicable record explicitly; check context and source.',
+ 'fire.library.service.foam': 'Foam system',
+ 'fire.library.service.water': 'Water',
+ 'fire.library.service.seawater': 'Seawater (calculation blocked)',
+ 'fire.library.service.fuel': 'Fuel (calculation blocked)',
+ 'fire.library.service.unknown': 'Unknown (calculation blocked)',
+ 'library2.field.notes': 'Notes'})

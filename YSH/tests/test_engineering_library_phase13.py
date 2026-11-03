@@ -65,9 +65,15 @@ def library(library_database):
     corrosion=r['corrosion'].create(CorrosionAllowanceCircuit(code='TEST LIBRARY',display_name='Test corrosion',default_corrosion_allowance_mm=.12345))
     cs=r['corrosion_sources'].create(CorrosionSourceLink(corrosion_circuit_id=corrosion.id,source_id=source.id,rule_set_id=rule.id,circuit_id=circuit.id))
     pump=r['pump_references'].create(PumpReference(ship_name='Synthetic reference',fuel_capacity_m3=100,pump_capacity_m3h=20))
-    return service,dict(sources=source,systems=system,circuits=circuit,fluids=fluid,materials=material,rule_sets=rule,
+    rows=dict(sources=source,systems=system,circuits=circuit,fluids=fluid,materials=material,rule_sets=rule,
         fluid_properties=fp,material_properties=mp,pipe_standards=standard,pipe_sizes=pipe,pipe_standard_metadata=sm,
         pipe_size_metadata=pm,constants=constant,constant_metadata=cm,corrosion=corrosion,corrosion_sources=cs,pump_references=pump)
+    from engineering.fire.library import FIRE_CATEGORIES, UNITS
+    for category,parameter in FIRE_CATEGORIES.items():
+        rows[category]=service.save(category,dict(value=.01 if category=='fire_foam_concentration' else 1,
+            unit=UNITS[parameter],context='TEST_ONLY',service='water' if category=='fire_hw' else 'foam',
+            applicability='Synthetic fixture only',source_id=source.id,source_status='SOURCE_REQUIRED',notes='TEST_ONLY',is_active=True))
+    return service,rows
 
 
 @pytest.mark.parametrize('category',[c.code for c in CATEGORIES])

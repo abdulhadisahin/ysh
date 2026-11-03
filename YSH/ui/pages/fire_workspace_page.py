@@ -15,6 +15,7 @@ from ui.widgets.formula_view import FormulaReferencePanel
 from ui.widgets.detail_disclosure import DetailDisclosure
 from ui.widgets.formula_steps import number
 from ui.fire_input_presentation import foam_percent_clarifications
+from ui.widgets.fire_library_inputs import FireLibraryInputPanel
 
 
 class _FireSubviews(Mapping):
@@ -37,11 +38,12 @@ class _FireSubviews(Mapping):
 
 class FireWorkspacePage(ttk.Frame):
     """One cached family workspace; both subviews share existing shell services."""
-    def __init__(self,parent,translate,*,sources,context,project,on_snapshot,on_dirty,state=None):
+    def __init__(self,parent,translate,*,sources,context,project,on_snapshot,on_dirty,state=None,library=None):
         super().__init__(parent,style='Fire.TFrame')
         configure_fire_visuals(ttk.Style(self))
         self.tr=translate;self.sources=sources;self.context_provider=context;self.project_provider=project
         self.on_snapshot=on_snapshot;self.on_dirty=on_dirty
+        self._library_provider=library;self._library_service=None
         self.model=FireWorkspace.from_state(state or {})
         self.columnconfigure(0,weight=1);self.rowconfigure(1,weight=1)
         self.title=ttk.Label(self,style='Fire.Title.TLabel');self.title.grid(row=0,column=0,sticky='w',padx=12,pady=8)
@@ -73,6 +75,14 @@ class FireWorkspacePage(ttk.Frame):
             self.model.observe(current)
         for view in tuple(self.views.created.values()):view.sync()
 
+    def library_service(self):
+        if self._library_service is None and self._library_provider is not None:
+            self._library_service=self._library_provider()
+        return self._library_service
+
+    def refresh_library(self):
+        for view in tuple(self.views.created.values()):view.library_panel.refresh()
+
     def export_state(self):return self.model.export_state()
 
     def load_state(self,state):
@@ -92,7 +102,7 @@ class FireCalculatorPage(ttk.Frame):
         self.columnconfigure(0,weight=1)
         self.input_card=ttk.LabelFrame(self,style='Fire.Card.TLabelframe');self.input_card.grid(row=0,column=0,sticky='ew',pady=6)
         self.input_card.columnconfigure(1,weight=1)
-        self.variables={};self.labels={};self.entries={};self.meta_vars={};self.status_boxes={}
+        self.variables={};self.labels={};self.entries={};self.meta_vars={};self.status_boxes={};self.meta_editors={}
         for index,(name,(key,unit)) in enumerate(self.spec.items()):
             self.labels[name]=ttk.Label(self.input_card,style='Fire.TLabel')
             self.labels[name].grid(row=index,column=0,sticky='w',padx=(0,12),pady=5)
@@ -117,7 +127,7 @@ class FireCalculatorPage(ttk.Frame):
         for index,name in enumerate(self.spec):
             group=ttk.LabelFrame(self.disclosure.body,style='Fire.Card.TLabelframe');group.grid(row=index,column=0,sticky='ew',pady=4)
             group.columnconfigure(1,weight=1);self.meta_labels.append((group,self.spec[name][0]))
-            self.meta_vars[name]={}
+            self.meta_vars[name]={};self.meta_editors[name]={}
             for row,field in enumerate(('status','document','recommended','reason')):
                 label=ttk.Label(group,style='Fire.TLabel');label.grid(row=row,column=0,sticky='w',padx=(0,8),pady=3)
                 self.meta_labels.append((label,'fire.ui.recommended_percent' if kind=='foam' and name=='foam_fraction' and field=='recommended' else 'fire.ui.'+field))
@@ -127,7 +137,10 @@ class FireCalculatorPage(ttk.Frame):
                     self.status_boxes[name]=widget
                 else:widget=ttk.Entry(group,textvariable=variable)
                 widget.grid(row=row,column=1,sticky='ew',pady=3)
+                self.meta_editors[name][field]=widget
                 variable.trace_add('write',lambda *_,n=name,f=field:self._meta(n,f))
+        self.library_panel=FireLibraryInputPanel(self.input_card,self)
+        self.library_panel.grid(row=6,column=0,columnspan=3,sticky='ew',pady=4)
         self.actions=ttk.Frame(self,style='Fire.TFrame');self.actions.grid(row=4,column=0,sticky='ew',pady=8)
         self.calculate_button=ttk.Button(self.actions,style='Fire.Primary.TButton',command=self.calculate);self.calculate_button.grid(row=0,column=0,padx=(0,8))
         self.clear_button=ttk.Button(self.actions,style='Fire.Secondary.TButton',command=self.clear);self.clear_button.grid(row=0,column=1)
@@ -172,7 +185,11 @@ class FireCalculatorPage(ttk.Frame):
     def _meta(self,name,field):
         if self.loading:return
         text=self.meta_vars[name][field].get()
-        if field=='status':text=self.source_choices.get(text,'SOURCE_REQUIRED')
+        if field=='status':
+            text=self.source_choices.get(text,'SOURCE_REQUIRED')
+            if name not in self.model.library_inputs.links and text in ('SOURCE_VERIFIED','SOURCE_VERIFIED_CONTEXT_DEPENDENT','DERIVED_FROM_VERIFIED_RULE'):
+                text='SOURCE_REQUIRED'
+                self.loading=True;self.meta_vars[name][field].set(self.tr('fire.ui.source.SOURCE_REQUIRED'));self.loading=False
         self.model.metadata[self.kind][name][field]=text;self.model.invalidate(self.kind);self._dirty()
 
     def _dirty(self):
@@ -180,6 +197,7 @@ class FireCalculatorPage(ttk.Frame):
 
     def _service(self,event=None):
         self.model.service=self.service_choices[self.service_var.get()];self.model.invalidate('hw');self._dirty()
+        self.library_panel.refresh()
 
     def _mode(self,event=None):
         self.model.mode=self.mode_choices[self.mode_var.get()]
@@ -202,6 +220,7 @@ class FireCalculatorPage(ttk.Frame):
 
     def calculate(self):
         self.model.set_context(self.workspace.context_provider())
+        self.library_panel.refresh()
         for entry in self.entries.values():entry.state(['!invalid'])
         try:
             result=self.model.calculate(self.kind,project_id=self.workspace.project_provider())
@@ -234,9 +253,13 @@ class FireCalculatorPage(ttk.Frame):
         fresh=FireWorkspace()
         self.model.fields[self.kind]=fresh.fields[self.kind];self.model.metadata[self.kind]=fresh.metadata[self.kind]
         if self.kind=='hw':self.model.pipe=fresh.pipe;self.model.mode=fresh.mode;self.model.service=fresh.service
+        self.model.library_inputs.contexts[self.kind]=''
+        for name in self.library_panel.names:
+            self.model.library_inputs.links.pop(name,None);self.model.library_inputs.stale.pop(name,None);self.model.library_inputs.kept.pop(name,None)
         self.model.invalidate(self.kind);self.load_fields();self.workspace.on_dirty();self.sync()
 
     def sync(self,message=None):
+        if hasattr(self,'library_panel'):self.library_panel.sync()
         if self.kind=='foam':
             self.clarifications=foam_percent_clarifications(self.variables['foam_fraction'].get())
             if self.clarifications:
@@ -280,6 +303,7 @@ class FireCalculatorPage(ttk.Frame):
         self.input_card.configure(text=self.tr('fire.ui.inputs'))
         if self.kind=='foam':self.concentration_help.configure(text=self.tr('fire.ui.percent_help'))
         for name,(key,unit) in self.spec.items():self.labels[name].configure(text=self.tr(key))
+        self.library_panel.refresh_texts()
         self.scope.configure(text=self.tr('fire.ui.mixture' if self.kind=='foam' else 'fire.ui.water_scope'))
         self.disclosure._title=self.tr('fire.ui.provenance')
         self.disclosure._toggle.configure(text=('▾ ' if self.disclosure.expanded else '▸ ')+self.disclosure._title)

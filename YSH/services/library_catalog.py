@@ -1,6 +1,7 @@
 """Explicit engineering library categories and editable field allowlists."""
 from dataclasses import dataclass
 
+from engineering.fire.library import FireEngineeringDataRecord, FIRE_CATEGORIES
 from core.material import Material
 from core.engineering_constant import EngineeringConstant
 from core.pump_reference import PumpReference
@@ -85,6 +86,11 @@ CATEGORIES = (
          field("effective_date","date",True),field("verification_status","verification",True),
          field("source_id","uuid",True,"sources"),field("is_active","bool"))),
 )
+CATEGORIES += tuple(LibraryCategory(code, "fire", FireEngineeringDataRecord,
+    (field("value","float"),field("unit"),field("context",optional=True),field("service","fire_service"),
+     field("applicability",optional=True),field("source_id","uuid",True,"sources"),
+     field("source_status","fire_status"),field("notes",optional=True),field("is_active","bool")))
+    for code in FIRE_CATEGORIES)
 CATEGORY_BY_CODE = {category.code: category for category in CATEGORIES}
 PROPERTY_CODES = {
     "fluid_properties": ("density", "kinematic_viscosity", "vapor_pressure"),

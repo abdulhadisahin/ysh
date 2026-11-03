@@ -856,3 +856,38 @@ MESSAGES.update({
 })
 
 MESSAGES.update({'navigation.system': 'Sistem', 'navigation.fuel': 'Yakıt Sistemi', 'context.profile': 'Mühendislik profili', 'navigation.incompatible': 'Seçilen aile mühendislik profiliyle uyumlu değil. Profil korunmuştur.'})
+
+
+# Source-aware Fire Library; stable IDs remain untranslated.
+MESSAGES.update({'library2.group.fire': 'Yangın Söndürme',
+ 'library2.category.fire_foam_rate': 'Köpük · Uygulama oranı',
+ 'library2.category.fire_foam_duration': 'Köpük · Uygulama süresi',
+ 'library2.category.fire_foam_concentration': 'Köpük · Konsantrasyon',
+ 'library2.category.fire_hw': 'Hazen-Williams · C',
+ 'library2.field.context': 'Uygulanabilirlik / Alt sistem (isteğe bağlı)',
+ 'library2.field.applicability': 'Kaynak kapsamı (isteğe bağlı)',
+ 'library2.field.service': 'Akışkan / hizmet',
+ 'library2.field.source_status': 'Kaynak durumu',
+ 'library2.field.parameter_type': 'Parametre',
+ 'library2.field.system_family': 'Sistem ailesi (kategoriden)',
+ 'library2.field.revision': 'Revizyon',
+ 'fire.library.canonical_value': 'Kanonik değer (Cfoam için 0–1 kesri)',
+ 'fire.library.title': 'Kütüphane önerileri ve gerekçe',
+ 'fire.library.context': 'Uygulanabilirlik / Alt sistem (isteğe bağlı)',
+ 'fire.library.refresh': 'Önerileri yenile',
+ 'fire.library.use': 'Kullan',
+ 'fire.library.update': 'Güncelle',
+ 'fire.library.keep': 'Mevcutu koru',
+ 'fire.library.manual': 'Manuel',
+ 'fire.library.recommended': 'Önerilen',
+ 'fire.library.used': 'Kullanılan',
+ 'fire.library.mismatch': 'Bağlam uyuşmuyor',
+ 'fire.library.stale': 'Öneri değişti',
+ 'fire.library.kept': 'Mevcut revizyon korundu',
+ 'fire.library.choose': 'Uygun kaydı açıkça seçiniz; bağlamı ve kaynağı kontrol ediniz.',
+ 'fire.library.service.foam': 'Köpük sistemi',
+ 'fire.library.service.water': 'Su',
+ 'fire.library.service.seawater': 'Deniz suyu (hesap kapalı)',
+ 'fire.library.service.fuel': 'Yakıt (hesap kapalı)',
+ 'fire.library.service.unknown': 'Belirsiz (hesap kapalı)',
+ 'library2.field.notes': 'Not'})

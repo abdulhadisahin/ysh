@@ -41,7 +41,7 @@ def test_library_styles_are_scoped_and_reuse_master_geometry():
     assert style.maps['Library.Data.Treeview']['background'][0]==('selected',LIBRARY_SOFT)
     assert style.configurations['Library.TEntry']['fieldbackground']==colors.WHITE
     assert PANE_WEIGHTS==(2,4,3)
-    assert len(CATEGORIES)==17 and len({c.group for c in CATEGORIES})==8
+    assert len(CATEGORIES)==21 and len({c.group for c in CATEGORIES})==9
 
 
 @pytest.mark.parametrize('width',[1068,1334,1568,1668])

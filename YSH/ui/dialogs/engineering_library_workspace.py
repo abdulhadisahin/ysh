@@ -9,6 +9,8 @@ from uuid import UUID
 from collections.abc import Callable
 
 from engineering.provenance import SourceType, VerificationStatus
+from engineering.fire.library import FireParameter, FIRE_CATEGORIES
+from engineering.fire.enums import FireSourceStatus
 from services.engineering_library_service import EngineeringLibraryService, LibraryError
 from services.library_catalog import CATEGORIES, CATEGORY_BY_CODE, PROPERTY_CODES
 from ui.library_controller import LibraryController, EditMode
@@ -23,6 +25,9 @@ from ui.theme.spacing import SM, MD
 
 def record_label(record: object, translate: Callable[[str], str] | None = None) -> str:
     """Use engineering identities in pickers rather than prominently showing UUIDs."""
+    if hasattr(record,'parameter_type'):
+        label=translate('library2.category.'+next(k for k,v in FIRE_CATEGORIES.items() if v==record.parameter_type)) if translate else record.parameter_type.value
+        return label+' · '+record.context+' · r'+str(record.revision)
     if hasattr(record,'reference'):
         source=record.reference
         kind=translate(f'formula2.source_type.{source.source_type.value}') if translate else source.source_type.value
@@ -206,10 +211,12 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
             key=str(getattr(row,CATEGORY_BY_CODE[c.category].key_field));self._row_map[key]=row
             value=getattr(row,'value',getattr(row,'wall_thickness_mm',None))
             display=number(value) if isinstance(value,(int,float)) else ''
+            if c.category in FIRE_CATEGORIES:
+                display=number(value*100 if row.parameter_type is FireParameter.CONCENTRATION else value)+' '+('%' if row.parameter_type is FireParameter.CONCENTRATION else row.unit)
             owner=c.service.ownership(c.category,row)
             active=getattr(row,'is_active',None)
             self._tree.insert('', 'end',iid=key,tags=('even' if index%2==0 else 'odd',),values=(record_label(row,self._translate) or self._translate(f'library2.category.{c.category}'),display,self._translate(f'library2.ownership.{owner}'),
-                self._translate(f'formula2.verification_status.{record_verification(row).value}') if record_verification(row) else '',
+                self._translate('fire.ui.source.'+row.source_status.value) if c.category in FIRE_CATEGORIES else self._translate(f'formula2.verification_status.{record_verification(row).value}') if record_verification(row) else '',
                 self._translate('library2.active' if active else 'library2.inactive') if active is not None else ''))
         self._record_count.set(f"{len(rows)} {self._translate('library2.record_count')}")
         if rows: self._table_empty.place_forget()
@@ -262,6 +269,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
                 if isinstance(value,bool):
                     value=tr(('library2.active' if value else 'library2.inactive') if key=='is_active' else ('library2.yes' if value else 'library2.no'))
                 elif isinstance(value,VerificationStatus): value=tr(f'formula2.verification_status.{value.value}')
+                elif isinstance(value,FireSourceStatus): value=tr('fire.ui.source.'+value.value)
                 elif isinstance(value,float): value=number(value)
                 elif hasattr(value,'isoformat'): value=value.isoformat()
                 ttk.Label(body,text=tr(f'library2.field.{key}'),wraplength=260,style='Library.Field.TLabel').grid(row=index*2,column=0,columnspan=2,sticky='w',pady=(5,1))
@@ -332,6 +340,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
                     row=row*2,column=0,columnspan=2,sticky='w',pady=(SM,4))
                 previous_group=group;row+=1
             label_key=f'formula2.source.{field.name}' if c.category=='sources' else f'library2.field.{field.name}'
+            if c.category in FIRE_CATEGORIES and field.name=='value':label_key='fire.library.canonical_value'
             ttk.Label(self._body,text=tr(label_key),wraplength=260,style='Library.Field.TLabel').grid(row=row*2,column=0,columnspan=2,sticky='nw',pady=(SM,3))
             raw=c.draft.get(field.name)
             if field.kind=='bool':
@@ -345,6 +354,8 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
                     prefix='verification_status' if field.kind=='verification' else 'source_type'
                     choices={'':None,**{tr(f'formula2.{prefix}.{v.value}'):v for v in enum}}
                 elif field.kind=='property': choices={v:v for v in PROPERTY_CODES[c.category]}
+                elif field.kind=='fire_status': choices={tr('fire.ui.source.'+v.value):v for v in FireSourceStatus}
+                elif field.kind=='fire_service': choices={tr('fire.library.service.'+v):v for v in ('foam','water','seawater','fuel','unknown')}
                 if choices is not None:
                     current=next((key for key,value in choices.items() if value==raw),'')
                     if raw is not None and not current and raw not in choices.values():
@@ -360,6 +371,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
             self._edit_vars[field.name]=var
             if c.mode is EditMode.EDIT and field.name==CATEGORY_BY_CODE[c.category].key_field:
                 widget.configure(state='disabled')
+            if c.category in FIRE_CATEGORIES and field.name=='unit':widget.configure(state='readonly')
             widget.grid(row=row*2+1,column=0,columnspan=2,sticky='ew',pady=3)
             row+=1
         self._status.set(tr('library2.edit_notice'))
@@ -427,6 +439,9 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
             if self._controller.error_key: self._status.set(self._translate(self._controller.error_key))
             return
         self._choice_cache.clear()
+        if self._controller.category in FIRE_CATEGORIES:
+            refresh_fire=getattr(getattr(self,'_owner',None),'refresh_fire_library_choices',None)
+            if callable(refresh_fire):refresh_fire()
         try:
             self.refresh_texts()
             self._status.set(self._translate(self._controller.error_key or 'library2.saved'))

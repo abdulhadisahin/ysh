@@ -64,10 +64,10 @@ def test_navigation_builds_all_categories_and_groups_without_service_reads():
     window=SimpleNamespace(_navigation=navigation,_controller=SimpleNamespace(category='systems'),
                            _translate=Translator('tr').translate)
     EngineeringLibraryWorkspace._refresh_navigation(window)
-    assert len(CATEGORIES)==17
-    assert len({c.group for c in CATEGORIES})==8
+    assert len(CATEGORIES)==21
+    assert len({c.group for c in CATEGORIES})==9
     assert {kw['iid'] for parent,kw in records if parent}=={c.code for c in CATEGORIES}
-    assert len([1 for parent,kw in records if not parent])==8
+    assert len([1 for parent,kw in records if not parent])==9
 
 
 def test_navigation_ignores_group_headers_and_current_category():

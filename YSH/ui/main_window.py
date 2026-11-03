@@ -1451,7 +1451,8 @@ class MainWindow:
                     sources=self._pipe_sources, context=lambda:self._system_context,
                     project=lambda:self._active_project.id if self._active_project else None,
                     on_snapshot=lambda snapshot:self._snapshot_history.append(snapshot),
-                    on_dirty=self._mark_workspace_dirty, state=getattr(self,'_fire_pending_state',{}))
+                    on_dirty=self._mark_workspace_dirty, state=getattr(self,'_fire_pending_state',{}),
+                    library=getattr(self,'_library_service_factory',None))
                 self.register_localizable(self._fire_workspace)
                 self._fire_workspace.host.bind('<<NotebookTabChanged>>', self._remember_module, add='+')
             self._page_host.grid_remove()
@@ -1477,8 +1478,13 @@ class MainWindow:
         if changed and dirty and hasattr(self, '_mark_workspace_dirty'):
             self._mark_workspace_dirty()
 
+    def refresh_fire_library_choices(self) -> None:
+        workspace=getattr(self,'_fire_workspace',None)
+        if workspace is not None:workspace.refresh_library()
+
     def refresh_library_context_choices(self) -> None:
         """Refresh master choices after an explicit library refresh/close, preserving project truth."""
+        MainWindow.refresh_fire_library_choices(self)
         service = getattr(self, "_system_context_service", None)
         if service is not None:
             try:

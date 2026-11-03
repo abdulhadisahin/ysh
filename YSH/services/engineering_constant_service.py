@@ -5,6 +5,7 @@ from uuid import UUID
 from core.engineering_constant import EngineeringConstant
 from engineering.validation import ValidationError, ValidationIssue
 from repositories.engineering_constant_repository import EngineeringConstantRepository, EngineeringConstantRepositoryConflictError
+from repositories.fire_library_repository import FIRE_RECORD_PREFIX
 class EngineeringConstantValidationError(ValidationError): """Raised when constant data is invalid."""
 class EngineeringConstantConflictError(ValidationError): """Raised for duplicate constant keys."""
 class EngineeringConstantNotFoundError(ValidationError, LookupError): """Raised for absent constants."""
@@ -14,7 +15,7 @@ class EngineeringConstantService:
     def __init__(self,repository:EngineeringConstantRepository)->None:
         """Create the service and seed defaults only for an empty table."""
         self._repository=repository
-        if not repository.get_all():
+        if not self.get_all_constants():
             for key,name,value,unit,source in self._DEFAULTS:repository.create(EngineeringConstant(key=key,display_name=name,value=value,unit=unit,source=source,is_system=True))
     def create_constant(self,**values:object)->EngineeringConstant:
         """Validate and persist a constant."""
@@ -24,25 +25,30 @@ class EngineeringConstantService:
         except EngineeringConstantRepositoryConflictError as error:raise EngineeringConstantConflictError(ValidationIssue("constant_duplicate")) from error
     def update_constant(self,item:EngineeringConstant)->EngineeringConstant:
         """Validate and update a constant."""
+        current=self._repository.get(item.id)
+        if current and current.key.startswith(FIRE_RECORD_PREFIX):raise EngineeringConstantNotFoundError(ValidationIssue('constant_not_found'))
         self._normalise(item);self._validate(item);self._available(item);item.touch()
         try:return self._repository.update(item)
         except KeyError as error:raise EngineeringConstantNotFoundError(ValidationIssue("constant_not_found")) from error
         except EngineeringConstantRepositoryConflictError as error:raise EngineeringConstantConflictError(ValidationIssue("constant_duplicate")) from error
     def delete_constant(self,item_id:UUID)->None:
         """Delete a constant."""
+        current=self._repository.get(item_id)
+        if current and current.key.startswith(FIRE_RECORD_PREFIX):raise EngineeringConstantNotFoundError(ValidationIssue('constant_not_found'))
         try:self._repository.delete(item_id)
         except KeyError as error:raise EngineeringConstantNotFoundError(ValidationIssue("constant_not_found")) from error
     def get_constant(self,key:str)->EngineeringConstant:
         """Retrieve a constant by key."""
         item=self._repository.get_by_key(key)
-        if item is None:raise EngineeringConstantNotFoundError(ValidationIssue("constant_not_found"))
+        if item is None or item.key.startswith(FIRE_RECORD_PREFIX):raise EngineeringConstantNotFoundError(ValidationIssue("constant_not_found"))
         return item
     def get_all_constants(self)->Sequence[EngineeringConstant]:
         """List all editable constants."""
-        return self._repository.get_all()
+        return tuple(row for row in self._repository.get_all() if not row.key.startswith(FIRE_RECORD_PREFIX))
     @staticmethod
     def _normalise(item:EngineeringConstant)->None: item.key=item.key.strip();item.display_name=item.display_name.strip();item.unit=item.unit.strip();item.description=item.description.strip();item.source=item.source.strip() or "User"
     def _validate(self,item:EngineeringConstant)->None:
+        if item.key.upper().startswith(FIRE_RECORD_PREFIX):raise EngineeringConstantValidationError(ValidationIssue('constant_value_invalid','field.constant_key'))
         if not item.key:raise EngineeringConstantValidationError(ValidationIssue("required", "field.constant_key"))
         if not item.display_name:raise EngineeringConstantValidationError(ValidationIssue("required", "field.constant_display_name"))
         if item.key in {"safety_factor","design_pressure_bar","weld_factor"} and item.value<=0:raise EngineeringConstantValidationError(ValidationIssue("greater_than_zero", "field.constant_value"))
