@@ -23,6 +23,14 @@ def verification_role(status: object) -> str:
             'UNVERIFIED':'Warning', 'DEPRECATED':'Error'}.get(getattr(status,'value',status),'Muted')
 
 
+def fire_source_role(status: object) -> str:
+    """Style explicit Fire evidence without inferring or promoting verification."""
+    return {'SOURCE_VERIFIED':'Verified', 'DERIVED_FROM_VERIFIED_RULE':'Verified',
+            'SOURCE_VERIFIED_CONTEXT_DEPENDENT':'Info', 'WORKBOOK_REFERENCE_ONLY':'Info',
+            'USER_PROJECT_ASSUMPTION':'Info', 'SOURCE_CONFLICT':'Warning',
+            'SOURCE_IDENTIFIED_BUT_NOT_ACCESSIBLE':'Warning'}.get(getattr(status,'value',status),'Muted')
+
+
 def configure_library_visuals(style: ttk.Style) -> None:
     """Register on explicit Library open, without restyling global defaults."""
     style.configure('Library.Workspace.TFrame',background=PIPE_WORKSPACE)

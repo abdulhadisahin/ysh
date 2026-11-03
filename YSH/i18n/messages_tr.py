@@ -891,3 +891,15 @@ MESSAGES.update({'library2.group.fire': 'Yangın Söndürme',
  'fire.library.service.fuel': 'Yakıt (hesap kapalı)',
  'fire.library.service.unknown': 'Belirsiz (hesap kapalı)',
  'library2.field.notes': 'Not'})
+
+# Phase 6A: presentation only.
+MESSAGES['library2.field.parameter_type'] = 'Parametre'
+MESSAGES.update({'fire.library.mode.manual': 'Manuel',
+ 'fire.library.mode.linked': 'Kütüphaneye bağlı',
+ 'fire.library.mode.override': 'Kullanıcı değişikliği',
+ 'fire.library.group.foam': 'Köpük Sistemi',
+ 'fire.library.group.hw': 'Hazen-Williams',
+ 'fire.library.nav.fire_foam_rate': 'Uygulama oranı',
+ 'fire.library.nav.fire_foam_duration': 'Uygulama süresi',
+ 'fire.library.nav.fire_foam_concentration': 'Köpük konsantrasyonu',
+ 'fire.library.nav.fire_hw': 'C katsayısı'})

@@ -4,6 +4,10 @@ from ui.theme import colors, typography
 
 
 def configure_fire_visuals(style):
+    for role,foreground in (('Verified',colors.SUCCESS),('Info',colors.NAVY),
+                            ('Warning',colors.GOLD_DARK),('Muted',colors.TEXT_SECONDARY)):
+        style.configure('Fire.Source.'+role+'.TLabel',background=colors.WHITE,
+                        foreground=foreground,font=typography.MUTED)
     style.configure('Fire.TFrame',background=colors.WHITE)
     style.configure('Fire.Title.TLabel',background=colors.WHITE,foreground=FIRE_DARK,font=typography.PAGE_TITLE)
     style.configure('Fire.TLabel',background=colors.WHITE,foreground=colors.TEXT_PRIMARY,font=typography.BODY)

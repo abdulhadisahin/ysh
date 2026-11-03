@@ -19,7 +19,7 @@ from ui.widgets.formula_steps import number, source_rows
 from ui.widgets.detail_disclosure import DetailDisclosure
 from ui.library_presentation import detail_group, ordered_editor_fields
 from ui.theme import colors, typography
-from ui.theme.library_visuals import configure_library_visuals, verification_role, PANE_WEIGHTS, pane_positions
+from ui.theme.library_visuals import configure_library_visuals, verification_role, fire_source_role, PANE_WEIGHTS, pane_positions
 from ui.theme.spacing import SM, MD
 
 
@@ -107,7 +107,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         navigation=ttk.Frame(panes,style='Library.Card.TFrame',width=205)
         navigation.columnconfigure(0,weight=1);navigation.rowconfigure(0,weight=1)
         self._navigation=ttk.Treeview(navigation,show='tree',selectmode='browse',style='LibraryNav.Treeview')
-        self._navigation.column('#0',width=190,minwidth=155,stretch=True)
+        self._navigation.column('#0',width=208,minwidth=196,stretch=True)
         self._navigation.grid(row=0,column=0,sticky='nsew')
         nav_scroll=ttk.Scrollbar(navigation,orient='vertical',command=self._navigation.yview)
         nav_scroll.grid(row=0,column=1,sticky='ns');self._navigation.configure(yscrollcommand=nav_scroll.set)
@@ -253,6 +253,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
                   wraplength=260,style='Library.Info.TLabel' if detail.editable else 'Library.Muted.TLabel').grid(row=1,column=0,columnspan=2,sticky='w',pady=(0,8))
         groups={}
         for key,value in detail.values:
+            if self._controller.category in FIRE_CATEGORIES and key=='source_id':continue
             if visible_detail(value): groups.setdefault(detail_group(key),[]).append((key,value))
         row=2
         for group,items in groups.items():
@@ -269,7 +270,12 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
                 if isinstance(value,bool):
                     value=tr(('library2.active' if value else 'library2.inactive') if key=='is_active' else ('library2.yes' if value else 'library2.no'))
                 elif isinstance(value,VerificationStatus): value=tr(f'formula2.verification_status.{value.value}')
-                elif isinstance(value,FireSourceStatus): value=tr('fire.ui.source.'+value.value)
+                elif isinstance(value,FireSourceStatus):
+                    value_style='Library.'+fire_source_role(value)+'.TLabel'
+                    value=tr('fire.ui.source.'+value.value)
+                elif isinstance(value,FireParameter):
+                    value=tr('library2.category.'+next(code for code,parameter in FIRE_CATEGORIES.items() if parameter==value))
+                elif self._controller.category in FIRE_CATEGORIES and key=='service':value=tr('fire.library.service.'+value)
                 elif isinstance(value,float): value=number(value)
                 elif hasattr(value,'isoformat'): value=value.isoformat()
                 ttk.Label(body,text=tr(f'library2.field.{key}'),wraplength=260,style='Library.Field.TLabel').grid(row=index*2,column=0,columnspan=2,sticky='w',pady=(5,1))
@@ -294,9 +300,15 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         for group in groups:
             parent='group:'+group
             self._navigation.insert('', 'end',iid=parent,text=self._translate(f'library2.group.{group}'),open=True,tags=('group',))
+            if group=='fire':
+                for subgroup in ('foam','hw'):
+                    self._navigation.insert(parent,'end',iid='group:fire:'+subgroup,
+                        text=self._translate('fire.library.group.'+subgroup),open=True,tags=('group',))
             for category in CATEGORIES:
                 if category.group==group:
-                    self._navigation.insert(parent,'end',iid=category.code,text=self._translate(f'library2.category.{category.code}'))
+                    branch='group:fire:'+('hw' if category.code=='fire_hw' else 'foam') if group=='fire' else parent
+                    key='fire.library.nav.'+category.code if group=='fire' else f'library2.category.{category.code}'
+                    self._navigation.insert(branch,'end',iid=category.code,text=self._translate(key))
         self._navigation.selection_set(self._controller.category)
         self._navigation.see(self._controller.category)
 
@@ -319,7 +331,8 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         for record in self._choice_cache[cache_key]:
             identity=getattr(record,CATEGORY_BY_CODE[target].key_field)
             label=record_label(record,self._translate)
-            if label in choices: label+=f' [{identity}]'
+            if label in choices:
+                label+=f' ({len(choices)})' if self._controller.category in FIRE_CATEGORIES else f' [{identity}]'
             choices[label]=identity
         return choices
 
@@ -332,15 +345,18 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         ttk.Label(self._body,text=tr('library.visual.create_mode' if c.mode is EditMode.CREATE else 'library.visual.edit_mode'),
                   style='Library.Heading.TLabel').grid(row=0,column=0,columnspan=2,sticky='w',pady=(0,8))
         row=1
+        if c.category in FIRE_CATEGORIES:
+            ttk.Label(self._body,text=tr('library2.category.'+c.category),wraplength=260,
+                      style='Library.Value.TLabel').grid(row=1,column=0,columnspan=2,sticky='ew')
         previous_group=None
         for field in ordered_editor_fields(CATEGORY_BY_CODE[c.category].fields):
             group=detail_group(field.name)
-            if group!=previous_group:
+            if group!=previous_group and c.category not in FIRE_CATEGORIES:
                 ttk.Label(self._body,text=tr(f'library2.section.{group}'),style='Library.Heading.TLabel').grid(
                     row=row*2,column=0,columnspan=2,sticky='w',pady=(SM,4))
                 previous_group=group;row+=1
             label_key=f'formula2.source.{field.name}' if c.category=='sources' else f'library2.field.{field.name}'
-            if c.category in FIRE_CATEGORIES and field.name=='value':label_key='fire.library.canonical_value'
+            if c.category=='fire_foam_concentration' and field.name=='value':label_key='fire.library.canonical_value'
             ttk.Label(self._body,text=tr(label_key),wraplength=260,style='Library.Field.TLabel').grid(row=row*2,column=0,columnspan=2,sticky='nw',pady=(SM,3))
             raw=c.draft.get(field.name)
             if field.kind=='bool':
@@ -359,7 +375,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
                 if choices is not None:
                     current=next((key for key,value in choices.items() if value==raw),'')
                     if raw is not None and not current and raw not in choices.values():
-                        current=f'{tr("library2.missing_reference")} {raw}';choices[current]=raw
+                        current=tr('library2.missing_reference') if c.category in FIRE_CATEGORIES else f'{tr("library2.missing_reference")} {raw}';choices[current]=raw
                     self._edit_choices[field.name]=choices
                     var=tk.StringVar(value=current)
                     widget=ttk.Combobox(self._body,textvariable=var,values=tuple(choices),state='readonly',width=26,style='Library.TCombobox')

@@ -876,3 +876,15 @@ MESSAGES.update({'library2.group.fire': 'Fire Fighting',
  'fire.library.service.fuel': 'Fuel (calculation blocked)',
  'fire.library.service.unknown': 'Unknown (calculation blocked)',
  'library2.field.notes': 'Notes'})
+
+# Phase 6A: presentation only.
+MESSAGES['library2.field.parameter_type'] = 'Parameter'
+MESSAGES.update({'fire.library.mode.manual': 'Manual',
+ 'fire.library.mode.linked': 'Library-linked',
+ 'fire.library.mode.override': 'Override',
+ 'fire.library.group.foam': 'Foam System',
+ 'fire.library.group.hw': 'Hazen-Williams',
+ 'fire.library.nav.fire_foam_rate': 'Application rate',
+ 'fire.library.nav.fire_foam_duration': 'Duration',
+ 'fire.library.nav.fire_foam_concentration': 'Foam concentration',
+ 'fire.library.nav.fire_hw': 'C coefficient'})

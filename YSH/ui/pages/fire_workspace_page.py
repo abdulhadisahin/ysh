@@ -123,11 +123,11 @@ class FireCalculatorPage(ttk.Frame):
         self.disclosure=DetailDisclosure(self,'','',style='Fire.TFrame',body_style='Fire.TFrame')
         self.disclosure.grid(row=3,column=0,sticky='ew',pady=6)
         self.disclosure.body.columnconfigure(0,weight=1)
-        self.meta_labels=[]
+        self.meta_labels=[];self.meta_groups={};self.meta_reason_controls={}
         for index,name in enumerate(self.spec):
             group=ttk.LabelFrame(self.disclosure.body,style='Fire.Card.TLabelframe');group.grid(row=index,column=0,sticky='ew',pady=4)
             group.columnconfigure(1,weight=1);self.meta_labels.append((group,self.spec[name][0]))
-            self.meta_vars[name]={};self.meta_editors[name]={}
+            self.meta_vars[name]={};self.meta_editors[name]={};self.meta_groups[name]=group
             for row,field in enumerate(('status','document','recommended','reason')):
                 label=ttk.Label(group,style='Fire.TLabel');label.grid(row=row,column=0,sticky='w',padx=(0,8),pady=3)
                 self.meta_labels.append((label,'fire.ui.recommended_percent' if kind=='foam' and name=='foam_fraction' and field=='recommended' else 'fire.ui.'+field))
@@ -138,6 +138,7 @@ class FireCalculatorPage(ttk.Frame):
                 else:widget=ttk.Entry(group,textvariable=variable)
                 widget.grid(row=row,column=1,sticky='ew',pady=3)
                 self.meta_editors[name][field]=widget
+                if field=='reason':self.meta_reason_controls[name]=(label,widget)
                 variable.trace_add('write',lambda *_,n=name,f=field:self._meta(n,f))
         self.library_panel=FireLibraryInputPanel(self.input_card,self)
         self.library_panel.grid(row=6,column=0,columnspan=3,sticky='ew',pady=4)
@@ -145,8 +146,8 @@ class FireCalculatorPage(ttk.Frame):
         self.calculate_button=ttk.Button(self.actions,style='Fire.Primary.TButton',command=self.calculate);self.calculate_button.grid(row=0,column=0,padx=(0,8))
         self.clear_button=ttk.Button(self.actions,style='Fire.Secondary.TButton',command=self.clear);self.clear_button.grid(row=0,column=1)
         self.pdf_button=ttk.Button(self.actions,style='Fire.Secondary.TButton',command=self.pdf,state='disabled');self.pdf_button.grid(row=0,column=2,padx=8)
-        self.status=ttk.Label(self,style='Fire.Status.TLabel',wraplength=540);self.status.grid(row=5,column=0,sticky='ew',pady=6)
-        self.result_card=ttk.Frame(self,style='Fire.Result.TFrame');self.result_card.grid(row=6,column=0,sticky='ew',pady=8)
+        self.status=ttk.Label(self,style='Fire.Status.TLabel',wraplength=540);self.status.grid(row=6,column=0,sticky='ew',pady=6)
+        self.result_card=ttk.Frame(self,style='Fire.Result.TFrame');self.result_card.grid(row=5,column=0,sticky='ew',pady=8)
         self.result_card.columnconfigure(0,weight=1)
         self.result_labels=[]
         for index in range(4 if kind=='foam' else 2):

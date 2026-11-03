@@ -190,3 +190,61 @@ Unresolved source blockers remain explicit:
 The next appropriate step is user review and acquisition/verification of actual
 context-specific sources. No Nozzle, seawater, other-system work, User Guide or
 Developer Guide is started here.
+
+## PHASE 6A — Source-Aware UI Acceptance & UX Polish
+
+This pass changes presentation only. The accepted starting commit is
+`779ba73fdbd9599b38da62270bfc86d3072f41b6`, with 1927 passing tests. The existing
+partial Phase 6A changes were preserved and completed after the interruption.
+
+- Override reasons appear only when a recommendation exists and the parsed used
+  value differs. Returning to the recommendation hides the reason without erasing
+  its draft text. Manual values without recommendations are not overrides.
+  Linked reasons appear beside the summary, outside the collapsed Library picker.
+  Linked metadata is shown once in the source panel; manual provenance remains
+  available in its existing disclosure. Percent comparisons use the displayed
+  concentration; canonical fractions and calculation validation are unchanged.
+- Update and Keep Current are hidden unless a linked record is stale. Observation
+  never changes used inputs, frozen recommendations, results or snapshots.
+  Update explicitly replaces the recommendation and preserves the used value.
+  Keep Current retains the frozen revision and used value; the existing stale
+  flag remains, alongside the retained-revision indication.
+- Fire navigation groups the existing four categories under Foam System and
+  Hazen-Williams. This adds presentation branches, not new categories or families.
+  The optional Applicability / Subsystem field remains separate from the sidebar
+  family selector. No System Family editor field was added.
+- Pickers show localized parameter/value/source/revision captions with a display
+  ordinal for duplicate captions. Raw parameter IDs and source UUIDs are hidden
+  from ordinary Fire detail text. Record UUIDs remain in the existing collapsed
+  technical diagnostics. Selection identity remains internal; refreshing cannot
+  silently transfer a selection to another record with an identical caption.
+- Compact source summaries distinguish Manual, Library-linked and Override and
+  retain recommended / used / source information. Missing recommendations show
+  a dash and source-required status. Existing semantic colors distinguish verified,
+  context-dependent/reference, missing and conflicting evidence without treating
+  missing sources as critical errors. The Fire editor omits repetitive section
+  headings; the canonical fraction hint appears only for concentration records.
+  Legacy manual verification claims without a frozen Library source remain
+  source-required in the summary, consistent with existing calculation provenance;
+  displaying that status does not modify saved metadata.
+- Main-page presentation places primary results before supporting status.
+  The Phase 5F shell, all engineering formulas, source matching and revision rules,
+  persistence/snapshot schemas, History, PDF and Formula View remain unchanged.
+  Nozzle and seawater HW remain blocked pending sources.
+
+Automated acceptance covers TR/EN at 1100×700, 1280×800, 1440×900 and 1700×1000,
+including expanded linked/override/stale controls, source summaries, actions,
+result bounds, nested Library navigation and record editor bounds. No repeated
+screenshots or startup benchmarks are used. Manual visual acceptance remains
+**USER REVIEW REQUIRED**. The approved workbook is read-only reference input and
+must remain unchanged and untracked; no User Guide or Developer Guide is regenerated.
+
+Final validation: **67 focused tests passed (45.88s)**, covering all 43 new
+Phase 6A cases and the 24 Formula/Library polish cases. The existing navigation
+test now separately checks all 21 category identities, all nine root groups and
+the two presentation-only Fire branches. Earlier separate Library checks passed
+25 visual tests and 62 shared Library tests; the final Fire UI run passed 57 cases.
+Focused runs retain the existing nested pytest-cache warning; the final full
+repository run is clean: **1970 passed, 0 failed (288.25s)**. This includes the
+1927 accepted tests plus 43 new cases, with one existing navigation test updated.
+Outcome: **PHASE6A_PASS_WITH_USER_REVIEW**.
