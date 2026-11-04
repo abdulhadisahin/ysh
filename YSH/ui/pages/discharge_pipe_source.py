@@ -48,14 +48,23 @@ class DischargePipeSourcePanel(ttk.LabelFrame):
             button = ttk.Button(self, command=command)
             button.grid(row=2, column=column, sticky="w", padx=(0, 8), pady=3)
             self._buttons[key] = button
-        ttk.Label(self, textvariable=self._status, wraplength=600).grid(
-            row=0, column=1, columnspan=3, sticky="w")
+        self._status_label=ttk.Label(self, textvariable=self._status, wraplength=600)
+        self._status_label.grid(row=0, column=1, columnspan=3, sticky="w")
+        self._normal_status_style='Info.TLabel'
         ttk.Label(self, textvariable=self._details, wraplength=720).grid(
             row=3, column=0, columnspan=4, sticky="w")
         ttk.Label(self, textvariable=self._error, wraplength=720).grid(
             row=4, column=0, columnspan=4, sticky="w")
         self.columnconfigure(1, weight=1)
+        self.bind("<Configure>",self._fit_text,add="+")
         self.refresh_texts()
+
+    def _fit_text(self,event) -> None:
+        for widget in self.winfo_children():
+            if isinstance(widget,ttk.Label):
+                available=event.width-32
+                if widget is self._status_label:available-=self._mode_box.winfo_reqwidth()+8
+                widget.configure(wraplength=max(120,available))
 
     def refresh_texts(self) -> None:
         """Translate status/mode without changing source, snapshots or calculations."""
@@ -104,6 +113,13 @@ class DischargePipeSourcePanel(ttk.LabelFrame):
         self._buttons["update"].configure(state="normal" if current and current.selection_id in self._source_ids else "disabled")
         self._buttons["keep"].configure(state="disabled" if state.status in (
             PipeLinkStatus.MANUAL, PipeLinkStatus.LINKED_SYNCED) else "normal")
+        stale=state.mode is PipeInputMode.LINKED and state.status not in (PipeLinkStatus.MANUAL,PipeLinkStatus.LINKED_SYNCED)
+        current_style=self._status_label.cget('style')
+        if current_style and current_style!='StatusWarning.TLabel':self._normal_status_style=current_style
+        self._status_label.configure(style='StatusWarning.TLabel' if stale else self._normal_status_style)
+        for action in ('update','keep'):
+            button=self._buttons[action]
+            (button.grid if stale else button.grid_remove)()
         if "publish" in self._buttons:  # Legacy internal adapters/tests only.
             self._buttons["publish"].configure(state="normal" if self.source_factory else "disabled")
         selected = self.workflow.source(self._selected_id) if self._selected_id else None

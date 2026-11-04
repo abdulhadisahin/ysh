@@ -28,7 +28,7 @@ def configure_module_visuals(style: ttk.Style) -> None:
         style.configure(prefix+'Page.TLabelframe.Label', background=PIPE_WORKSPACE,
                         foreground=dark, font=typography.SECTION_TITLE)
         style.configure(prefix+'PageTitle.TLabel', background=PIPE_WORKSPACE,
-                        foreground=colors.NAVY, font=(typography.FONT_FAMILY, 18, 'bold'))
+                        foreground=colors.NAVY, font=typography.PAGE_TITLE)
         style.configure(prefix+'PageDescription.TLabel', background=PIPE_WORKSPACE,
                         foreground=colors.TEXT_SECONDARY, font=typography.MUTED)
         for role, surface in (('Input', colors.WHITE), ('Result', soft)):

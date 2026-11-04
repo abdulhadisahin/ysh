@@ -188,7 +188,9 @@ def test_history_filter_color_details_and_primary(kind):
     style=Style();configure_history_visuals(style)
     assert style.configurations['History.'+snapshot.module_code+'.Result.TLabel']['foreground']=='#963E32'
     details='\n'.join(fire_details(snapshot.evidence,tr))
-    assert 'İş akışı sürümü' in details and 'USER_PROJECT_ASSUMPTION' in details
+    assert 'İş akışı sürümü' not in details and 'USER_PROJECT_ASSUMPTION' not in details
+    assert tr('fire.ui.source.USER_PROJECT_ASSUMPTION') in details
+    assert snapshot.model_version  # retained in frozen record / technical diagnostics
 
 
 @pytest.mark.parametrize('kind',['foam','hw'])

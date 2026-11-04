@@ -168,7 +168,7 @@ class CalculationHistoryWindow(tk.Toplevel):
         for i,finding in enumerate(recorded_warnings(evidence),len(checks)+1):
             if finding.get('message_key'):
                 message=tr(finding['message_key'])
-                if finding.get('source_status'):message+=' · '+finding['source_status']
+                if finding.get('source_status'):message+=' · '+tr('fire.ui.source.'+finding['source_status'])
                 self._text(status,message,'History.Warning.TLabel',i);continue
             if finding.get('recorded_text'):
                 self._text(status,finding['recorded_text'],'History.Warning.TLabel',i);continue
@@ -188,8 +188,9 @@ class CalculationHistoryWindow(tk.Toplevel):
             recommended,used=historical_override_values(module,value)
             text=f"{tr('formula2.overridden')} · {value.get('symbol') or ''}\n{tr('formula2.recommended')}: {recommended} · {tr('formula2.used')}: {used}\n{value['override_reason']}"
             self._text(provenance.body,text,row=i)
-        metadata=self._section('record',7)
-        self._text(metadata,timestamp(snapshot.created_at)+'\n'+tr('history.visual.record_id')+': '+str(snapshot.snapshot_id)[:8]+'…\n'+scalar(snapshot.model_version),'History.Metadata.TLabel')
+        metadata=DetailDisclosure(self._body,tr('history.visual.diagnostics'),style='History.Body.TFrame',body_style='History.Body.TFrame')
+        metadata.grid(row=7,column=0,sticky='ew',pady=(0,SM))
+        self._text(metadata.body,timestamp(snapshot.created_at)+'\n'+tr('history.visual.record_id')+': '+str(snapshot.snapshot_id)+'\n'+scalar(snapshot.model_version),'History.Metadata.TLabel')
         self._raw(snapshot.to_payload(),8)
         self._formula_panel=panel=FormulaReferencePanel(self._actions,lambda:[],tr,
             toggle_button_factory=lambda parent,text,command:ttk.Button(parent,text=text,command=command,style='History.Primary.TButton'),

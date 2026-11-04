@@ -6,6 +6,8 @@ import tkinter as tk
 from typing import Literal
 from tkinter import ttk
 
+from ui.theme.spacing import CARD_PADDING, SM
+
 
 class SurfaceCard(ttk.Frame):
     """Provide a frame-based card with a separate semantic title surface.
@@ -52,7 +54,7 @@ class InformationCard(ttk.LabelFrame):
 
     def __init__(self, parent: tk.Misc, title: str, **kwargs: object) -> None:
         """Create a padded semantic information card with a section heading."""
-        super().__init__(parent, text=title, style=self.style_name, padding=12, **kwargs)
+        super().__init__(parent, text=title, style=self.style_name, padding=CARD_PADDING, **kwargs)
 
 
 class InputCard(InformationCard):
@@ -105,12 +107,19 @@ class SectionHeader(ttk.Frame):
                  description_style: str = "PageDescription.TLabel") -> None:
         """Create a title hierarchy without consuming excessive page height."""
         super().__init__(parent, style=style)
-        self._title = ttk.Label(self, text=title, style=title_style)
-        self._title.grid(row=0, column=0, sticky="w")
-        self._description = ttk.Label(self, text=description, style=description_style)
+        self.columnconfigure(0, weight=1)
+        self._title = ttk.Label(self, text=title, style=title_style, wraplength=600)
+        self._title.grid(row=0, column=0, sticky="ew")
+        self._description = ttk.Label(self, text=description, style=description_style, wraplength=600)
         self._description.grid(
-            row=1, column=0, sticky="w", pady=(2, 0)
+            row=1, column=0, sticky="ew", pady=(2, 0)
         )
+
+        self.bind('<Configure>', self._fit_text, add='+')
+
+    def _fit_text(self, event) -> None:
+        width=max(120,event.width-SM)
+        for label in (self._title,self._description):label.configure(wraplength=width)
 
     def set_content(self, title: str, description: str) -> None:
         """Update translated heading content without recreating the page layout."""
@@ -147,7 +156,7 @@ class ResultMetric(ttk.Frame):
             text=label,
             style=f"{normal_style_prefix}Label.TLabel",
         )
-        self._label.grid(row=0, column=1, sticky="w")
+        self._label.grid(row=0, column=1, columnspan=3, sticky="w")
         self._value = ttk.Label(
             self,
             textvariable=value,
@@ -160,8 +169,15 @@ class ResultMetric(ttk.Frame):
             style=f"{normal_style_prefix}Label.TLabel",
         )
         self._unit_label.grid(row=1, column=2, sticky="sw", padx=(4, 0))
+        self.columnconfigure(3,weight=1)
+        self.bind('<Configure>', self._fit_metric, add='+')
         self._value_variable.trace_add("write", self._refresh_value_style)
         self.set_state(state)
+
+    def _fit_metric(self, event) -> None:
+        width=max(80,event.width-48-self._unit_label.winfo_reqwidth())
+        self._label.configure(wraplength=max(100,event.width-40))
+        self._value.configure(wraplength=width)
 
     def set_label(self, label: str) -> None:
         """Update the localized metric label without changing its value source."""

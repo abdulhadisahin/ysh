@@ -903,3 +903,8 @@ MESSAGES.update({'fire.library.mode.manual': 'Manuel',
  'fire.library.nav.fire_foam_duration': 'Uygulama süresi',
  'fire.library.nav.fire_foam_concentration': 'Köpük konsantrasyonu',
  'fire.library.nav.fire_hw': 'C katsayısı'})
+
+# Phase 7: shared current-result export action.
+MESSAGES['action.pdf_current_result'] = 'PDF Raporu'
+MESSAGES['fire.ui.pdf'] = MESSAGES['action.pdf_current_result']
+MESSAGES['history.visual.diagnostics'] = 'Teknik kayıt bilgisi'

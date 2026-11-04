@@ -636,6 +636,8 @@ class MainWindow:
             group._ribbon_label.configure(  # type: ignore[attr-defined]
                 text=self._translate(group._ribbon_title_key)  # type: ignore[attr-defined]
             )
+        for page in getattr(self,'_pages',{}).values():
+            if hasattr(page,'_pdf_button'):page._pdf_button.configure(text=self._translate('action.pdf_current_result'))
         self._sidebar_title.configure(text=self._translate("project.projects"))
         self._project_search_label.configure(text=self._translate("project.search"))
         self._projects_tree.heading("name", text=self._translate("project.name"))
@@ -739,7 +741,11 @@ class MainWindow:
 
     def _attach_dirty_callbacks(self) -> None:
         """Route page edits to optional project dirty tracking."""
-        for page in self._pages.values(): page.set_dirty_callback(self._mark_project_dirty)
+        for page in self._pages.values():
+            def changed(target=page):
+                self._mark_project_dirty()
+                target.after_idle(lambda:MainWindow._refresh_pdf_action(self,target))
+            page.set_dirty_callback(changed)
 
     def _mark_project_dirty(self) -> None:
         """Mark only an active optional project dirty."""
@@ -1318,6 +1324,20 @@ class MainWindow:
         """Register deferred library composition without reading any dataset."""
         self._library_service_factory = factory
 
+    @staticmethod
+    def _pdf_is_current(page) -> bool:
+        """Inspect frozen/current presentation data without resolving or calculating."""
+        snapshot=getattr(page,'_pdf_snapshot',None)
+        steps=page._formula_steps() if snapshot else ()
+        return bool(snapshot and snapshot.formula_steps and steps and all(step in steps for step in snapshot.formula_steps))
+
+    def _refresh_pdf_action(self,page) -> None:
+        """Enable current-result export only while the captured steps remain displayed."""
+        button=getattr(page,'_pdf_button',None)
+        if button is None:return
+        ready=MainWindow._pdf_is_current(page)
+        button.configure(text=self._translate('action.pdf_current_result'),state='normal' if ready else 'disabled')
+
     def _clear_pdf_snapshots(self) -> None:
         """A project switch never offers another workspace's last report."""
         for page in getattr(self, '_pages', {}).values():
@@ -1337,12 +1357,12 @@ class MainWindow:
                 from ui.dialogs.pdf_report import save_snapshot_pdf
                 page._pdf_snapshot = None
                 page._pdf_button = ttk.Button(page._formula_panel,
-                    text='PDF Raporu Oluştur (son kayıt)', state='disabled',
+                    text=self._translate('action.pdf_current_result'), state='disabled',
                     style=("PipeSecondary.TButton" if code == "pipe_design" else
                            {"transfer_pump": "TransferSecondary.TButton",
                             "discharge_head_loss": "DischargeSecondary.TButton",
                             "suction_npsh": "SuctionSecondary.TButton"}.get(code, "TButton")),
-                    command=lambda target=page: save_snapshot_pdf(self._root, target._pdf_snapshot))
+                    command=lambda target=page: save_snapshot_pdf(self._root, target._pdf_snapshot) if MainWindow._pdf_is_current(target) else None)
                 page._pdf_button.grid(row=0, column=1, sticky='e', padx=(12, 0))
             if code == 'transfer_pump' and hasattr(page,'_design_panel'):
                 page._design_panel._snapshot_listener = listener

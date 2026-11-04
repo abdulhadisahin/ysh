@@ -27,26 +27,26 @@ class FireLibraryInputPanel(ttk.Frame):
         self.context_label=ttk.Label(body,style='Fire.TLabel',wraplength=500)
         self.context_label.grid(row=0,column=0,sticky='w')
         self.context=tk.StringVar(self)
-        self.context_entry=ttk.Entry(body,textvariable=self.context)
+        self.context_entry=ttk.Entry(body,textvariable=self.context,style='Fire.TEntry')
         self.context_entry.grid(row=1,column=0,sticky='ew')
         self.context.trace_add('write',self._context)
-        self.refresh_button=ttk.Button(body,command=self.refresh)
+        self.refresh_button=ttk.Button(body,command=self.refresh,style='Fire.Secondary.TButton')
         self.refresh_button.grid(row=2,column=0,sticky='w',pady=4)
         self.boxes={}
         for index,name in enumerate(self.names):
             row=3+index*5
             label=ttk.Label(body,style='Fire.TLabel');label.grid(row=row,column=0,sticky='w');self.controls.append((label,view.spec[name][0]))
-            combo=ttk.Combobox(body,state='readonly',width=18)
+            combo=ttk.Combobox(body,state='readonly',width=18,style='Fire.TCombobox')
             combo.grid(row=row+1,column=0,sticky='ew');self.boxes[name]=combo
             combo.bind('<<ComboboxSelected>>',lambda _event:self.sync())
             self.buttons[name]={}
             actions=ttk.Frame(body,style='Fire.TFrame');actions.grid(row=row+2,column=0,sticky='w',pady=3)
             for column,action in enumerate(('use','update','keep','manual')):
-                button=ttk.Button(actions,command=lambda n=name,a=action:self.action(n,a))
+                button=ttk.Button(actions,command=lambda n=name,a=action:self.action(n,a),style='Fire.Secondary.TButton')
                 button.grid(row=0,column=column,padx=(0,4));self.controls.append((button,'fire.library.'+action));self.buttons[name][action]=button
             reason_label=ttk.Label(self,style='Fire.TLabel');reason_label.grid(row=index*3+1,column=0,sticky='w')
             self.controls.append((reason_label,'fire.ui.reason'))
-            entry=ttk.Entry(self,textvariable=view.meta_vars[name]['reason']);entry.grid(row=index*3+2,column=0,sticky='ew')
+            entry=ttk.Entry(self,textvariable=view.meta_vars[name]['reason'],style='Fire.TEntry');entry.grid(row=index*3+2,column=0,sticky='ew')
             self.reasons[name]=(reason_label,entry)
         self.message=ttk.Label(body,style='Fire.TLabel',wraplength=500,justify='left')
         self.message.grid(row=3+len(self.names)*5,column=0,sticky='ew',pady=4)

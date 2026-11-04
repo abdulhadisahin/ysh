@@ -238,6 +238,9 @@ class Widget:
     """Capture readonly and source-control presentation state."""
     def __init__(self) -> None: self.options={};self.index=-1
     def configure(self,**options: object) -> None: self.options.update(options)
+    def cget(self,key):return self.options.get(key,'')
+    def grid(self,**options):self.visible=True
+    def grid_remove(self):self.visible=False
     def current(self,index: int | None=None) -> int:
         if index is not None: self.index=index
         return self.index
@@ -281,6 +284,7 @@ def panel_stub(page: DischargeHeadLossPage) -> DischargePipeSourcePanel:
     panel._selected_id=None;panel._source_ids=[]
     panel._source_box=Widget();panel._mode_box=Widget()
     panel._source=Var();panel._mode=Var();panel._status=Var();panel._details=Var();panel._error=Var()
+    panel._status_label=Widget();panel._normal_status_style='Info.TLabel'
     panel._buttons={key:Widget() for key in ('update','keep','publish','link')}
     page._pipe_source_panel=panel
     return panel

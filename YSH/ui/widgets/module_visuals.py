@@ -33,6 +33,8 @@ def apply_module_visuals(page: ttk.Widget, module: str) -> None:
             widget.configure(style=prefix+'.TEntry')
         elif type(widget) is ttk.Combobox:
             widget.configure(style=prefix+'.TCombobox')
+        elif type(widget) is ttk.Button and not widget.cget('style'):
+            widget.configure(style=prefix+'Secondary.TButton')
         elif type(widget) is ttk.Label and not widget.cget('style'):
             widget.configure(style=prefix+('Result' if result else 'Input')+'.TLabel')
         elif isinstance(widget, ttk.Frame) and not widget.cget('style'):

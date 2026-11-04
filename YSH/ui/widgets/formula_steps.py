@@ -62,6 +62,7 @@ def step_sections(step: FormulaStep, translate: Callable[[str], str]) -> tuple[S
                      (f" · {tr('formula2.overridden')}" if v.is_overridden else "")) for v in step.used_values)
         sections.append(StepSection("used_values", rows=tuple(rows)))
     reasons = []
+    library_links = []
     if step.selection_reason:
         reasons.append(tr(f"formula2.reason.{step.selection_reason.value}"))
     for variable in step.variables:
@@ -71,7 +72,19 @@ def step_sections(step: FormulaStep, translate: Callable[[str], str]) -> tuple[S
     for value in step.used_values:
         reasons.append(f"{value.symbol or ''}: {tr(f'formula2.reason.{reason_for(value.source).value}')}")
         if value.selection_reason:
-            reasons.append(value.selection_reason)
+            # Generated Library identities belong in diagnostics, not normal prose.
+            from uuid import UUID
+            parts=value.selection_reason.split(' · ')
+            try:
+                identity=UUID(parts[0].removeprefix('Fire Library ')) if len(parts)>=4 and parts[0].startswith('Fire Library ') else None
+            except ValueError:
+                identity=None
+            if identity is None:
+                reasons.append(value.selection_reason)
+            else:
+                reasons.append(' · '.join((tr('fire.library.mode.linked'),parts[1],parts[2],
+                    tr('fire.library.service.'+parts[3]),*parts[4:])))
+                library_links.append((value.symbol or '',str(identity),parts[1]))
         if value.recommended_value is not None:
             reasons.append(f"{tr('formula2.recommended')}: {number(value.recommended_value)} {value.unit}; "
                            f"{tr('formula2.used')}: {number(value.used_value)} {value.unit}")
@@ -88,7 +101,7 @@ def step_sections(step: FormulaStep, translate: Callable[[str], str]) -> tuple[S
             tr("formula2.source.source_type"), tr("formula2.source.source_organization"), tr("formula2.source.document"),
             tr("formula2.source.verification_status")))
         sections.append(StepSection("source", summary, rows=rows, details=len(rows) > 3))
-    links = tuple((v.symbol, str(v.source_selection_id), str(v.source_revision)) for v in step.variables if v.source_selection_id)
+    links = tuple((v.symbol, str(v.source_selection_id), str(v.source_revision)) for v in step.variables if v.source_selection_id)+tuple(library_links)
     if links:
         sections.append(StepSection("technical_details", rows=links, details=True))
     if step.substitution or step.variables:

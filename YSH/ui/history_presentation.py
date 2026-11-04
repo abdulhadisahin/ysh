@@ -115,13 +115,13 @@ def fire_details(evidence: dict, translate) -> tuple[str,...]:
                 rows.append(f"{translate('fire.ui.concentration')}: {scalar(fraction_to_percent(value))} %")
                 continue
             rows.append(f"{translate(labels[key])}: {scalar(value)} {(fire.get('input_units') or {}).get(key,'')}")
-    for key in ('mixture_basis','service','applicability','source_readiness','workflow_version'):
+    for key in ('mixture_basis','service','applicability','source_readiness'):
         if fire.get(key):
-            value=fire[key] if key=='workflow_version' else translate('fire.value.'+fire[key])
+            value=translate('fire.value.'+fire[key])
             rows.append(translate('fire.record.'+key)+': '+value)
     for item in fire.get('provenance') or ():
         if item.get('field_name') in labels and item.get('source_status'):
-            rows.append(translate(labels[item['field_name']])+': '+item['source_status'])
+            rows.append(translate(labels[item['field_name']])+': '+translate('fire.ui.source.'+item['source_status']))
     return tuple(rows)
 
 

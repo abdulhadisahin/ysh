@@ -888,3 +888,8 @@ MESSAGES.update({'fire.library.mode.manual': 'Manual',
  'fire.library.nav.fire_foam_duration': 'Duration',
  'fire.library.nav.fire_foam_concentration': 'Foam concentration',
  'fire.library.nav.fire_hw': 'C coefficient'})
+
+# Phase 7: shared current-result export action.
+MESSAGES['action.pdf_current_result'] = 'PDF Report'
+MESSAGES['fire.ui.pdf'] = MESSAGES['action.pdf_current_result']
+MESSAGES['history.visual.diagnostics'] = 'Record diagnostics'

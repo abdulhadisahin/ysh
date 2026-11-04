@@ -107,7 +107,7 @@ class FireCalculatorPage(ttk.Frame):
             self.labels[name]=ttk.Label(self.input_card,style='Fire.TLabel')
             self.labels[name].grid(row=index,column=0,sticky='w',padx=(0,12),pady=5)
             variable=tk.StringVar(self);self.variables[name]=variable
-            entry=ttk.Entry(self.input_card,textvariable=variable,width=18);entry.grid(row=index,column=1,sticky='ew',pady=5)
+            entry=ttk.Entry(self.input_card,textvariable=variable,width=18,style='Fire.TEntry');entry.grid(row=index,column=1,sticky='ew',pady=5)
             self.entries[name]=entry
             ttk.Label(self.input_card,text=unit,style='Fire.TLabel').grid(row=index,column=2,padx=8)
             variable.trace_add('write',lambda *_,n=name:self._edit(n))
@@ -133,9 +133,9 @@ class FireCalculatorPage(ttk.Frame):
                 self.meta_labels.append((label,'fire.ui.recommended_percent' if kind=='foam' and name=='foam_fraction' and field=='recommended' else 'fire.ui.'+field))
                 variable=tk.StringVar(self);self.meta_vars[name][field]=variable
                 if field=='status':
-                    widget=ttk.Combobox(group,textvariable=variable,state='readonly',width=34)
+                    widget=ttk.Combobox(group,textvariable=variable,state='readonly',width=34,style='Fire.TCombobox')
                     self.status_boxes[name]=widget
-                else:widget=ttk.Entry(group,textvariable=variable)
+                else:widget=ttk.Entry(group,textvariable=variable,style='Fire.TEntry')
                 widget.grid(row=row,column=1,sticky='ew',pady=3)
                 self.meta_editors[name][field]=widget
                 if field=='reason':self.meta_reason_controls[name]=(label,widget)
@@ -168,14 +168,14 @@ class FireCalculatorPage(ttk.Frame):
         self.link_labels=[]
         for row,key in enumerate(('service','mode','pipe')):
             label=ttk.Label(self.link,style='Fire.TLabel');label.grid(row=row,column=0,sticky='w',padx=(0,8));self.link_labels.append((label,'fire.ui.'+key))
-        self.service_box=ttk.Combobox(self.link,textvariable=self.service_var,state='readonly');self.service_box.grid(row=0,column=1,sticky='ew',pady=4)
-        self.mode_box=ttk.Combobox(self.link,textvariable=self.mode_var,state='readonly');self.mode_box.grid(row=1,column=1,sticky='ew',pady=4)
-        self.source_box=ttk.Combobox(self.link,textvariable=self.source_var,state='readonly');self.source_box.grid(row=2,column=1,sticky='ew',pady=4)
+        self.service_box=ttk.Combobox(self.link,textvariable=self.service_var,state='readonly',style='Fire.TCombobox');self.service_box.grid(row=0,column=1,sticky='ew',pady=4)
+        self.mode_box=ttk.Combobox(self.link,textvariable=self.mode_var,state='readonly',style='Fire.TCombobox');self.mode_box.grid(row=1,column=1,sticky='ew',pady=4)
+        self.source_box=ttk.Combobox(self.link,textvariable=self.source_var,state='readonly',style='Fire.TCombobox');self.source_box.grid(row=2,column=1,sticky='ew',pady=4)
         self.service_box.bind('<<ComboboxSelected>>',self._service);self.mode_box.bind('<<ComboboxSelected>>',self._mode)
         buttons=ttk.Frame(self.link,style='Fire.TFrame');buttons.grid(row=3,column=0,columnspan=2,sticky='w')
         self.link_buttons=[]
         for col,action in enumerate(('link','update','keep')):
-            button=ttk.Button(buttons,command=lambda a=action:self.pipe_action(a));button.grid(row=0,column=col,padx=(0,6),pady=6);self.link_buttons.append((button,'fire.ui.'+action))
+            button=ttk.Button(buttons,command=lambda a=action:self.pipe_action(a),style='Fire.Secondary.TButton');button.grid(row=0,column=col,padx=(0,6),pady=6);self.link_buttons.append((button,'fire.ui.'+action))
         self.pipe_status=ttk.Label(self.link,style='Fire.TLabel',wraplength=540);self.pipe_status.grid(row=4,column=0,columnspan=2,sticky='ew',pady=4)
 
     def _edit(self,name):
@@ -271,6 +271,9 @@ class FireCalculatorPage(ttk.Frame):
                 self.concentration_warning.grid_remove()
                 self.concentration_help.grid()
         result=self.model.results[self.kind]
+        role='Error' if message=='fire.ui.invalid' else 'Status' if message=='fire.ui.blocked' else 'Info'
+        if result and result.warnings:role='Status'
+        self.status.configure(style='Fire.'+role+'.TLabel')
         state='normal' if result else 'disabled'
         self.pdf_button.configure(state=state);self.formula._toggle.configure(state=state)
         if not result:

@@ -27,7 +27,7 @@ def configure_pipe_pilot(style: ttk.Style) -> None:
     style.configure('PipePage.TFrame', background=PIPE_WORKSPACE)
     style.configure('PipePageHeader.TFrame', background=PIPE_WORKSPACE)
     style.configure('PipePageTitle.TLabel', background=PIPE_WORKSPACE, foreground=colors.NAVY,
-                    font=(typography.FONT_FAMILY, 18, 'bold'))
+                    font=typography.PAGE_TITLE)
     style.configure('PipePageDescription.TLabel', background=PIPE_WORKSPACE,
                     foreground=colors.TEXT_SECONDARY, font=typography.MUTED)
     style.configure('PipeInputCard.TFrame', background=colors.WHITE, bordercolor=PIPE_INPUT_BORDER,
