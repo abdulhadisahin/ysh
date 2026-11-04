@@ -893,3 +893,5 @@ MESSAGES.update({'fire.library.mode.manual': 'Manual',
 MESSAGES['action.pdf_current_result'] = 'PDF Report'
 MESSAGES['fire.ui.pdf'] = MESSAGES['action.pdf_current_result']
 MESSAGES['history.visual.diagnostics'] = 'Record diagnostics'
+
+MESSAGES['context.open_editor'] = 'Engineering context…'

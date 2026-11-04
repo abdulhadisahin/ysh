@@ -106,6 +106,11 @@ class ScrollablePageHost(ttk.Notebook):
         active = self._active_host()
         for host in self._hosts.values():
             host.set_wheel_active(host is active)
+        if active is not None and hasattr(active,'tk'):
+            from ui.widgets.workspace_backdrop import WorkspaceBackdrop
+            if not hasattr(active,'_workspace_backdrop'):
+                active._workspace_backdrop=WorkspaceBackdrop(active)
+            active._workspace_backdrop.request()
 
     def _scroll(self, event: tk.Event[tk.Misc], amount: int) -> str | None:
         """Apply keyboard scrolling to ordinary content in the active tab."""

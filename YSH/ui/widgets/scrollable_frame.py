@@ -97,7 +97,7 @@ class ScrollableFrame(ttk.Frame):
 
     def _update_scrollregion(self, _event: tk.Event[tk.Misc]) -> None:
         """Update bounds and bind ordinary or nested-scrollable descendants."""
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self.canvas.configure(scrollregion=self.canvas.bbox(self._window))
         self._bind_descendant_wheels(self.content)
 
     def _bind_descendant_wheels(self, widget: tk.Misc) -> None:

@@ -327,7 +327,7 @@ def test_main_window_initializes_projects_tree(monkeypatch: object) -> None:
 
     assert hasattr(window, "_projects_tree")
     assert window._projects_tree is not None
-    assert window._project_footer.kwargs["height"] == 144
+    assert window._project_footer.kwargs["height"] == 168
     assert window._project_footer.propagate is False
     assert window._project_footer.wheel_active
     assert window._project_footer.args[0].rows[3] == {"weight": 1, "minsize": 120}

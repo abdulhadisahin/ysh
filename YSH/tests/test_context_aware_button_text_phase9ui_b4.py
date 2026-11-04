@@ -29,9 +29,9 @@ def test_sidebar_actions_keep_native_text_callbacks_and_icons() -> None:
     sidebar_factory = source.split("def _create_sidebar_button", 1)[1].split("def _add_decorative_image", 1)[0]
 
     assert "icon_only=True" not in sidebar_factory
-    assert "icon_size=40" in sidebar_factory
-    assert "minimum_height=52" in sidebar_factory
-    assert "horizontal_padding=18" in sidebar_factory
+    assert "icon_size=32" in sidebar_factory
+    assert "minimum_height=44" in sidebar_factory
+    assert "horizontal_padding=8" in sidebar_factory
     for callback in ("self._open_new_project", "self._open_selected_project", "self._save_project", "self._delete_project", "self._refresh_projects"):
         assert callback in source
 

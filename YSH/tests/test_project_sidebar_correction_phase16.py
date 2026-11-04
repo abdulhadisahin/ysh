@@ -193,8 +193,8 @@ def test_shell_button_constructors_keep_factory_contract_and_interaction_states(
         assert options['icon_size'] == 79 and options['square_size'] == 86
         assert options['tooltip_text'] == 'Visible command'
     else:
-        assert options['icon_size'] == 40 and options['minimum_height'] == 52
-        assert options['horizontal_padding'] == 18 and not options['icon_only']
+        assert options['icon_size'] == 32 and options['minimum_height'] == 44
+        assert options['horizontal_padding'] == 8 and not options['icon_only']
         assert palette.hover == (colors.DEEP_NAVY, colors.SHELL_CYAN) and palette.focus_border == colors.SHELL_CYAN
 
 
@@ -205,7 +205,7 @@ def test_new_shell_artwork_is_about_ten_percent_larger_and_undistorted() -> None
     bbox = fitted.getchannel('A').point(lambda a: 255 if a >= 8 else 0).getbbox()
     extent = max(bbox[2] - bbox[0], bbox[3] - bbox[1])
     assert 71 <= extent * 79 / max(fitted.size) <= 73
-    assert 35 <= extent * 40 / max(fitted.size) <= 37
+    assert 28 <= extent * 32 / max(fitted.size) <= 30
     assert 1.09 < 79 / 72 < 1.11 and 1.10 < 40 / 36 < 1.12
     assert 86 > 79 > 0 and 52 >= 40 + 12
     assert len({action_icon_path(name) for name in ('new', 'open', 'save', 'save_as')}) == 4

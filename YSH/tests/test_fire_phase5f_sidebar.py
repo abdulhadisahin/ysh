@@ -22,7 +22,7 @@ def test_continuous_sidebar_and_right_workspace_do_not_overlap(shell,language,si
         assert sidebar.winfo_width()<root.winfo_width()/3
         assert ttk.Style(root).lookup(sidebar['style'],'background')==colors.NAVY
         logo=w._sidebar_logo
-        assert 110<=max(w._sidebar_logo_image.width(),w._sidebar_logo_image.height())<=160
+        assert 170<=max(w._sidebar_logo_image.width(),w._sidebar_logo_image.height())<=184
         assert logo.winfo_width()<=w._sidebar_brand.winfo_width()
         assert abs(logo.winfo_x()+logo.winfo_width()/2-w._sidebar_brand.winfo_width()/2)<=2
         assert logo.winfo_rooty()+logo.winfo_height()<=w._sidebar_title.winfo_rooty()

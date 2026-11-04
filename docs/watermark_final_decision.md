@@ -1,5 +1,10 @@
 # D243 V2 — Watermark nihai kararı
 
+> Tarihsel karar: aşağıdaki kaldırma kararı, `bbca41b` sonrasındaki kullanıcı
+> talimatıyla yerini büyük arka plan logosu ve birleştirilmiş açık yüzeylere
+> bırakmıştır. Güncel uygulama kararı için [Shell / layout redesign](shell_layout_watermark_redesign.md)
+> belgesine bakınız. Aşağıdaki kayıt önceki fazın geçmişini korur.
+
 **FINAL WATERMARK DECISION: REMOVE COMPLETELY**
 
 Başlangıç: `8f9121ac7fb2e854031172db42d28be0f444c8eb`,

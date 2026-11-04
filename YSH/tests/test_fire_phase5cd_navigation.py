@@ -182,9 +182,8 @@ def test_real_shell_localization_and_geometry(shell,language,labels,size):
         assert w._project_tree_container.master.grid_bbox(0,3)[3]>=120
         for family in ('fuel','fire'):
             w._show_family(family);root.update()
-            assert w._context_panel.winfo_rootx()+w._context_panel.winfo_width()<=root.winfo_rootx()+root.winfo_width()
-            for combo in w._context_panel._selectors.values():
-                assert combo.winfo_rootx()+combo.winfo_width()<=root.winfo_rootx()+root.winfo_width()
+            assert not w._context_panel.winfo_ismapped()
+            assert w._context_panel._context==w._system_context
     finally:
         w._translate=old;w._context_panel._translate=old;w._context_panel.refresh_texts();w._refresh_family_selector()
 

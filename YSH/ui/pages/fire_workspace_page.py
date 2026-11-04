@@ -237,8 +237,20 @@ class FireCalculatorPage(ttk.Frame):
             self.sync(message='fire.ui.invalid');self.status.configure(text=self.tr('fire.ui.invalid')+' '+label);return
         except (ValueError,TypeError):self.sync(message='fire.ui.invalid');return
         self.sync()
+        self.after_idle(self._reveal_primary_result)
         try:self.workspace.on_snapshot(self.model.snapshots[self.kind])
         except Exception:self.status.configure(text=self.tr('history.persistence_failed'))
+
+    def _reveal_primary_result(self):
+        """Keep a successful result in view on small windows; never recalculate."""
+        viewport=self.workspace.host._page_keys[self.kind]
+        if not viewport.winfo_viewable() or not self.model.results[self.kind]:return
+        self.update_idletasks()
+        canvas=viewport.canvas;primary=self.result_labels[0]
+        top=primary.winfo_rooty()-canvas.winfo_rooty()
+        if top<0 or top+primary.winfo_height()>canvas.winfo_height():
+            target=max(0,canvas.canvasy(0)+top-12)
+            canvas.yview_moveto(target/max(1,viewport.content.winfo_height()))
 
     def steps(self):
         result=self.model.results[self.kind]

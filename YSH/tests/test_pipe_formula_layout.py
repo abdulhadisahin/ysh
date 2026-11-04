@@ -32,4 +32,4 @@ def test_inline_panel_expansion_and_host_scrollregion_remain_layout_driven() -> 
     assert "self._content.grid(row=1" in panel
     assert "self._content.grid_remove()" in panel
     assert 'self.content.bind("<Configure>", self._update_scrollregion)' in frame
-    assert "self.canvas.configure(scrollregion=self.canvas.bbox(\"all\"))" in frame
+    assert "self.canvas.configure(scrollregion=self.canvas.bbox(self._window))" in frame

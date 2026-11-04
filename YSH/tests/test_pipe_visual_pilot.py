@@ -76,7 +76,7 @@ def test_pipe_semantics_actions_units_and_source_safety_survive_visual_pilot() -
     main = (ROOT / 'ui/main_window.py').read_text(encoding='utf-8')
     assert 'save_snapshot_pdf(self._root, target._pdf_snapshot)' in main
     assert 'icon_size=79' in main and 'square_size=86' in main
-    assert 'icon_size=40' in main and 'minimum_height=52' in main
+    assert 'icon_size=32' in main and 'minimum_height=44' in main
 
 
 def test_context_compact_mode_remains_presentation_only() -> None:

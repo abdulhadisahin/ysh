@@ -96,7 +96,7 @@ def test_header_logo_keeps_a_strong_tkinter_image_reference() -> None:
     assert "d243_main_logo_path" in source
     assert "Sidebar.TFrame" in source
     assert "SidebarLogo.TLabel" in source
-    assert "SIDEBAR_LOGO_TARGET_SIZE = 128" in source
+    assert "SIDEBAR_LOGO_TARGET_SIZE = 176" in source
 
 
 def test_header_rounded_commands_match_the_navy_shell_at_outer_corners() -> None:

@@ -43,8 +43,8 @@ def test_sidebar_restores_native_text_while_transfer_toolbar_stays_compact() -> 
     shell = _source("ui/main_window.py")
     transfer = _source("ui/pages/transfer_pump_page.py")
 
-    assert "icon_size=40" in shell
-    assert "minimum_height=52" in shell
+    assert "icon_size=32" in shell
+    assert "minimum_height=44" in shell
     assert "icon_only=True" not in shell.split("def _create_sidebar_button", 1)[1].split("def _add_decorative_image", 1)[0]
     for icon_name in ('icon_name="add", icon_only=True', 'icon_name="edit", icon_only=True', 'icon_name="delete", icon_only=True'):
         assert icon_name in transfer

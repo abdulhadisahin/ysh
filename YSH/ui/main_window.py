@@ -78,7 +78,7 @@ from YSH.product import PRODUCT_FULL_NAME, PRODUCT_SHORT_NAME
 
 LOGGER = logging.getLogger(__name__)
 
-SIDEBAR_LOGO_TARGET_SIZE = 128
+SIDEBAR_LOGO_TARGET_SIZE = 176
 SIDEBAR_WIDTH = 300
 
 FILE_MENU_INDEX = {
@@ -273,7 +273,7 @@ class MainWindow:
         # Active-project details must not grow the fixed sidebar rows until the
         # only expanding row (the project list) collapses. Keep the lower area
         # bounded and independently scrollable, retaining all project metadata.
-        self._project_footer = ScrollableFrame(navigation, height=144, style="Sidebar.TFrame")
+        self._project_footer = ScrollableFrame(navigation, height=168, style="Sidebar.TFrame")
         self._project_footer.grid(row=5, column=0, sticky="ew", pady=(SM, 0))
         self._project_footer.grid_propagate(False)
         self._project_footer.set_wheel_active(True)
@@ -283,8 +283,9 @@ class MainWindow:
             self._project_footer.content.configure(style='Sidebar.TFrame')
         actions = ttk.Frame(self._project_footer.content, style="SidebarActions.TFrame", padding=(0, SM, 0, 0))
         actions.grid(row=0, column=0, sticky="ew")
-        actions.columnconfigure(0, weight=1)
-        actions.columnconfigure(1, weight=1)
+        actions.columnconfigure(0, weight=1, uniform="project_actions")
+        actions.columnconfigure(1, weight=1, uniform="project_actions")
+        self._sidebar_actions=actions
         self._sidebar_new = self._create_sidebar_button(actions, self._translate('action.new'), self._open_new_project, style="RoundedAdd.TButton", palette=ADD_BUTTON_PALETTE, icon_name="new")
         self._sidebar_new.grid(row=0, column=0, sticky="ew", padx=(0, SM // 2))
         self._sidebar_open = self._create_sidebar_button(actions, self._translate("action.open"), self._open_selected_project, style="RoundedEdit.TButton", palette=EDIT_BUTTON_PALETTE, icon_name="open")
@@ -294,7 +295,9 @@ class MainWindow:
         self._sidebar_delete = self._create_sidebar_button(actions, self._translate("action.delete"), self._delete_project, style="RoundedDelete.TButton", palette=DELETE_BUTTON_PALETTE, icon_name="delete")
         self._sidebar_delete.grid(row=1, column=1, sticky="ew", padx=(SM // 2, 0), pady=(SM // 2, 0))
         self._sidebar_refresh = self._create_sidebar_button(actions, self._translate("action.refresh"), self._refresh_projects, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="refresh")
-        self._sidebar_refresh.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(SM // 2, 0))
+        self._sidebar_refresh.grid(row=2, column=0, sticky="ew", padx=SM // 2, pady=SM // 2)
+        for index,button in enumerate((self._sidebar_new,self._sidebar_open,self._sidebar_save,self._sidebar_delete,self._sidebar_refresh)):
+            button.grid_configure(row=index//2,column=index%2,columnspan=1,sticky="ew",padx=SM // 2,pady=SM // 2)
         self._project_summary = ProjectSummary(self._project_footer.content, self._translate)
         self._project_summary.grid(row=1, column=0, sticky="ew", pady=(MD, 0))
 
@@ -324,11 +327,11 @@ class MainWindow:
             self._context_panel = SystemContextPanel(
                 content, self._system_context_service, self._translate,
                 self._change_system_context, compact=True)
+            # Preserve project context/state and services without a permanent strip.
             self._context_panel.grid(row=0, column=0, sticky="ew")
-            self._workspace_row = 1
-            self._page_host.grid(row=1, column=0, sticky="nsew")
-            content.rowconfigure(0, weight=0)
-            content.rowconfigure(1, weight=1)
+            self._context_panel.grid_remove()
+            self._workspace_row = 0
+            content.rowconfigure(0, weight=1)
             self.register_localizable(self._context_panel)
         self._page_host.bind('<<NotebookTabChanged>>', self._remember_module, add='+')
         self._refresh_family_selector()
@@ -400,8 +403,8 @@ class MainWindow:
             self._sidebar_logo_source_image = loaded.source
             self._sidebar_logo_image = loaded.rendered
             self._sidebar_logo = ttk.Label(parent, image=self._sidebar_logo_image,
-                                           style="SidebarLogo.TLabel")
-            self._sidebar_logo.grid(row=0, column=0, pady=(SM, MD))
+                                           style="SidebarLogo.TLabel",anchor='center',padding=0)
+            self._sidebar_logo.grid(row=0, column=0, sticky='ew',pady=(SM, MD))
         except tk.TclError:
             LOGGER.warning("Unable to load optional D243 sidebar logo", exc_info=True)
 
@@ -429,9 +432,9 @@ class MainWindow:
             icon_name=icon_name,
             # Sidebar labels retain their readable native text lane while
             # giving the complete icon composition a six-pixel vertical margin.
-            icon_size=40,
-            minimum_height=52,
-            horizontal_padding=18,
+            icon_size=32,
+            minimum_height=44,
+            horizontal_padding=8,
         )
 
     def _add_decorative_image(
@@ -642,7 +645,7 @@ class MainWindow:
         self._project_search_label.configure(text=self._translate("project.search"))
         self._projects_tree.heading("name", text=self._translate("project.name"))
         self._projects_tree.heading("modified", text=self._translate("project.modified"))
-        self._sidebar_new.configure(text=f"+ {self._translate('action.new')}")
+        self._sidebar_new.configure(text=self._translate("action.new"))
         self._sidebar_open.configure(text=self._translate("action.open"))
         self._sidebar_save.configure(text=self._translate("action.save"))
         self._sidebar_delete.configure(text=self._translate("action.delete"))
@@ -790,6 +793,7 @@ class MainWindow:
         project_menu = tk.Menu(menu_bar, tearoff=False)
         project_menu.add_command(label=self._translate("menu.project.refresh"), command=self._refresh_projects)
         project_menu.add_command(label=self._translate("history.title"), command=self._open_calculation_history)
+        project_menu.add_command(label=self._translate("context.open_editor"), command=self._open_system_context)
         self._project_menu = project_menu
         menu_bar.add_cascade(label=self._translate("menu.project"), menu=project_menu)
 
@@ -821,6 +825,7 @@ class MainWindow:
         self._library_menu.entryconfigure(3, label=self._translate("menu.library.corrosion_allowance_circuits"))
         self._project_menu.entryconfigure(0, label=self._translate("menu.project.refresh"))
         self._project_menu.entryconfigure(1, label=self._translate("history.title"))
+        self._project_menu.entryconfigure(2, label=self._translate("context.open_editor"))
         self._help_menu.entryconfigure(0, label=self._translate("menu.help.about"))
         self._root.configure(menu=self._menu_bar)
         update = getattr(self._root, "update_idletasks", None)
@@ -1529,11 +1534,30 @@ class MainWindow:
         except LibraryError as error:
             messagebox.showerror(self._translate("library2.title"), self._translate(error.key), parent=self._root)
 
+    def _open_system_context(self) -> None:
+        """Keep critical optional context editable away from the main workspace."""
+        dialog=getattr(self,'_context_dialog',None)
+        if dialog is not None and dialog.winfo_exists():dialog.lift();return
+        dialog=self._context_dialog=tk.Toplevel(self._root)
+        dialog.title(self._translate('context.open_editor'));dialog.transient(self._root)
+        dialog.geometry('760x240');dialog.minsize(600,220)
+        panel=self._context_editor=SystemContextPanel(dialog,self._system_context_service,
+            self._translate,self._change_system_context)
+        panel.pack(fill='both',expand=True,padx=12,pady=12);panel.load(self._system_context)
+        panel.set_module_notice(self._context_panel._module_notice)
+        panel.bind('<Configure>',lambda event:panel._status.configure(wraplength=max(160,event.width-24)),add='+')
+        self.register_localizable(panel)
+        def close():
+            self.unregister_localizable(panel);dialog.destroy();self._context_editor=None
+        dialog.protocol('WM_DELETE_WINDOW',close)
+
     def set_system_context_service(self, service: SystemContextService) -> None:
         """Attach the composed Phase 4 catalogs after initial window construction."""
         self._system_context_service = service
         if hasattr(self, "_context_panel"):
             self._context_panel.set_service(service)
+        editor=getattr(self,'_context_editor',None)
+        if editor is not None and editor.winfo_exists():editor.set_service(service)
         MainWindow._apply_system_context(self, self._system_context)
 
     def _change_system_context(self, context: SystemContext) -> None:
@@ -1556,6 +1580,9 @@ class MainWindow:
         if hasattr(self, "_context_panel"):
             self._context_panel.load(context)
             self._context_panel.set_module_notice("\n".join(notices))
+        editor=getattr(self,"_context_editor",None)
+        if editor is not None and editor.winfo_exists():
+            editor.load(context);editor.set_module_notice("\n".join(notices))
         page = getattr(self, "_transfer_pump_page", None)
         if page is not None and hasattr(page, "set_project_context"):
             page.set_project_context(context)

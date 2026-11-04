@@ -908,3 +908,5 @@ MESSAGES.update({'fire.library.mode.manual': 'Manuel',
 MESSAGES['action.pdf_current_result'] = 'PDF Raporu'
 MESSAGES['fire.ui.pdf'] = MESSAGES['action.pdf_current_result']
 MESSAGES['history.visual.diagnostics'] = 'Teknik kayıt bilgisi'
+
+MESSAGES['context.open_editor'] = 'Mühendislik bağlamı…'
