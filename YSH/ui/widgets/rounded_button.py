@@ -106,6 +106,7 @@ def create_rounded_button(
     square_size: int | None = None,
     minimum_height: int | None = None,
     horizontal_padding: int | None = None,
+    fixed_icon_column: int | None = None,
 ) -> "RoundedImageButton":
     """Create one compact module action without duplicating visual geometry."""
     return RoundedImageButton(
@@ -123,6 +124,7 @@ def create_rounded_button(
         icon_size=icon_size if icon_size is not None else (34 if primary else 26),
         square_size=square_size,
         minimum_height=minimum_height,
+        fixed_icon_column=fixed_icon_column,
     )
 
 
@@ -151,6 +153,7 @@ class RoundedImageButton(ttk.Button):
         tooltip_text: str | None = None,
         square_size: int | None = None,
         minimum_height: int | None = None,
+        fixed_icon_column: int | None = None,
         **kwargs: object,
     ) -> None:
         """Create a native ttk button with an aspect-safe rounded surface."""
@@ -170,6 +173,7 @@ class RoundedImageButton(ttk.Button):
         self._icon_only = icon_only
         self._square_size = square_size or max(36, icon_size + 12)
         self._minimum_height = minimum_height
+        self._fixed_icon_column = fixed_icon_column
         self._icon_image: LoadedImage | None = None
         self._tooltip: Tooltip | None = None
         self._logical_text = str(kwargs.get("text", ""))
@@ -183,6 +187,8 @@ class RoundedImageButton(ttk.Button):
                 outside_background,
             )
         super().__init__(parent, compound="center", **kwargs)
+        if fixed_icon_column is not None:
+            ttk.Style(self).configure(str(self.cget("style")),anchor="w",justify="left")
         if tooltip_text is not None or self._icon_only:
             self._tooltip = Tooltip(self, tooltip_text or self._logical_text)
         if self._icon_name is not None:
@@ -263,13 +269,14 @@ class RoundedImageButton(ttk.Button):
 
     def _icon_text(self, text: str) -> str:
         """Reserve a DPI-aware lane: ``[ icon ] 10px [ localized text ]``."""
-        if self._icon_image is None or self._icon_only:
+        column=getattr(self,"_fixed_icon_column",None)
+        if (self._icon_image is None and column is None) or self._icon_only:
             return text
         style_name = str(self.cget("style"))
         font_spec = ttk.Style(self).lookup(style_name, "font") or "TkDefaultFont"
         font = tkfont.Font(root=self, font=font_spec)
         spaces = self._icon_text_gap_spaces(
-            self._icon_image.rendered.width(),
+            column if column is not None else self._icon_image.rendered.width(),
             self._horizontal_padding,
             self._icon_text_gap,
             font.measure(" "),
@@ -422,7 +429,8 @@ class RoundedImageButton(ttk.Button):
         x = (
             max(0, (surface.width() - icon.width()) // 2)
             if self._icon_only
-            else max(6, self._horizontal_padding // 2)
+            else max(6, self._horizontal_padding // 2) +
+                 (max(0,(self._fixed_icon_column-icon.width())//2) if getattr(self,"_fixed_icon_column",None) is not None else 0)
         )
         y = max(0, (surface_height - icon.height()) // 2)
         try:

@@ -433,6 +433,7 @@ class MainWindow:
             # Sidebar labels retain their readable native text lane while
             # giving the complete icon composition a six-pixel vertical margin.
             icon_size=32,
+            fixed_icon_column=32,
             minimum_height=44,
             horizontal_padding=8,
         )
