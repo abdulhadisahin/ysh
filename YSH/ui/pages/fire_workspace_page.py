@@ -2,6 +2,10 @@
 import tkinter as tk
 from ui.theme.spacing import SOURCE_FIELD_WIDTH
 from ui.widgets.numeric_input import numeric_entry
+from ui.widgets.calculation_presentation import calculation_button
+from ui.widgets.rounded_button import RoundedButtonPalette
+from ui.theme.fire_identity import FIRE_ACCENT, FIRE_DARK
+from ui.theme import colors
 from tkinter import ttk
 from collections.abc import Mapping
 
@@ -146,19 +150,25 @@ class FireCalculatorPage(ttk.Frame):
         self.library_panel=FireLibraryInputPanel(self.input_card,self)
         self.library_panel.grid(row=6,column=0,columnspan=3,sticky='ew',pady=4)
         self.actions=ttk.Frame(self,style='Fire.TFrame');self.actions.grid(row=4,column=0,sticky='ew',pady=8)
-        self.calculate_button=ttk.Button(self.actions,style='Fire.Primary.TButton',command=self.calculate);self.calculate_button.grid(row=0,column=0,padx=(0,8))
-        self.clear_button=ttk.Button(self.actions,style='Fire.Secondary.TButton',command=self.clear);self.clear_button.grid(row=0,column=1)
-        self.pdf_button=ttk.Button(self.actions,style='Fire.Secondary.TButton',command=self.pdf,state='disabled');self.pdf_button.grid(row=0,column=2,sticky='w',padx=8)
+        self.calculate_button=calculation_button(self.actions,'',self.calculate,primary=True,style='Fire.Primary.TButton',palette=RoundedButtonPalette((FIRE_DARK,FIRE_ACCENT),(colors.NAVY,FIRE_ACCENT),(colors.DEEP_NAVY,FIRE_DARK),(colors.TEXT_SECONDARY,colors.STRONG_BORDER),FIRE_ACCENT));self.calculate_button.grid(row=0,column=0,padx=(0,8))
+        self.clear_button=calculation_button(self.actions,'',self.clear,style='Fire.Secondary.TButton',icon_name='clear');self.clear_button.grid(row=0,column=1)
+        self.secondary_actions=ttk.Frame(self,style='Fire.TFrame');self.secondary_actions.grid(row=9,column=0,sticky='w',pady=6)
+        self.pdf_button=calculation_button(self.secondary_actions,'',self.pdf,style='Fire.PDF.TButton',icon_name='pdf',state='disabled');self.pdf_button.grid(row=0,column=0,sticky='w')
         self.status=ttk.Label(self,style='Fire.Status.TLabel',wraplength=540);self.status.grid(row=6,column=0,sticky='ew',pady=6)
         self.result_card=ttk.Frame(self,style='Fire.Result.TFrame');self.result_card.grid(row=5,column=0,sticky='ew',pady=8)
         self.result_card.columnconfigure(0,weight=1)
+        self.result_title=ttk.Label(self.result_card,style='Fire.ResultTitle.TLabel');self.result_title.grid(row=0,column=0,sticky='w',pady=(0,6))
+        self.primary_caption=ttk.Label(self.result_card,style='Fire.PrimaryCaption.TLabel',wraplength=540);self.primary_caption.grid(row=1,column=0,sticky='w')
+        self.empty_result=ttk.Label(self.result_card,style='Fire.PrimaryCaption.TLabel',wraplength=540);self.empty_result.grid(row=2,column=0,sticky='w',pady=8)
+        self.source_summary=ttk.Label(self,style='Fire.TLabel',wraplength=540);self.source_summary.grid(row=7,column=0,sticky='w')
         self.result_labels=[]
         for index in range(4 if kind=='foam' else 2):
             label=ttk.Label(self.result_card,style='Fire.Result.TLabel' if index==0 else 'Fire.Support.TLabel',wraplength=540)
-            label.grid(row=index,column=0,sticky='ew',pady=4);self.result_labels.append(label)
+            label.grid(row=index+2,column=0,sticky='ew',pady=4);self.result_labels.append(label)
         self.formula=FormulaReferencePanel(self,lambda:[],self.tr,step_provider=self.steps,
-            module_key='fire_foam_system' if kind=='foam' else 'fire_hazen_williams',separate_window=True)
-        self.formula.grid(row=7,column=0,sticky='ew',pady=6)
+            module_key='fire_foam_system' if kind=='foam' else 'fire_hazen_williams',separate_window=True,
+            toggle_button_factory=lambda parent,text,command:calculation_button(parent,text,command,style='Fire.Formula.TButton',icon_name='formula'))
+        self.formula.grid(row=8,column=0,sticky='ew',pady=6)
         self.load_fields();self.loading=False
 
     @property
@@ -252,7 +262,7 @@ class FireCalculatorPage(ttk.Frame):
         canvas=viewport.canvas;primary=self.result_labels[0]
         top=primary.winfo_rooty()-canvas.winfo_rooty()
         if top<0 or top+primary.winfo_height()>canvas.winfo_height():
-            target=max(0,canvas.canvasy(0)+top-12)
+            target=max(0,canvas.canvasy(0)+self.result_card.winfo_rooty()-canvas.winfo_rooty()-12)
             canvas.yview_moveto(target/max(1,viewport.content.winfo_height()))
 
     def steps(self):
@@ -296,6 +306,14 @@ class FireCalculatorPage(ttk.Frame):
         self.status.configure(style='Fire.'+role+'.TLabel')
         state='normal' if result else 'disabled'
         self.pdf_button.configure(state=state);self.formula._toggle.configure(state=state)
+        self.result_title.configure(text=self.tr('section.calculation_results'))
+        self.empty_result.configure(text=self.tr('fire.ui.empty'))
+        (self.empty_result.grid_remove if result else self.empty_result.grid)()
+        (self.primary_caption.grid if result else self.primary_caption.grid_remove)()
+        for label in self.result_labels:(label.grid if result else label.grid_remove)()
+        source_key=('result.source_linked_pipe' if self.kind=='hw' and self.model.mode is PipeInputMode.LINKED else
+                    'result.source_library' if any(name in self.model.library_inputs.links for name in self.spec) else 'result.source_manual')
+        self.source_summary.configure(text=self.tr(source_key) if result else '')
         if not result:
             if self.formula.expanded:self.formula.toggle()
             for label in self.result_labels:
@@ -305,8 +323,9 @@ class FireCalculatorPage(ttk.Frame):
         else:
             rows=list(result.summary)
             rows.sort(key=lambda r:r.key!=result.primary_result_key)
-            for label,row in zip(self.result_labels,rows):
-                label.configure(text=self.tr(row.label_key)+'\n'+row.symbol+' = '+number(row.value)+' '+row.unit)
+            self.primary_caption.configure(text=self.tr(rows[0].label_key))
+            for index,(label,row) in enumerate(zip(self.result_labels,rows)):
+                label.configure(text=('' if index==0 else self.tr(row.label_key)+'\n')+row.symbol+' = '+number(row.value)+' '+row.unit)
             messages=tuple(dict.fromkeys(self.tr(m.message_key) for m in result.warnings))
             self.status.configure(text='\n'.join(messages) or self.tr('fire.ui.calculated'))
         if self.kind=='hw':

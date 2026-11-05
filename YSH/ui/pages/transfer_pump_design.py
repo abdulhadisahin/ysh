@@ -17,7 +17,9 @@ from services.transfer_pump_service import TransferPumpService
 from ui.formatting import format_user_number
 from ui.widgets.cards import InputCard, ResultCard, ResultMetric
 from ui.widgets.formula_view import FormulaSection
-from ui.widgets.rounded_button import create_rounded_button, TRANSFER_PRIMARY_PALETTE, NEUTRAL_BUTTON_PALETTE
+from ui.widgets.rounded_button import TRANSFER_PRIMARY_PALETTE, NEUTRAL_BUTTON_PALETTE
+
+from ui.widgets.calculation_presentation import calculation_button as create_rounded_button, set_result_state
 
 
 class TransferPumpDesignPanel(ttk.Frame):
@@ -52,6 +54,8 @@ class TransferPumpDesignPanel(ttk.Frame):
         self._clear.grid(row=3,column=1,sticky='w',pady=8)
         self._results = ResultCard(self, '')
         self._results.grid(row=1,column=0,sticky='ew',pady=(8,0))
+        self._empty_result=ttk.Label(self._results,wraplength=540)
+        self._empty_result.grid(row=0,column=0,sticky='w',pady=8)
         self._flow_metric = ResultMetric(self._results, '', self._flow, 'm³/h', normal_style_prefix='TransferResultMetric')
         self._flow_metric.grid(row=0,column=0,sticky='ew')
         self._time_metric = ResultMetric(self._results, '', self._time, 'h', normal_style_prefix='TransferSecondaryMetric')
@@ -115,6 +119,7 @@ class TransferPumpDesignPanel(ttk.Frame):
         """Rerender stored results and labels without calculating."""
         self._inputs.configure(text=self._translate('transfer.design.inputs'))
         self._results.configure(text=self._translate('transfer.design.results'))
+        self._empty_result.configure(text=self._translate('result.empty_guidance'))
         for key,label in self._labels.items():
             label.configure(text=self._translate(f'transfer.design.{key}.label'))
         self._calculate.configure(text=self._translate('calculation.calculate'))
@@ -125,6 +130,9 @@ class TransferPumpDesignPanel(ttk.Frame):
 
     def _render(self) -> None:
         result = getattr(self, '_last_result', None)
+        set_result_state(self._results,result is not None)
+        (self._empty_result.grid_remove if result else self._empty_result.grid)()
+        for metric in (self._flow_metric,self._time_metric):(metric.grid if result else metric.grid_remove)()
         self._flow.set(format_user_number(result.required_flow_m3_h) if result else '—')
         self._time.set(format_user_number(result.transfer_time_h) if result and result.transfer_time_h is not None else '—')
         self._status.set(self._translate(f'transfer.design.status.{result.status.value}') if result else '')

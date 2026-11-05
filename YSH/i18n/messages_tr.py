@@ -910,3 +910,7 @@ MESSAGES['fire.ui.pdf'] = MESSAGES['action.pdf_current_result']
 MESSAGES['history.visual.diagnostics'] = 'Teknik kayıt bilgisi'
 
 MESSAGES['context.open_editor'] = 'Mühendislik bağlamı…'
+
+MESSAGES.update({'result.source_manual': 'Kaynak: Manuel', 'result.source_library': 'Kaynak: Library', 'result.source_linked_pipe': 'Kaynak: Bağlı Boru'})
+
+MESSAGES["result.empty_guidance"] = 'Henüz sonuç yok. Girdileri tamamlayıp Hesapla’yı seçin.'

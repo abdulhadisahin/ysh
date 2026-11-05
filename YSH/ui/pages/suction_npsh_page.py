@@ -36,6 +36,8 @@ from ui.widgets.rounded_button import ADD_BUTTON_PALETTE, CLEAR_ALL_BUTTON_PALET
 from ui.widgets.cards import CalculationCard, InputCard, ResultCard, ResultMetric, SectionHeader
 
 
+from ui.widgets.calculation_presentation import calculation_button as create_rounded_button, set_result_state
+
 class SuctionNPSHPage(ttk.Frame):
     """Collect suction inputs and delegate every calculation to the service."""
 
@@ -805,6 +807,7 @@ class SuctionNPSHPage(ttk.Frame):
     def _sync_result_empty_state(self) -> None:
         """Keep validation/warnings primary and otherwise guide an empty result card."""
         has_result = getattr(self, "_last_loss", None) is not None
+        set_result_state(getattr(self,"_results_card",None),has_result or getattr(self,"_last_enpy",None) is not None)
         has_message = bool(self._loss_status_messages or self._enpy_status_messages)
         for metric in (self._enpy_metric, self._suction_metric):
             (metric.grid if has_result or has_message else metric.grid_remove)()

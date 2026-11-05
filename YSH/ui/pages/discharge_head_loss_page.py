@@ -32,6 +32,8 @@ from ui.widgets.engineering_warning_panel import EngineeringWarningPanel
 from ui.widgets.engineering_components import EmptyState, TechnicalTable
 from ui.widgets.rounded_button import ADD_BUTTON_PALETTE, CLEAR_ALL_BUTTON_PALETTE, DELETE_BUTTON_PALETTE, DISCHARGE_PRIMARY_PALETTE, EDIT_BUTTON_PALETTE, FORMULA_BUTTON_PALETTE, NEUTRAL_BUTTON_PALETTE, create_rounded_button
 from ui.widgets.cards import CalculationCard, InputCard, ResultCard, ResultMetric, SectionHeader
+from ui.widgets.calculation_presentation import calculation_button as create_rounded_button, set_result_state
+
 class DischargeHeadLossPage(ttk.LabelFrame):
     """Collects discharge inputs and delegates all results to its service."""
     def __init__(self,parent:tk.Misc,service:object,constants:object,materials:object,translate:Callable[[str],str]|None=None)->None:
@@ -249,6 +251,7 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         """Show guidance only for a clean, uncalculated result card."""
         if not hasattr(self,"_result_metrics") or not hasattr(self,"_result_empty_state"):return
         has_result=hasattr(self,"_last_result")
+        set_result_state(getattr(self,"_results_card",None),has_result)
         has_message=bool(getattr(self,"_status_messages",()))
         for metric in self._result_metrics:(metric.grid if has_result or has_message else metric.grid_remove)()
         (self._result_empty_state.grid_remove if has_result or has_message else self._result_empty_state.grid)()

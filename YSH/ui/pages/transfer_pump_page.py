@@ -42,6 +42,8 @@ from ui.widgets.cards import (
     SectionHeader,
 )
 
+from ui.widgets.calculation_presentation import calculation_button as create_rounded_button, set_result_state
+
 
 class TransferPumpPage(ttk.LabelFrame):
     """Display editable ship references and a project-independent estimate."""
@@ -846,6 +848,7 @@ class TransferPumpPage(ttk.LabelFrame):
         """Swap compact metrics for guidance only while no estimate exists."""
         result = getattr(self, "_estimate_result", None)
         has_result = result is not None and result.is_successful
+        set_result_state(getattr(self,"_results_card",None),has_result)
         for metric in self._result_metrics:
             (metric.grid if has_result else metric.grid_remove)()
         (self._result_empty_state.grid_remove if has_result else self._result_empty_state.grid)()

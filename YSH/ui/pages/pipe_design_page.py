@@ -40,6 +40,8 @@ from ui.theme import colors
 from ui.theme.spacing import MD, SM, LG
 from ui.theme import pipe_pilot as pilot
 
+from ui.widgets.calculation_presentation import calculation_button, set_result_state
+
 
 _DN_WARNING_TRANSLATION_KEYS = {
     "no_suitable_dn": "pipe.warning.no_suitable_dn",
@@ -473,7 +475,7 @@ class PipeDesignPage(ttk.Frame):
             style="PipeSupportingValue.TLabel",
         )
         self._recommended_outside_value.grid(row=7, column=0, sticky="w")
-        self._use_recommended_pipe_button = RoundedImageButton(
+        self._use_recommended_pipe_button = calculation_button(
             diameter_metrics,
             text=self._translate("action.use_recommended_pipe"),
             command=self._use_recommended_pipe,
@@ -687,11 +689,12 @@ class PipeDesignPage(ttk.Frame):
             text=self._translate("pipe.corrosion_source_note"), wraplength=270, style="PipeInfo.TLabel")
         self._corrosion_source_note.grid(row=4, column=0, columnspan=2, sticky="w", pady=(4, 0))
 
-        self._diameter_button = RoundedImageButton(
+        self._diameter_button = calculation_button(
             diameter_form,
             text=self._translate("calculation.calculate_diameter"),
             command=self._calculate_diameter,
             style="PipeRoundedPrimary.TButton",
+            primary=True,
             palette=_PIPE_BUTTON_PALETTE,
             radius=7,
             horizontal_padding=16,
@@ -706,11 +709,12 @@ class PipeDesignPage(ttk.Frame):
         action_row = ttk.Frame(wall_form, style="PipeInputCardContent.TFrame")
         self._wall_action_row = action_row
         action_row.grid(row=1, column=0, columnspan=3, sticky="w", pady=(MD, 0))
-        self._wall_button = RoundedImageButton(
+        self._wall_button = calculation_button(
             action_row,
             text=self._translate("calculation.calculate_wall_thickness"),
             command=self._calculate_wall,
             style="PipeRoundedPrimary.TButton",
+            primary=True,
             palette=_PIPE_BUTTON_PALETTE,
             radius=7,
             horizontal_padding=16,
@@ -721,7 +725,7 @@ class PipeDesignPage(ttk.Frame):
         wall_button = self._wall_button
         wall_button.pack(side="left")
         self._widgets.append(wall_button)
-        self._clear_button = RoundedImageButton(
+        self._clear_button = calculation_button(
             action_row,
             text=self._translate("common.clear"),
             command=self._clear_user_state,
@@ -769,6 +773,10 @@ class PipeDesignPage(ttk.Frame):
             ttk.Label(wall_metrics, textvariable=value, style="PipeSupportingValue.TLabel").grid(row=row, column=1, sticky="e", padx=(MD, 0))
             self._wall_supporting_labels.append(label)
 
+        self._wall_metric_widgets=tuple(wall_metrics.winfo_children())
+        self._wall_empty_result=ttk.Label(wall_metrics,text=self._t('result.empty_guidance'),style='PipeMetricLabel.TLabel',wraplength=250)
+        self._wall_empty_result.grid(row=0,column=0,columnspan=2,sticky='w',pady=8)
+
         message_label = ttk.Label(self, textvariable=self._message, wraplength=650)
         message_label.grid(row=2, column=0, sticky="w", pady=(8, 0))
         self._widgets.append(message_label)
@@ -798,7 +806,7 @@ class PipeDesignPage(ttk.Frame):
         command: Callable[[], None],
     ) -> RoundedImageButton:
         """Create the Pipe-only tertiary formula action without changing its command."""
-        return RoundedImageButton(
+        return calculation_button(
             parent,
             text=text,
             command=command,
@@ -1299,6 +1307,8 @@ class PipeDesignPage(ttk.Frame):
         """Keep a clean Pipe result card informative without masking validation."""
         if not hasattr(self,"_pipe_result_metrics") or not hasattr(self,"_pipe_result_empty_state"):return
         has_result=bool(self._diameter_result)
+        set_result_state(getattr(self,"_diameter_result_card",None),has_result)
+        if hasattr(self,"_wall_empty_result"):self._update_wall_summary()
         has_error=hasattr(self,"_message") and self._message.get()!=self._t("message.ready")
         for widget in self._pipe_result_metrics:(widget.grid if has_result or has_error else widget.grid_remove)()
         (self._pipe_result_empty_state.grid_remove if has_result or has_error else self._pipe_result_empty_state.grid)()
@@ -1436,6 +1446,11 @@ class PipeDesignPage(ttk.Frame):
 
     def _update_wall_summary(self) -> None:
         """Render wall details from the stored authoritative wall result only."""
+        set_result_state(getattr(self,"_wall_result_card",None),bool(getattr(self,"_wall_result",None)))
+        if hasattr(self,'_wall_empty_result'):
+            self._wall_empty_result.configure(text=self._t('result.empty_guidance'))
+            for widget in self._wall_metric_widgets:(widget.grid if self._wall_result else widget.grid_remove)()
+            (self._wall_empty_result.grid_remove if self._wall_result else self._wall_empty_result.grid)()
         if not self._wall_result:
             self._wall_summary.set("—")
             self._wall_value.set("—")
@@ -1477,6 +1492,7 @@ class PipeDesignPage(ttk.Frame):
 
     def _update_diameter_summary(self) -> None:
         """Render the stored library recommendation without duplicating DN state."""
+        set_result_state(getattr(self,"_diameter_result_card",None),bool(getattr(self,"_diameter_result",None)))
         if not self._diameter_result:
             self._diameter_summary.set("—");getattr(self, "_diameter_value", self._diameter_summary).set("—");getattr(self, "_diameter_standard", self._diameter_summary).set("—");getattr(self, "_diameter_dn", self._diameter_summary).set("—");getattr(self, "_recommended_outside_diameter", self._diameter_summary).set("—")
             button = getattr(self, "_use_recommended_pipe_button", None)

@@ -895,3 +895,7 @@ MESSAGES['fire.ui.pdf'] = MESSAGES['action.pdf_current_result']
 MESSAGES['history.visual.diagnostics'] = 'Record diagnostics'
 
 MESSAGES['context.open_editor'] = 'Engineering context…'
+
+MESSAGES.update({'result.source_manual': 'Source: Manual', 'result.source_library': 'Source: Library', 'result.source_linked_pipe': 'Source: Linked Pipe'})
+
+MESSAGES["result.empty_guidance"] = 'No result yet. Complete the inputs and select Calculate.'
