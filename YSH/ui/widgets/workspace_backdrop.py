@@ -12,6 +12,7 @@ from tkinter import ttk
 from PIL import Image, ImageStat, ImageTk
 from ui.assets import d243_watermark_logo_path
 from ui.theme import colors
+from ui.widgets.cards import ResultCard
 
 
 PROTECTED = ('warning','critical','error','success','verified','status','source','info','unavailable')
@@ -30,7 +31,7 @@ def compose_backdrop(size, emblem):
     scale=side/max(emblem.size)
     logo=emblem.resize((max(1,round(emblem.width*scale)),max(1,round(emblem.height*scale))),Image.Resampling.LANCZOS)
     logo.putalpha(logo.getchannel('A').point(lambda alpha:round(alpha*.24)))
-    x=round(width*.64-logo.width/2);y=round(height*.53-logo.height/2)
+    x=round((width-logo.width)/2);y=round((height-logo.height)/2)
     image.paste(logo,(x,y),logo)
     return image
 
@@ -119,6 +120,8 @@ class WorkspaceBackdrop:
         kind=widget.winfo_class()
         base=str(widget.cget('style')) if isinstance(widget,ttk.Widget) else ''
         original=base.split('.',2)[2] if base.startswith(('Glass.','Frost.')) else base
+        # Results and every descendant keep their solid native surfaces.
+        if isinstance(widget,ResultCard) or 'result' in original.lower():return
         if any(word in original.lower() for word in PROTECTED):return
         if kind in ('TFrame','TLabelframe','TLabel'):
             if kind!='TLabel' or not widget.cget('image'):
@@ -174,7 +177,7 @@ class WorkspaceBackdrop:
         x,y,width,height=bounds
         crop=self.image.crop((max(0,x),max(0,y),min(self.size[0],x+width),min(self.size[1],y+height)))
         mean=ImageStat.Stat(crop).mean
-        opacity=max(opacity,.94 if widget.winfo_class()=='TLabel' else .88)
+        opacity=max(opacity,.94 if widget.winfo_class()=='TLabel' else .78)
         tone='#'+''.join(f'{round(channel*opacity+sample*(1-opacity)):02x}' for channel,sample in zip(rgb,mean))
         if entry is None or entry[0]!=base:
             entry=(base,f'Frost.{next(_SURFACE_IDS)}.{base}',None,None)

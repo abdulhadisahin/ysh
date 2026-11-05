@@ -4,6 +4,7 @@ from __future__ import annotations
 from ui.widgets.module_visuals import apply_module_visuals
 
 import tkinter as tk
+from ui.widgets.numeric_input import numeric_entry
 import logging
 from collections.abc import Callable
 from tkinter import messagebox, ttk
@@ -131,8 +132,8 @@ class SuctionNPSHPage(ttk.Frame):
             label_widget = ttk.Label(fluid, text=f"{self._translate(label)}{suffix}")
             label_widget.grid(row=row, column=0, sticky="w", pady=3)
             setattr(self, f"_field_label_{key}", (label_widget, label, suffix))
-            entry = ttk.Entry(fluid, textvariable=self._fields[key], width=22)
-            entry.grid(row=row, column=1, sticky="w", padx=(12, 0), pady=3)
+            entry = numeric_entry(fluid, textvariable=self._fields[key])
+            entry.grid(row=row, column=1, sticky="e", padx=(12, 0), pady=3)
             self._pipe_entries[key] = entry
             unit = {"diameter":"mm", "flow":"m³/h", "length":"m"}.get(key)
             if unit: ttk.Label(fluid, text=unit).grid(row=row, column=2, sticky="w", padx=8)
@@ -148,7 +149,7 @@ class SuctionNPSHPage(ttk.Frame):
             fluid, textvariable=self._roughness_source,
             values=(self._translate("message.material_source"), self._translate("message.manual_source")), state="readonly", width=18,
         )
-        self._roughness_source_box.grid(row=4, column=1, sticky="w", padx=(12, 0), pady=(10, 3))
+        self._roughness_source_box.grid(row=4, column=1, columnspan=2, sticky="w", padx=(12, 0), pady=(10, 3))
         self._roughness_source_box.bind("<<ComboboxSelected>>", self._select_roughness_source)
         self._material_label = ttk.Label(fluid, text=self._translate("field.material"))
         self._material_label.grid(row=5, column=0, sticky="w", pady=3)
@@ -157,8 +158,8 @@ class SuctionNPSHPage(ttk.Frame):
         self._material_box.bind("<<ComboboxSelected>>", self._load_selected_roughness)
         self._active_roughness_label = ttk.Label(fluid, text=self._translate("field.active_roughness"))
         self._active_roughness_label.grid(row=6, column=0, sticky="w", pady=3)
-        self._roughness_entry = ttk.Entry(fluid, textvariable=self._fields["roughness"], width=22)
-        self._roughness_entry.grid(row=6, column=1, sticky="w", padx=(12, 0), pady=3)
+        self._roughness_entry = numeric_entry(fluid, textvariable=self._fields["roughness"])
+        self._roughness_entry.grid(row=6, column=1, sticky="e", padx=(12, 0), pady=3)
         ttk.Label(fluid, text="mm").grid(row=6, column=2, sticky="w", padx=8)
         self._warning_fluid_label = ttk.Label(fluid, text=self._translate("field.system_fluid"))
         self._warning_fluid_label.grid(row=7, column=0, sticky="w", pady=3)
@@ -206,7 +207,7 @@ class SuctionNPSHPage(ttk.Frame):
             label_widget = ttk.Label(enpy, text=f"{self._translate(label)}{suffix}")
             label_widget.grid(row=row, column=0, sticky="w", pady=3)
             setattr(self, f"_field_label_{key}", (label_widget, label, suffix))
-            ttk.Entry(enpy, textvariable=self._fields[key], width=22).grid(row=row, column=1, sticky="w", padx=(12, 0), pady=3)
+            numeric_entry(enpy, textvariable=self._fields[key]).grid(row=row, column=1, sticky="e", padx=(12, 0), pady=3)
             unit = {"density":"kg/m³", "height":"m", "required":"m"}.get(key)
             if unit: ttk.Label(enpy, text=unit).grid(row=row, column=2, sticky="w", padx=8)
         for row, variable in ((0, self._pressure_unit), (1, self._vapour_unit)):

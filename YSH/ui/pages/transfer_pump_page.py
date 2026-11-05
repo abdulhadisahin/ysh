@@ -4,6 +4,7 @@ from __future__ import annotations
 from ui.widgets.module_visuals import apply_module_visuals
 
 import tkinter as tk
+from ui.widgets.numeric_input import numeric_entry
 import logging
 from collections.abc import Callable, Sequence
 from tkinter import messagebox, ttk
@@ -127,7 +128,7 @@ class TransferPumpPage(ttk.LabelFrame):
         self._capacity_mode_box.grid(row=0, column=1, sticky="w", padx=(8, 0))
         self._capacity_label = ttk.Label(estimate, text=self._translate("chart.fuel_capacity"))
         self._capacity_label.grid(row=1, column=0, sticky="w", pady=(5, 0))
-        ttk.Entry(estimate, textvariable=self._capacity, width=18).grid(
+        numeric_entry(estimate, textvariable=self._capacity).grid(
             row=1, column=1, sticky="w", padx=(8, 0), pady=(5, 0)
         )
         self._estimate_actions = ttk.Frame(estimate)

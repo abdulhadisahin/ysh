@@ -5,6 +5,7 @@ from collections.abc import Callable
 from dataclasses import replace
 import logging
 import tkinter as tk
+from ui.widgets.numeric_input import numeric_entry, numeric_pair
 from tkinter import ttk
 
 from engineering.input_parsing import parse_engineering_float
@@ -38,8 +39,9 @@ class TransferPumpDesignPanel(ttk.Frame):
         for row,key in enumerate(self._fields):
             label = ttk.Label(self._inputs)
             label.grid(row=row,column=0,sticky='w',pady=4)
-            ttk.Entry(self._inputs,textvariable=self._fields[key],width=20).grid(row=row,column=1,padx=8,pady=4)
-            ttk.Label(self._inputs, text={'volume':'m³', 'target_time':'h', 'pump_capacity':'m³/h'}[key]).grid(row=row, column=2, sticky='w', padx=(0,8))
+            pair, entry = numeric_pair(self._inputs, textvariable=self._fields[key],
+                unit={'volume':'m³', 'target_time':'h', 'pump_capacity':'m³/h'}[key])
+            pair.grid(row=row, column=1, columnspan=2, sticky='w', padx=8, pady=4)
             self._labels[key] = label
         self._calculate = create_rounded_button(self._inputs, '', self.calculate,
             style='TransferRoundedPrimary.TButton', palette=TRANSFER_PRIMARY_PALETTE,

@@ -1,5 +1,6 @@
 """Live Fire views consume application results, never engineering equations."""
 import tkinter as tk
+from ui.widgets.numeric_input import numeric_entry
 from tkinter import ttk
 from collections.abc import Mapping
 
@@ -101,15 +102,15 @@ class FireCalculatorPage(ttk.Frame):
         self.spec=FOAM_FIELDS if kind=='foam' else HW_FIELDS
         self.columnconfigure(0,weight=1)
         self.input_card=ttk.LabelFrame(self,style='Fire.Card.TLabelframe');self.input_card.grid(row=0,column=0,sticky='ew',pady=6)
-        self.input_card.columnconfigure(1,weight=1)
+        self.input_card.columnconfigure(3,weight=1)
         self.variables={};self.labels={};self.entries={};self.meta_vars={};self.status_boxes={};self.meta_editors={}
         for index,(name,(key,unit)) in enumerate(self.spec.items()):
             self.labels[name]=ttk.Label(self.input_card,style='Fire.TLabel')
             self.labels[name].grid(row=index,column=0,sticky='w',padx=(0,12),pady=5)
             variable=tk.StringVar(self);self.variables[name]=variable
-            entry=ttk.Entry(self.input_card,textvariable=variable,width=18,style='Fire.TEntry');entry.grid(row=index,column=1,sticky='ew',pady=5)
+            entry=numeric_entry(self.input_card,textvariable=variable,style='Fire.TEntry');entry.grid(row=index,column=1,sticky='w',pady=5)
             self.entries[name]=entry
-            ttk.Label(self.input_card,text=unit,style='Fire.TLabel').grid(row=index,column=2,padx=8)
+            ttk.Label(self.input_card,text=unit,style='Fire.TLabel').grid(row=index,column=2,sticky='w',padx=8)
             variable.trace_add('write',lambda *_,n=name:self._edit(n))
         self.clarifications=()
         if kind=='foam':
@@ -145,7 +146,7 @@ class FireCalculatorPage(ttk.Frame):
         self.actions=ttk.Frame(self,style='Fire.TFrame');self.actions.grid(row=4,column=0,sticky='ew',pady=8)
         self.calculate_button=ttk.Button(self.actions,style='Fire.Primary.TButton',command=self.calculate);self.calculate_button.grid(row=0,column=0,padx=(0,8))
         self.clear_button=ttk.Button(self.actions,style='Fire.Secondary.TButton',command=self.clear);self.clear_button.grid(row=0,column=1)
-        self.pdf_button=ttk.Button(self.actions,style='Fire.Secondary.TButton',command=self.pdf,state='disabled');self.pdf_button.grid(row=0,column=2,padx=8)
+        self.pdf_button=ttk.Button(self.actions,style='Fire.Secondary.TButton',command=self.pdf,state='disabled');self.pdf_button.grid(row=0,column=2,sticky='w',padx=8)
         self.status=ttk.Label(self,style='Fire.Status.TLabel',wraplength=540);self.status.grid(row=6,column=0,sticky='ew',pady=6)
         self.result_card=ttk.Frame(self,style='Fire.Result.TFrame');self.result_card.grid(row=5,column=0,sticky='ew',pady=8)
         self.result_card.columnconfigure(0,weight=1)

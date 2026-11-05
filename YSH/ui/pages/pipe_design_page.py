@@ -6,6 +6,7 @@ import tkinter as tk
 from uuid import UUID
 from collections.abc import Callable
 from tkinter import ttk
+from ui.widgets.numeric_input import numeric_entry, numeric_pair
 from engineering.pipe_design.models import PipeDiameterInput, WallThicknessInput
 from engineering.input_parsing import parse_engineering_float
 from core.bend_radius import (
@@ -16,7 +17,7 @@ from core.bend_radius import (
     bend_mode_from_state,
 )
 from core.engineering_context import LINE_ROLES, warning_fluid_for_circuit
-from engineering.warning_rules import evaluate_velocity
+from engineering.warning_rules import evaluate_velocity, MAN_EVERLLENCE_SOURCE_ID
 from ui.formatting import format_user_number
 from i18n.translator import Translator
 from i18n.validation import render_validation_issue
@@ -563,11 +564,10 @@ class PipeDesignPage(ttk.Frame):
             )
             label.grid(row=target_row, column=0, sticky="w", pady=3)
             self._field_labels[key] = (label, label_key, suffix)
-            entry = ttk.Entry(parent, textvariable=self._fields[key], width=15, style="Pipe.TEntry")
-            entry.grid(row=target_row, column=1, padx=(SM, 0), pady=3, sticky="w")
             unit = {"da": "mm", "pc": "bar", "rp": "MPa", "c": "mm", "r": "mm"}.get(key, "")
-            ttk.Label(parent, text=unit, style="PipeUnit.TLabel").grid(
-                row=target_row, column=2, sticky="w", padx=(SM, 0))
+            pair, entry = numeric_pair(parent, textvariable=self._fields[key], unit=unit,
+                                       style="Pipe.TEntry", unit_style="PipeUnit.TLabel")
+            pair.grid(row=target_row, column=1, columnspan=2, padx=(SM, 0), pady=3, sticky="w")
             self._widgets.append(entry)
             if key == "rp":
                 self._rp_entry = entry
@@ -647,7 +647,7 @@ class PipeDesignPage(ttk.Frame):
             )
             label.grid(row=target_row, column=label_column, sticky="w", pady=3, padx=((0 if label_column == 0 else MD), 0))
             self._field_labels[key] = (label, label_key, suffix)
-            entry = ttk.Entry(diameter_form, textvariable=self._fields[key], width=16, style="Pipe.TEntry")
+            entry = numeric_entry(diameter_form, textvariable=self._fields[key], style="Pipe.TEntry")
             entry.grid(row=target_row, column=label_column + 1, padx=(SM, 0), pady=3, sticky="w")
             self._widgets.append(entry)
 
@@ -1181,7 +1181,10 @@ class PipeDesignPage(ttk.Frame):
             except ValidationError:
                 velocity = None
             if system and role and velocity is not None:
-                findings = evaluate_velocity(system, role, velocity)
+                # Pipe does not adopt MAN project-guide velocity advice.
+                # Preserve non-MAN findings and shared rules for other modules.
+                findings = tuple(finding for finding in evaluate_velocity(system, role, velocity)
+                                 if finding.source_id != MAN_EVERLLENCE_SOURCE_ID)
         self._engineering_findings = findings
         if hasattr(self, "_warning_panel"):
             self._warning_panel.set_findings(findings)

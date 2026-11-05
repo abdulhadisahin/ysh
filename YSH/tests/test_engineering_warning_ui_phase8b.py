@@ -43,7 +43,7 @@ def test_warning_panel_visibility_method_shows_and_collapses_with_findings() -> 
     assert panel.findings == () and calls[-1] == "hide"
 
 
-def test_pipe_actual_calculate_callback_uses_normalized_velocity_and_renders_warning() -> None:
+def test_pipe_actual_calculate_callback_preserves_velocity_without_man_advice() -> None:
     page = PipeDesignPage.__new__(PipeDesignPage)
     page._fields = {"q": _Value("1"), "v": _Value("0,32")}
     page._number = lambda key: {"q": 1.0, "v": 0.32}[key]
@@ -58,7 +58,8 @@ def test_pipe_actual_calculate_callback_uses_normalized_velocity_and_renders_war
     page._service = SimpleNamespace(calculate=lambda **_kwargs: SimpleNamespace(errors=[], diameter=SimpleNamespace(to_dict=lambda: {"diameter_mm": 59.0})))
     page._calculate_diameter()
     assert page._diameter_warning_velocity_m_s == 0.32
-    assert page._warning_panel.findings[0].actual_value == 0.32
+    assert page._warning_panel.findings == ()
+    assert page._diameter_result == {"diameter_mm": 59.0}
 
 
 def test_discharge_render_result_reacts_to_context_without_changing_result() -> None:

@@ -2,6 +2,7 @@
 from __future__ import annotations
 from ui.widgets.module_visuals import apply_module_visuals
 import tkinter as tk
+from ui.widgets.numeric_input import numeric_entry
 import logging
 from collections.abc import Callable
 from uuid import UUID, uuid4
@@ -51,12 +52,12 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         workspace.columnconfigure(2,weight=3)
         self._pipe_card=InputCard(workspace,self._translate("section.hydraulic_inputs"));pipe=self._pipe_card;pipe.grid(row=0,column=0,sticky="new",padx=(0,6))
         for row,(key,unit) in enumerate((("d","mm"),("q","m³/h"),("nu",""),("l","m"),("h","m"))):
-            localized={"d":"field.pipe_inside_diameter","q":"field.flow_rate","nu":"field.kinematic_viscosity","l":"field.pipe_length","h":"field.geodetic_head"}[key];widget=ttk.Label(pipe,text=f"{self._translate(localized)}");widget.grid(row=row,column=0,sticky="w",pady=3);setattr(self,f"_field_label_{key}",widget);entry=ttk.Entry(pipe,textvariable=self._fields[key],width=16);entry.grid(row=row,column=1,sticky="w",padx=(8,0),pady=3);self._entries[key]=entry
+            localized={"d":"field.pipe_inside_diameter","q":"field.flow_rate","nu":"field.kinematic_viscosity","l":"field.pipe_length","h":"field.geodetic_head"}[key];widget=ttk.Label(pipe,text=f"{self._translate(localized)}");widget.grid(row=row,column=0,sticky="w",pady=3);setattr(self,f"_field_label_{key}",widget);entry=numeric_entry(pipe,textvariable=self._fields[key]);entry.grid(row=row,column=1,sticky="e",padx=(8,0),pady=3);self._entries[key]=entry
             if unit: ttk.Label(pipe,text=unit).grid(row=row,column=2,sticky="w",padx=(8,0))
         ttk.Combobox(pipe,textvariable=self._viscosity_unit,values=("cSt","m²/s"),state="readonly",width=7).grid(row=2,column=2,sticky="w",padx=(8,0))
-        self._source_label=ttk.Label(pipe,text=self._translate("field.roughness_source"));self._source_label.grid(row=5,column=0,sticky="w",pady=3);self._source_box=ttk.Combobox(pipe,textvariable=self._source,values=(self._translate("message.material_source"),self._translate("message.manual_source")),state="readonly",width=16);self._source_box.grid(row=5,column=1,sticky="w",padx=(8,0));self._source_box.bind("<<ComboboxSelected>>",lambda _:self._select_source_mode())
+        self._source_label=ttk.Label(pipe,text=self._translate("field.roughness_source"));self._source_label.grid(row=5,column=0,sticky="w",pady=3);self._source_box=ttk.Combobox(pipe,textvariable=self._source,values=(self._translate("message.material_source"),self._translate("message.manual_source")),state="readonly",width=16);self._source_box.grid(row=5,column=1,columnspan=2,sticky="w",padx=(8,0));self._source_box.bind("<<ComboboxSelected>>",lambda _:self._select_source_mode())
         self._material_label=ttk.Label(pipe,text=self._translate("field.material"));self._material_label.grid(row=6,column=0,sticky="w",pady=3);self._material_box=ttk.Combobox(pipe,textvariable=self._material,state="readonly",width=22);self._material_box.grid(row=6,column=1,columnspan=2,sticky="ew",padx=(8,0));self._material_box.bind("<<ComboboxSelected>>",lambda _:self._load_selected_roughness())
-        self._active_roughness_label=ttk.Label(pipe,text=self._translate("field.active_roughness"));self._active_roughness_label.grid(row=7,column=0,sticky="w",pady=3);self._roughness_entry=ttk.Entry(pipe,textvariable=self._fields["k"],width=16);self._roughness_entry.grid(row=7,column=1,sticky="w",padx=(8,0),pady=3)
+        self._active_roughness_label=ttk.Label(pipe,text=self._translate("field.active_roughness"));self._active_roughness_label.grid(row=7,column=0,sticky="w",pady=3);self._roughness_entry=numeric_entry(pipe,textvariable=self._fields["k"]);self._roughness_entry.grid(row=7,column=1,sticky="e",padx=(8,0),pady=3)
         ttk.Label(pipe,text="mm").grid(row=7,column=2,sticky="w",padx=(8,0))
         self._warning_fluid_label=ttk.Label(pipe,text=self._translate("field.system_fluid"));self._warning_fluid_label.grid(row=8,column=0,sticky="w",pady=3);self._warning_fluid_box=ttk.Combobox(pipe,textvariable=self._warning_fluid,state="readonly",width=22);self._warning_fluid_box.grid(row=8,column=1,columnspan=2,sticky="w",padx=(8,0),pady=3)
         self._losses_card=InputCard(workspace,self._translate("section.local_losses"));losses=self._losses_card;losses.grid(row=0,column=1,sticky="nsew",padx=6);losses.columnconfigure(0,weight=1)

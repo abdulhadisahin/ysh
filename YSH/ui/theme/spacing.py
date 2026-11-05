@@ -8,3 +8,6 @@ XL = 24
 
 CARD_PADDING = (MD, SM)
 CONTROL_PADDING = (SM, XS)
+
+# Character width for numerical engineering inputs; free text stays independent.
+NUMERIC_INPUT_WIDTH = 12
