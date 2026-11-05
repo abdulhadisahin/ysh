@@ -22,6 +22,7 @@ def configure_fire_visuals(style):
     style.map('Fire.Primary.TButton',background=[('active',FIRE_DARK)])
     style.configure('Fire.Secondary.TButton',padding=(MD,SM),foreground=FIRE_DARK,
                     background=colors.WHITE,bordercolor=PIPE_INPUT_BORDER,font=typography.BODY)
+    style.configure('Compact.Fire.Secondary.TButton',padding=CONTROL_PADDING)
     style.map('Fire.Secondary.TButton',background=[('disabled',colors.SURFACE_ALT),('active',FIRE_SOFT)],
               foreground=[('disabled',colors.TEXT_MUTED)])
     for control in ('TEntry','TCombobox'):

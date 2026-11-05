@@ -1,5 +1,6 @@
 """Live Fire views consume application results, never engineering equations."""
 import tkinter as tk
+from ui.theme.spacing import SOURCE_FIELD_WIDTH
 from ui.widgets.numeric_input import numeric_entry
 from tkinter import ttk
 from collections.abc import Mapping
@@ -165,19 +166,19 @@ class FireCalculatorPage(ttk.Frame):
 
     def _link_controls(self):
         self.link=ttk.LabelFrame(self,style='Fire.Card.TLabelframe');self.link.grid(row=2,column=0,sticky='ew',pady=6)
-        self.link.columnconfigure(1,weight=1)
+        self.link.columnconfigure(2,weight=1)
         self.service_var=tk.StringVar(self);self.mode_var=tk.StringVar(self);self.source_var=tk.StringVar(self)
         self.link_labels=[]
         for row,key in enumerate(('service','mode','pipe')):
             label=ttk.Label(self.link,style='Fire.TLabel');label.grid(row=row,column=0,sticky='w',padx=(0,8));self.link_labels.append((label,'fire.ui.'+key))
-        self.service_box=ttk.Combobox(self.link,textvariable=self.service_var,state='readonly',style='Fire.TCombobox');self.service_box.grid(row=0,column=1,sticky='ew',pady=4)
-        self.mode_box=ttk.Combobox(self.link,textvariable=self.mode_var,state='readonly',style='Fire.TCombobox');self.mode_box.grid(row=1,column=1,sticky='ew',pady=4)
-        self.source_box=ttk.Combobox(self.link,textvariable=self.source_var,state='readonly',style='Fire.TCombobox');self.source_box.grid(row=2,column=1,sticky='ew',pady=4)
+        self.service_box=ttk.Combobox(self.link,textvariable=self.service_var,state='readonly',width=SOURCE_FIELD_WIDTH,style='Fire.TCombobox');self.service_box.grid(row=0,column=1,sticky='w',pady=4)
+        self.mode_box=ttk.Combobox(self.link,textvariable=self.mode_var,state='readonly',width=SOURCE_FIELD_WIDTH,style='Fire.TCombobox');self.mode_box.grid(row=1,column=1,sticky='w',pady=4)
+        self.source_box=ttk.Combobox(self.link,textvariable=self.source_var,state='readonly',width=SOURCE_FIELD_WIDTH,style='Fire.TCombobox');self.source_box.grid(row=2,column=1,sticky='w',pady=4)
         self.service_box.bind('<<ComboboxSelected>>',self._service);self.mode_box.bind('<<ComboboxSelected>>',self._mode)
         buttons=ttk.Frame(self.link,style='Fire.TFrame');buttons.grid(row=3,column=0,columnspan=2,sticky='w')
         self.link_buttons=[]
         for col,action in enumerate(('link','update','keep')):
-            button=ttk.Button(buttons,command=lambda a=action:self.pipe_action(a),style='Fire.Secondary.TButton');button.grid(row=0,column=col,padx=(0,6),pady=6);self.link_buttons.append((button,'fire.ui.'+action))
+            button=ttk.Button(buttons,command=lambda a=action:self.pipe_action(a),style='Compact.Fire.Secondary.TButton');button.grid(row=0,column=col,padx=(0,6),pady=6);self.link_buttons.append((button,'fire.ui.'+action))
         self.pipe_status=ttk.Label(self.link,style='Fire.TLabel',wraplength=540);self.pipe_status.grid(row=4,column=0,columnspan=2,sticky='ew',pady=4)
 
     def _edit(self,name):

@@ -1,6 +1,7 @@
 """Compact source summaries plus explicit Library selection; no engineering math."""
 import tkinter as tk
 from tkinter import ttk
+from ui.theme.spacing import SOURCE_FIELD_WIDTH
 from engineering.input_parsing import parse_engineering_float
 
 from ui.theme.library_visuals import fire_source_role
@@ -36,13 +37,13 @@ class FireLibraryInputPanel(ttk.Frame):
         for index,name in enumerate(self.names):
             row=3+index*5
             label=ttk.Label(body,style='Fire.TLabel');label.grid(row=row,column=0,sticky='w');self.controls.append((label,view.spec[name][0]))
-            combo=ttk.Combobox(body,state='readonly',width=18,style='Fire.TCombobox')
-            combo.grid(row=row+1,column=0,sticky='ew');self.boxes[name]=combo
+            combo=ttk.Combobox(body,state='readonly',width=SOURCE_FIELD_WIDTH,style='Fire.TCombobox')
+            combo.grid(row=row+1,column=0,sticky='w');self.boxes[name]=combo
             combo.bind('<<ComboboxSelected>>',lambda _event:self.sync())
             self.buttons[name]={}
             actions=ttk.Frame(body,style='Fire.TFrame');actions.grid(row=row+2,column=0,sticky='w',pady=3)
             for column,action in enumerate(('use','update','keep','manual')):
-                button=ttk.Button(actions,command=lambda n=name,a=action:self.action(n,a),style='Fire.Secondary.TButton')
+                button=ttk.Button(actions,command=lambda n=name,a=action:self.action(n,a),style='Compact.Fire.Secondary.TButton')
                 button.grid(row=0,column=column,padx=(0,4));self.controls.append((button,'fire.library.'+action));self.buttons[name][action]=button
             reason_label=ttk.Label(self,style='Fire.TLabel');reason_label.grid(row=index*3+1,column=0,sticky='w')
             self.controls.append((reason_label,'fire.ui.reason'))

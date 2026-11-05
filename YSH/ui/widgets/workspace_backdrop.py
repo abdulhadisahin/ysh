@@ -12,6 +12,7 @@ from tkinter import ttk
 from PIL import Image, ImageStat, ImageTk
 from ui.assets import d243_watermark_logo_path
 from ui.theme import colors
+from ui.theme.spacing import PANEL_TRANSMISSION_FACTOR
 from ui.widgets.cards import ResultCard
 
 
@@ -149,6 +150,8 @@ class WorkspaceBackdrop:
         if x>=self.size[0] or y>=self.size[1] or x+width<=0 or y+height<=0:return
         if width<2 or height<2:return
         opacity=.30 if color.lower() in (colors.WORKSPACE_SURFACE.lower(),'#f1f7fa') else .94 if max(rgb)-min(rgb)>12 else .80
+        if widget.winfo_class()!='TLabel':
+            opacity=1-(1-opacity)*PANEL_TRANSMISSION_FACTOR
         if widget.winfo_class()!='TFrame' and not (getattr(widget,'composite_panel',False) or base=='Fire.Card.TLabelframe'):
             self._native_tint(widget,base,(x,y,width,height),rgb,opacity)
             return
@@ -197,7 +200,7 @@ class WorkspaceBackdrop:
         x,y,width,height=bounds
         crop=self.image.crop((max(0,x),max(0,y),min(self.size[0],x+width),min(self.size[1],y+height)))
         mean=ImageStat.Stat(crop).mean
-        opacity=max(opacity,.94 if widget.winfo_class()=='TLabel' else .78)
+        opacity=max(opacity,.94 if widget.winfo_class()=='TLabel' else 1-(1-.78)*PANEL_TRANSMISSION_FACTOR)
         tone='#'+''.join(f'{round(channel*opacity+sample*(1-opacity)):02x}' for channel,sample in zip(rgb,mean))
         if entry is None or entry[0]!=base:
             entry=(base,f'Frost.{next(_SURFACE_IDS)}.{base}',None,None)
