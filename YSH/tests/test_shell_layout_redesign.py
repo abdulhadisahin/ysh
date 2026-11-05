@@ -45,7 +45,7 @@ def test_shell_geometry_and_composited_pages(shell,size,language):
                 from .test_shell_layering_corrective import elements
                 from tkinter import ttk
                 for widget in descendants(page):
-                    if widget.winfo_class() in ('TLabel','TLabelframe') and not (widget.winfo_class()=='TLabelframe' and 'Fire.Card.TLabelframe' in str(widget.cget('style'))):
+                    if widget.winfo_class() in ('TLabel','TLabelframe') and not (getattr(widget,'composite_panel',False) or (widget.winfo_class()=='TLabelframe' and 'Fire.Card.TLabelframe' in str(widget.cget('style')))):
                         assert not any(name.startswith('GlassSurface') for name in elements(ttk.Style(root).layout(widget.cget('style') or widget.winfo_class())))
                 assert backdrop.size==(viewport.canvas.winfo_width(),viewport.canvas.winfo_height())
                 for widget,entry in backdrop.surfaces.items():

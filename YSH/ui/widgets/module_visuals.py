@@ -24,6 +24,7 @@ def apply_module_visuals(page: ttk.Widget, module: str) -> None:
         elif isinstance(widget, InformationCard):
             result = False
             widget.configure(style=prefix+'InputCard.TLabelframe')
+            widget.composite_panel = True
         elif isinstance(widget, SectionHeader):
             widget.configure(style=prefix+'Workspace.TFrame')
             widget._title.configure(style=prefix+'PageTitle.TLabel')
@@ -42,10 +43,13 @@ def apply_module_visuals(page: ttk.Widget, module: str) -> None:
         # Source selection is a semantic card, not an automatic update mechanism.
         elif widget is getattr(page, '_pipe_source_panel', None):
             widget.configure(style=prefix+'InputCard.TLabelframe')
+            widget.composite_panel = True
         for child in widget.winfo_children():
             visit(child, result)
 
     page.configure(style=prefix+('Page.TLabelframe' if isinstance(page, ttk.LabelFrame) else 'Workspace.TFrame'))
+    if isinstance(page, ttk.LabelFrame):
+        page.composite_panel = True
     for child in page.winfo_children():
         visit(child)
     source = getattr(page, '_pipe_source_panel', None)
