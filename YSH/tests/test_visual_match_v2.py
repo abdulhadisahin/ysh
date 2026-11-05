@@ -42,6 +42,7 @@ def test_results_opaque_and_decoration_below_native_controls(shell,size):
                      (item.winfo_class()=='TFrame' and 'result' in str(item.cget('style')).lower())]
             assert results,key
             for result in results:
+                if not getattr(result,'result_surface_opaque',True):continue
                 for item in (result,*descendants(result)):
                     assert item not in backdrop.surfaces and item not in backdrop.tints
                     if 'style' in item.keys():

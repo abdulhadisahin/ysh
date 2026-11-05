@@ -31,7 +31,14 @@ def compose_backdrop(size, emblem):
     scale=side/max(emblem.size)
     logo=emblem.resize((max(1,round(emblem.width*scale)),max(1,round(emblem.height*scale))),Image.Resampling.LANCZOS)
     logo.putalpha(logo.getchannel('A').point(lambda alpha:round(alpha*.24)))
-    x=round((width-logo.width)/2);y=round((height-logo.height)/2)
+    # A small alpha-mass correction balances asymmetric artwork optically.
+    alpha=logo.getchannel('A').resize((64,64),Image.Resampling.BILINEAR)
+    weights=list(alpha.get_flattened_data());mass=sum(weights)
+    cx=sum((i%64+.5)*value for i,value in enumerate(weights))/mass if mass else 32
+    cy=sum((i//64+.5)*value for i,value in enumerate(weights))/mass if mass else 32
+    dx=max(-width*.015,min(width*.015,(32-cx)/64*logo.width*.2))
+    dy=max(-height*.015,min(height*.015,(32-cy)/64*logo.height*.2))
+    x=round((width-logo.width)/2+dx);y=round((height-logo.height)/2+dy)
     image.paste(logo,(x,y),logo)
     return image
 
@@ -121,7 +128,9 @@ class WorkspaceBackdrop:
         base=str(widget.cget('style')) if isinstance(widget,ttk.Widget) else ''
         original=base.split('.',2)[2] if base.startswith(('Glass.','Frost.')) else base
         # Results and every descendant keep their solid native surfaces.
-        if isinstance(widget,ResultCard) or 'result' in original.lower():return
+        if (isinstance(widget,ResultCard) or 'result' in original.lower()) and getattr(widget,'result_surface_opaque',True):
+            self._restore_native(widget)
+            return
         if any(word in original.lower() for word in PROTECTED):return
         if kind in ('TFrame','TLabelframe','TLabel'):
             if kind!='TLabel' or not widget.cget('image'):
@@ -140,7 +149,7 @@ class WorkspaceBackdrop:
         if x>=self.size[0] or y>=self.size[1] or x+width<=0 or y+height<=0:return
         if width<2 or height<2:return
         opacity=.30 if color.lower() in (colors.WORKSPACE_SURFACE.lower(),'#f1f7fa') else .94 if max(rgb)-min(rgb)>12 else .80
-        if widget.winfo_class()!='TFrame':
+        if widget.winfo_class()!='TFrame' and not (getattr(widget,'composite_panel',False) or base=='Fire.Card.TLabelframe'):
             self._native_tint(widget,base,(x,y,width,height),rgb,opacity)
             return
         entry=self.surfaces.get(widget)
@@ -157,6 +166,8 @@ class WorkspaceBackdrop:
             options=dict(layout[0][1]);options['sticky']='nswe'
             self.style.layout(name,[(entry.element,options)])
             entry.styles[base]=name
+            if widget.winfo_class()=='TLabelframe':
+                self.style.configure(name+'.Label',background=color)
         signature=(x,y,width,height,rgb,opacity,self.size)
         if signature!=entry.signature:
             patch=composite_surface(self.image,(x,y,width,height),rgb,opacity)
@@ -165,6 +176,15 @@ class WorkspaceBackdrop:
                 entry.size=(width,height)
             entry.photo.paste(patch);entry.signature=signature
         if str(widget.cget('style'))!=entry.styles[base]:widget.configure(style=entry.styles[base])
+
+    def _restore_native(self,widget):
+        """Restore an opaque result subtree after an empty-state composite."""
+        if isinstance(widget,ttk.Widget):
+            style=str(widget.cget('style'))
+            if style.startswith(('Glass.','Frost.')):
+                widget.configure(style=style.split('.',2)[2])
+        self.surfaces.pop(widget,None);self.tints.pop(widget,None)
+        for child in widget.winfo_children():self._restore_native(child)
 
     def _native_tint(self,widget,base,bounds,rgb,opacity):
         """Never replace text/caption layouts: use a gentle opaque native tone."""

@@ -102,6 +102,7 @@ class FireCalculatorPage(ttk.Frame):
         self.spec=FOAM_FIELDS if kind=='foam' else HW_FIELDS
         self.columnconfigure(0,weight=1)
         self.input_card=ttk.LabelFrame(self,style='Fire.Card.TLabelframe');self.input_card.grid(row=0,column=0,sticky='ew',pady=6)
+        self.input_card.composite_panel=True
         self.input_card.columnconfigure(3,weight=1)
         self.variables={};self.labels={};self.entries={};self.meta_vars={};self.status_boxes={};self.meta_editors={}
         for index,(name,(key,unit)) in enumerate(self.spec.items()):
@@ -284,6 +285,11 @@ class FireCalculatorPage(ttk.Frame):
                 self.concentration_warning.grid_remove()
                 self.concentration_help.grid()
         result=self.model.results[self.kind]
+        self.result_card.result_surface_opaque=bool(result)
+        self.result_card.composite_panel=True
+        viewport=self.workspace.host._page_keys[self.kind]
+        backdrop=getattr(viewport,'_workspace_backdrop',None)
+        if backdrop:backdrop.request()
         role='Error' if message=='fire.ui.invalid' else 'Status' if message=='fire.ui.blocked' else 'Info'
         if result and result.warnings:role='Status'
         self.status.configure(style='Fire.'+role+'.TLabel')
@@ -291,7 +297,9 @@ class FireCalculatorPage(ttk.Frame):
         self.pdf_button.configure(state=state);self.formula._toggle.configure(state=state)
         if not result:
             if self.formula.expanded:self.formula.toggle()
-            for label in self.result_labels:label.configure(text='—')
+            for label in self.result_labels:
+                label.result_surface_opaque=False
+                label.configure(text='—')
             self.status.configure(text=self.tr(message or 'fire.ui.empty'))
         else:
             rows=list(result.summary)
