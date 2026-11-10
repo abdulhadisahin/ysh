@@ -4,6 +4,7 @@ from __future__ import annotations
 from ui.widgets.module_visuals import apply_module_visuals
 
 import tkinter as tk
+from ui.widgets.input_guidance import localize_guidance
 from ui.widgets.numeric_input import numeric_entry
 import logging
 from collections.abc import Callable
@@ -230,7 +231,7 @@ class SuctionNPSHPage(ttk.Frame):
         self._enpy_metric.grid(row=0, column=0, sticky="ew")
         self._suction_metric = ResultMetric(results, self._translate("result.suction_head_loss"), self._suction_loss_summary, "m", normal_style_prefix="SuctionLossMetric")
         self._suction_metric.grid(row=1, column=0, sticky="ew", pady=(8, 0))
-        self._result_empty_state = EmptyState(results, "result", "Henüz sonuç üretilmedi", "Girdileri tamamlayın ve Hesapla komutunu çalıştırın.", image_size=145)
+        self._result_empty_state = EmptyState(results, "result", self._translate("guidance.empty.title"), self._translate("guidance.empty.suction"), image_size=145)
         self._result_empty_state.grid(row=0, column=0, sticky="nsew")
         self._details_card = ttk.Frame(results, style="EngineeringDetails.TFrame", padding=(10, 8))
         self._details_card.columnconfigure(0, weight=1)
@@ -382,6 +383,7 @@ class SuctionNPSHPage(ttk.Frame):
 
     def refresh_texts(self) -> None:
         """Refresh suction/ENPY labels without altering staged calculation state."""
+        localize_guidance(self, 'suction', self._translate)
         manual = self._roughness_source_mode == "manual"
         self._suppress_dirty = True
         try:

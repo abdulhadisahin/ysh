@@ -9,10 +9,11 @@ from tkinter import ttk
 class Tooltip:
     """Show a short delayed description without taking keyboard focus."""
 
-    def __init__(self, widget: tk.Misc, text: str, delay_ms: int = 550) -> None:
+    def __init__(self, widget: tk.Misc, text: str, delay_ms: int = 550, *, wraplength: int = 0) -> None:
         self._widget = widget
         self._text = text
         self._delay_ms = delay_ms
+        self._wraplength = wraplength
         self._after_id: str | None = None
         self._window: tk.Toplevel | None = None
         widget.bind("<Enter>", self._schedule, add="+")
@@ -38,7 +39,13 @@ class Tooltip:
             x = self._widget.winfo_rootx() + 8
             y = self._widget.winfo_rooty() + self._widget.winfo_height() + 6
             window.wm_geometry(f"+{x}+{y}")
-            ttk.Label(window, text=self._text, padding=(7, 3), style="Tooltip.TLabel").pack()
+            ttk.Label(window, text=self._text, padding=(7, 3), style="Tooltip.TLabel", wraplength=self._wraplength).pack()
+            if self._wraplength:
+                window.update_idletasks()
+                host=self._widget.winfo_toplevel()
+                x=max(host.winfo_rootx()+4,min(x,host.winfo_rootx()+host.winfo_width()-window.winfo_reqwidth()-4))
+                y=max(host.winfo_rooty()+4,min(y,host.winfo_rooty()+host.winfo_height()-window.winfo_reqheight()-4))
+                window.wm_geometry(f"+{x}+{y}")
             self._window = window
         except tk.TclError:
             self._window = None

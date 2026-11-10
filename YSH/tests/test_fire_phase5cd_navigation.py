@@ -23,7 +23,7 @@ def test_only_one_contextual_foam_message(live, text, count):
     if count:
         assert view.concentration_warning['text']=='Bu alan yüzde bekler. %3 için 3 giriniz.'
     else:
-        assert view.concentration_help['text']=='Köpük konsantrasyonunu yüzde olarak giriniz.'
+        assert view.concentration_help['text']=='Köpük yüzdesini giriniz; %3 için 3 yazınız.'
 
 
 @pytest.mark.parametrize('corrected',['3',''])
@@ -39,7 +39,7 @@ def test_correction_removes_warning_and_restores_helper(live,corrected):
 def test_exact_english_guidance(live):
     _,page,_,_=live
     view=page.views['foam'];view.tr=Translator('en').translate;view.refresh_texts()
-    assert view.concentration_help['text']=='Enter foam concentration as percent.'
+    assert view.concentration_help['text']=='Enter a percentage; for 3%, enter 3.'
     view.variables['foam_fraction'].set('0.03')
     assert view.concentration_warning['text']=='This field expects percent. Enter 3 for 3%.'
     assert not view.concentration_help.grid_info()

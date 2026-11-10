@@ -43,7 +43,7 @@ def test_help_adjacent_unit_and_empty_initial_value(live):
     from tkinter import ttk
     root,page,saved,tr=live;view=page.views['foam']
     assert view.variables['foam_fraction'].get()==''
-    assert view.concentration_help['text']=='Köpük konsantrasyonunu yüzde olarak giriniz.'
+    assert view.concentration_help['text']=='Köpük yüzdesini giriniz; %3 için 3 yazınız.'
     assert view.concentration_warning.grid_info()=={}
     assert any(widget['text']=='Önerilen (%)' for widget,key in view.meta_labels if key=='fire.ui.recommended_percent')
     percent_label=next(w for w in view.input_card.winfo_children() if isinstance(w,ttk.Label) and w['text']=='%')

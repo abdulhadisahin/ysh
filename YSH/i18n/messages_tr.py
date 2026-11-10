@@ -914,3 +914,32 @@ MESSAGES['context.open_editor'] = 'Mühendislik bağlamı…'
 MESSAGES.update({'result.source_manual': 'Kaynak: Manuel', 'result.source_library': 'Kaynak: Library', 'result.source_linked_pipe': 'Kaynak: Bağlı Boru'})
 
 MESSAGES["result.empty_guidance"] = 'Henüz sonuç yok. Girdileri tamamlayıp Hesapla’yı seçin.'
+
+# Concise field hints and module-specific next actions.
+MESSAGES.update({'guidance.velocity': 'Boru içindeki hedef ortalama akış hızıdır.',
+ 'guidance.bend_radius': 'Bükümün merkez çizgisi yarıçapıdır.',
+ 'guidance.transfer_time': 'Transferin tamamlanması için hedeflenen süre (saat).',
+ 'guidance.optional_capacity': 'Boş bırakılabilir; gerçek transfer süresini görmek için kapasiteyi '
+                               'girin.',
+ 'guidance.capacity_unit': 'Yakıt kapasitesini seçili hacim veya kütle biriminde girin.',
+ 'guidance.discharge_height': 'Kaynak ile tüketici arasındaki kot farkıdır.',
+ 'guidance.roughness': 'Boru iç yüzeyinin mutlak pürüzlülüğü (mm).',
+ 'guidance.suction_height': 'Tulumba emişi ile serbest yüzey arasındaki kot farkıdır.',
+ 'guidance.optional_npshr': 'İsteğe bağlıdır; tulumbanın gerekli ENPY değeriyle karşılaştırma '
+                            'içindir.',
+ 'guidance.foam_density': 'Korunan alan başına gerekli çözelti debisidir.',
+ 'guidance.hw_c': 'Hazen-Williams katsayısıdır.',
+ 'guidance.inside_diameter': 'Akışkanın geçtiği gerçek iç çapı mm olarak girin.',
+ 'guidance.empty.title': 'Henüz sonuç yok',
+ 'guidance.empty.pipe': 'Debi ve ortalama akış hızını girip Çapı Hesapla’yı seçin.',
+ 'guidance.empty.pipe_wall': 'Çap, basınç ve malzeme girdilerini tamamlayıp Et Kalınlığını '
+                             'Hesapla’yı seçin.',
+ 'guidance.empty.transfer_design': 'Transfer hacmini ve hedef süreyi girip Hesapla’yı seçin.',
+ 'guidance.empty.transfer_empirical': 'Yakıt kapasitesini girip referans verileriyle Hesapla’yı '
+                                      'seçin.',
+ 'guidance.empty.discharge': 'Boru ve akışkan girdilerini tamamlayıp Hesapla’yı seçin.',
+ 'guidance.empty.suction': 'Önce emme kaybını hesaplayın; ardından ENPY girdilerini tamamlayıp '
+                           'ENPY Hesapla’yı seçin.',
+ 'guidance.empty.foam': 'Gerekli girişleri tamamlayıp Hesapla’yı seçerek köpük miktarını bulun.',
+ 'guidance.empty.hw': 'Debi, iç çap, uzunluk ve C katsayısını girerek hesaplamayı başlatın.',
+ 'fire.ui.percent_help': 'Köpük yüzdesini giriniz; %3 için 3 yazınız.'})

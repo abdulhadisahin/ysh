@@ -5,6 +5,7 @@ from collections.abc import Callable
 from dataclasses import replace
 import logging
 import tkinter as tk
+from ui.widgets.input_guidance import localize_guidance
 from ui.widgets.numeric_input import numeric_entry, numeric_pair
 from tkinter import ttk
 
@@ -117,9 +118,10 @@ class TransferPumpDesignPanel(ttk.Frame):
 
     def refresh_texts(self) -> None:
         """Rerender stored results and labels without calculating."""
+        localize_guidance(self, 'transfer_design', self._translate)
         self._inputs.configure(text=self._translate('transfer.design.inputs'))
         self._results.configure(text=self._translate('transfer.design.results'))
-        self._empty_result.configure(text=self._translate('result.empty_guidance'))
+        self._empty_result.configure(text=self._translate('guidance.empty.transfer_design'))
         for key,label in self._labels.items():
             label.configure(text=self._translate(f'transfer.design.{key}.label'))
         self._calculate.configure(text=self._translate('calculation.calculate'))

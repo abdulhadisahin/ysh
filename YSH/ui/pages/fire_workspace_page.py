@@ -1,5 +1,6 @@
 """Live Fire views consume application results, never engineering equations."""
 import tkinter as tk
+from ui.widgets.input_guidance import localize_guidance
 from ui.theme.spacing import SOURCE_FIELD_WIDTH
 from ui.widgets.numeric_input import numeric_entry
 from ui.widgets.calculation_presentation import calculation_button
@@ -307,7 +308,7 @@ class FireCalculatorPage(ttk.Frame):
         state='normal' if result else 'disabled'
         self.pdf_button.configure(state=state);self.formula._toggle.configure(state=state)
         self.result_title.configure(text=self.tr('section.calculation_results'))
-        self.empty_result.configure(text=self.tr('fire.ui.empty'))
+        self.empty_result.configure(text=self.tr('guidance.empty.'+self.kind))
         (self.empty_result.grid_remove if result else self.empty_result.grid)()
         (self.primary_caption.grid if result else self.primary_caption.grid_remove)()
         for label in self.result_labels:(label.grid if result else label.grid_remove)()
@@ -319,7 +320,7 @@ class FireCalculatorPage(ttk.Frame):
             for label in self.result_labels:
                 label.result_surface_opaque=False
                 label.configure(text='—')
-            self.status.configure(text=self.tr(message or 'fire.ui.empty'))
+            self.status.configure(text=self.tr(message) if message else '')
         else:
             rows=list(result.summary)
             rows.sort(key=lambda r:r.key!=result.primary_result_key)
@@ -345,6 +346,7 @@ class FireCalculatorPage(ttk.Frame):
             self.loading=previous
 
     def refresh_texts(self):
+        localize_guidance(self, self.kind, self.tr)
         self.input_card.configure(text=self.tr('fire.ui.inputs'))
         if self.kind=='foam':self.concentration_help.configure(text=self.tr('fire.ui.percent_help'))
         for name,(key,unit) in self.spec.items():self.labels[name].configure(text=self.tr(key))

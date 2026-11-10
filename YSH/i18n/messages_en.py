@@ -899,3 +899,33 @@ MESSAGES['context.open_editor'] = 'Engineering context…'
 MESSAGES.update({'result.source_manual': 'Source: Manual', 'result.source_library': 'Source: Library', 'result.source_linked_pipe': 'Source: Linked Pipe'})
 
 MESSAGES["result.empty_guidance"] = 'No result yet. Complete the inputs and select Calculate.'
+
+# Concise field hints and module-specific next actions.
+MESSAGES.update({'guidance.velocity': 'The target mean flow velocity inside the pipe.',
+ 'guidance.bend_radius': 'The radius of the bend centreline.',
+ 'guidance.transfer_time': 'The target time to complete the transfer (hours).',
+ 'guidance.optional_capacity': 'May be left blank; enter the selected capacity to see the actual '
+                               'transfer time.',
+ 'guidance.capacity_unit': 'Enter fuel capacity in the selected volume or mass unit.',
+ 'guidance.discharge_height': 'The elevation difference between the source and the consumer.',
+ 'guidance.roughness': 'Absolute roughness of the inner pipe surface (mm).',
+ 'guidance.suction_height': 'The elevation difference between the pump suction and the free '
+                            'surface.',
+ 'guidance.optional_npshr': 'Optional; used for comparison with the pump’s required NPSH.',
+ 'guidance.foam_density': 'The required solution flow per unit of protected area.',
+ 'guidance.hw_c': 'The Hazen-Williams coefficient.',
+ 'guidance.inside_diameter': 'Enter the actual flow-carrying inside diameter in mm.',
+ 'guidance.empty.title': 'No result yet',
+ 'guidance.empty.pipe': 'Enter flow rate and mean velocity, then select Calculate Diameter.',
+ 'guidance.empty.pipe_wall': 'Complete diameter, pressure and material inputs, then select '
+                             'Calculate Wall Thickness.',
+ 'guidance.empty.transfer_design': 'Enter transfer volume and target time, then select Calculate.',
+ 'guidance.empty.transfer_empirical': 'Enter fuel capacity and select Calculate using the '
+                                      'reference data.',
+ 'guidance.empty.discharge': 'Complete the pipe and fluid inputs, then select Calculate.',
+ 'guidance.empty.suction': 'Calculate suction loss first, then complete the NPSH inputs and select '
+                           'Calculate NPSH.',
+ 'guidance.empty.foam': 'Complete the required inputs and select Calculate to find the foam '
+                        'quantity.',
+ 'guidance.empty.hw': 'Enter flow, inside diameter, length and C to start the calculation.',
+ 'fire.ui.percent_help': 'Enter a percentage; for 3%, enter 3.'})

@@ -52,6 +52,11 @@ class EmptyState(ttk.Frame):
         if helper_text:
             self._helper.grid(row=3, column=0, sticky="n", pady=(3, 0))
 
+    def set_content(self, title: str, body: str) -> None:
+        """Refresh localized empty-state text without rebuilding its widgets."""
+        self._title.configure(text=title)
+        self._body.configure(text=body)
+
 
 class StatusBadge(ttk.Label):
     """A presentation-only compact semantic status label."""

@@ -2,6 +2,7 @@
 from __future__ import annotations
 from ui.widgets.module_visuals import apply_module_visuals
 import tkinter as tk
+from ui.widgets.input_guidance import localize_guidance
 from ui.widgets.numeric_input import numeric_entry
 import logging
 from collections.abc import Callable
@@ -103,7 +104,7 @@ class DischargeHeadLossPage(ttk.LabelFrame):
             metric.columnconfigure(1,weight=1)
             self._supporting_metric_widgets.append((metric,label_widget,label))
         self._reflow_supporting_metrics()
-        self._result_empty_state=EmptyState(results,"result","Henüz sonuç üretilmedi","Girdileri tamamlayın ve Hesapla komutunu çalıştırın.",image_size=145);self._result_empty_state.grid(row=1,column=0,columnspan=2,sticky="nsew");self._result_metrics=(self._total_loss_metric,self._system_metric,self._system_relation,losses_metrics,self._supporting_metrics)
+        self._result_empty_state=EmptyState(results,"result",self._translate("guidance.empty.title"),self._translate("guidance.empty.discharge"),image_size=145);self._result_empty_state.grid(row=1,column=0,columnspan=2,sticky="nsew");self._result_metrics=(self._total_loss_metric,self._system_metric,self._system_relation,losses_metrics,self._supporting_metrics)
         self._warning_panel=EngineeringWarningPanel(results,self._translate);self._warning_panel.grid(row=6,column=0,columnspan=2,sticky="ew",pady=(8,0));self._warning_panel.set_findings(())
         ttk.Label(self,textvariable=self._message,wraplength=1000).grid(row=3,column=0,sticky="w",pady=(8,0))
         self._formula_panel=FormulaReferencePanel(self,self._formula_sections,self._translate,self._create_formula_toggle,lambda:hasattr(self,"_last_result"),step_provider=self._formula_steps, separate_window=True, module_key="discharge_head_loss");self._formula_panel.grid(row=4,column=0,sticky="ew",pady=(10,0))
@@ -122,6 +123,7 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         return create_rounded_button(parent,text,command,style="RoundedFormula.TButton",palette=FORMULA_BUTTON_PALETTE,icon_name="formula",icon_size=36)
     def refresh_texts(self)->None:
         """Refresh discharge labels without changing hydraulic inputs or results."""
+        localize_guidance(self, 'discharge', self._translate)
         manual=self._source_mode=="manual";self._suppress_dirty=True;self._source.set(self._translate("message.manual_source") if manual else self._translate("message.material_source"));self._suppress_dirty=False;self.configure(text=self._translate("page.discharge.tab"));self._header.set_content(self._translate("page.discharge.title"),self._translate("page.discharge.description"));self._pipe_card.configure(text=self._translate("section.hydraulic_inputs"));self._losses_card.configure(text=self._translate("section.local_losses"));self._results_card.configure(text=self._translate("section.calculation_results"));self._calculate_button.configure(text=self._translate("calculation.calculate"));self._clear_button.configure(text=self._translate("common.clear"));self._system_metric.set_label(self._translate("result.pump_discharge_head"));self._total_loss_metric.set_label(self._translate("result.total_hydraulic_loss"));self._local_loss_metric.set_label(self._translate("result.local_loss"));self._pipe_loss_metric.set_label(self._translate("result.pipe_friction_loss"));self._field_label_d.configure(text=self._translate("field.pipe_inside_diameter"));self._field_label_q.configure(text=self._translate("field.flow_rate"));self._field_label_nu.configure(text=self._translate("field.kinematic_viscosity"));self._field_label_l.configure(text=self._translate("field.pipe_length"));self._field_label_h.configure(text=self._translate("field.geodetic_head"));self._source_label.configure(text=self._translate("field.roughness_source"));self._material_label.configure(text=self._translate("field.material"));self._active_roughness_label.configure(text=self._translate("field.active_roughness"));self._source_box.configure(values=(self._translate("message.material_source"),self._translate("message.manual_source")));self._tree.heading("name",text=self._translate("table.component"));self._tree.heading("quantity",text=self._translate("table.quantity"));self._tree.heading("total",text=self._translate("table.quantity_times_k"));self._add_button.configure(text=self._translate("common.add"));self._edit_button.configure(text=self._translate("common.edit"));self._delete_button.configure(text=self._translate("common.delete"));self._clear_all_button.configure(text=self._translate("action.clear_all"));
         self._warning_fluid_label.configure(text=self._translate("field.system_fluid"));self._load_warning_fluids();self._warning_panel.refresh_texts()
         for _metric,label,key in self._supporting_metric_widgets:

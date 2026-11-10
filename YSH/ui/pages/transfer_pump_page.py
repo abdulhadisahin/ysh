@@ -4,6 +4,7 @@ from __future__ import annotations
 from ui.widgets.module_visuals import apply_module_visuals
 
 import tkinter as tk
+from ui.widgets.input_guidance import localize_guidance
 from ui.widgets.numeric_input import numeric_entry
 import logging
 from collections.abc import Callable, Sequence
@@ -216,7 +217,7 @@ class TransferPumpPage(ttk.LabelFrame):
         )
         self._r_squared_metric.grid(row=3, column=0, sticky="ew", pady=(4, 0))
         self._result_metrics = (self._pump_result_metric, self._required_12h_metric, self._emptying_result_metric, self._r_squared_metric)
-        self._result_empty_state = EmptyState(results, "result", "Henüz sonuç üretilmedi", "Girdileri tamamlayın ve Hesapla komutunu çalıştırın.", image_size=150)
+        self._result_empty_state = EmptyState(results, "result", self._translate("guidance.empty.title"), self._translate("guidance.empty.transfer_empirical"), image_size=150)
         self._result_empty_state.grid(row=0, column=0, sticky="nsew")
 
         analysis = ttk.Frame(self)
@@ -303,6 +304,7 @@ class TransferPumpPage(ttk.LabelFrame):
 
     def refresh_texts(self) -> None:
         """Refresh Transfer Pump text while retaining references and regression state."""
+        localize_guidance(self, 'transfer_empirical', self._translate)
         mode = self._selected_capacity_mode()
         self._suppress_dirty = True
         try:

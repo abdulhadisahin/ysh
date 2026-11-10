@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import logging
 import tkinter as tk
+from ui.widgets.input_guidance import localize_guidance
 from uuid import UUID
 from collections.abc import Callable
 from tkinter import ttk
@@ -488,7 +489,7 @@ class PipeDesignPage(ttk.Frame):
         )
         self._use_recommended_pipe_button.grid(row=8, column=0, sticky="w", pady=(SM, 0))
         self._pipe_result_metrics=(self._diameter_metric_label,self._diameter_metric_value,self._diameter_unit_label,self._diameter_standard_label,self._diameter_standard_value,self._diameter_dn_label,self._diameter_dn_value,self._recommended_outside_label,self._recommended_outside_value,self._use_recommended_pipe_button)
-        self._pipe_result_empty_state=EmptyState(diameter_metrics,"result","Henüz sonuç üretilmedi","Girdileri tamamlayın ve Hesapla komutunu çalıştırın.",image_size=140);self._pipe_result_empty_state.grid(row=0,column=0,columnspan=2,sticky="nsew")
+        self._pipe_result_empty_state=EmptyState(diameter_metrics,"result",self._translate("guidance.empty.title"),self._translate("guidance.empty.pipe"),image_size=140);self._pipe_result_empty_state.grid(row=0,column=0,columnspan=2,sticky="nsew")
 
         self._wall_inputs = SurfaceCard(
             inputs,
@@ -774,7 +775,7 @@ class PipeDesignPage(ttk.Frame):
             self._wall_supporting_labels.append(label)
 
         self._wall_metric_widgets=tuple(wall_metrics.winfo_children())
-        self._wall_empty_result=ttk.Label(wall_metrics,text=self._t('result.empty_guidance'),style='PipeMetricLabel.TLabel',wraplength=250)
+        self._wall_empty_result=ttk.Label(wall_metrics,text=self._t('guidance.empty.pipe_wall'),style='PipeMetricLabel.TLabel',wraplength=250)
         self._wall_empty_result.grid(row=0,column=0,columnspan=2,sticky='w',pady=8)
 
         message_label = ttk.Label(self, textvariable=self._message, wraplength=650)
@@ -930,6 +931,7 @@ class PipeDesignPage(ttk.Frame):
 
     def refresh_texts(self) -> None:
         """Refresh Pipe Design labels without recreating inputs or result state."""
+        localize_guidance(self, 'pipe', self._translate)
         self._table_89_button.configure(text=self._translate("pipe.source_notes"))
         self._header.set_content(self._translate("page.pipe.title"), self._translate("page.pipe.description"))
         self._diameter_stage_label.configure(text=self._translate("pipe.stage.diameter"))
@@ -1448,7 +1450,7 @@ class PipeDesignPage(ttk.Frame):
         """Render wall details from the stored authoritative wall result only."""
         set_result_state(getattr(self,"_wall_result_card",None),bool(getattr(self,"_wall_result",None)))
         if hasattr(self,'_wall_empty_result'):
-            self._wall_empty_result.configure(text=self._t('result.empty_guidance'))
+            self._wall_empty_result.configure(text=self._t('guidance.empty.pipe_wall'))
             for widget in self._wall_metric_widgets:(widget.grid if self._wall_result else widget.grid_remove)()
             (self._wall_empty_result.grid_remove if self._wall_result else self._wall_empty_result.grid)()
         if not self._wall_result:
