@@ -1,7 +1,8 @@
 """Compact source summaries plus explicit Library selection; no engineering math."""
 import tkinter as tk
 from tkinter import ttk
-from ui.widgets.source_status import source_text, source_style
+from ui.widgets.tooltip import Tooltip
+from ui.widgets.source_status import source_text, source_style, library_source_name
 from ui.theme.spacing import SOURCE_FIELD_WIDTH
 from engineering.input_parsing import parse_engineering_float
 
@@ -34,17 +35,20 @@ class FireLibraryInputPanel(ttk.Frame):
         self.context.trace_add('write',self._context)
         self.refresh_button=ttk.Button(body,command=self.refresh,style='Fire.Secondary.TButton')
         self.refresh_button.grid(row=2,column=0,sticky='w',pady=4)
-        self.boxes={}
+        self.boxes={};self.choice_hints={};self.action_hints={}
         for index,name in enumerate(self.names):
             row=3+index*5
             label=ttk.Label(body,style='Fire.TLabel');label.grid(row=row,column=0,sticky='w');self.controls.append((label,view.spec[name][0]))
             combo=ttk.Combobox(body,state='readonly',width=SOURCE_FIELD_WIDTH,style='Fire.TCombobox')
             combo.grid(row=row+1,column=0,sticky='w');self.boxes[name]=combo
             combo.bind('<<ComboboxSelected>>',lambda _event:self.sync())
+            self.choice_hints[name]=Tooltip(combo,'',wraplength=280)
             self.buttons[name]={}
             actions=ttk.Frame(body,style='Fire.TFrame');actions.grid(row=row+2,column=0,sticky='w',pady=3)
             for column,action in enumerate(('use','update','keep','manual')):
                 button=ttk.Button(actions,command=lambda n=name,a=action:self.action(n,a),style='Compact.Fire.Secondary.TButton')
+                if action in ('update','keep'):
+                    self.action_hints[(name,action)]=Tooltip(button,'',wraplength=280)
                 button.grid(row=0,column=column,padx=(0,4));self.controls.append((button,'fire.library.'+action));self.buttons[name][action]=button
             reason_label=ttk.Label(self,style='Fire.TLabel');reason_label.grid(row=index*3+1,column=0,sticky='w')
             self.controls.append((reason_label,'fire.ui.reason'))
@@ -82,7 +86,7 @@ class FireLibraryInputPanel(ttk.Frame):
                     if record.parameter_type!=FIELD_PARAMETERS[name]:continue
                     value=fraction_to_percent(record.value) if name=='foam_fraction' else record.value
                     unit='%' if name=='foam_fraction' else record.unit
-                    label=f'{len(self.choices[name])+1}. {number(value)} {unit} · {record.source.document if record.source else ""} · r{record.revision}'
+                    label=f'{len(self.choices[name])+1}. {library_source_name(record,self.view.tr)} · {number(value)} {unit} · r{record.revision}'
                     self.choices[name][label]=record
                 box.configure(values=tuple(self.choices[name]))
                 box.set(next((label for label,item in self.choices[name].items() if item==selected),''))
@@ -132,7 +136,12 @@ class FireLibraryInputPanel(ttk.Frame):
             stale=bool(record and self.model.library_inputs.stale.get(name))
             mode_text=source_text(tr,'library' if record else 'manual',linked=bool(record),override=override,stale=stale)
             text=f'{tr(self.view.spec[name][0])} · {mode_text}\n{tr("fire.library.recommended")}: {recommended} · {tr("fire.library.used")}: {used} {unit}\n{tr("fire.ui.source."+status)}'
-            if source:text+=' · '+source+(f' · r{record.revision}' if record else '')
+            if record:
+                text+=' · '+tr('selection.applied')+': '+library_source_name(record,tr)+f' · r{record.revision}'
+            elif source:text+=' · '+source
+            if stale:
+                latest=next((item for item in self.choices.get(name,{}).values() if item.id==record.id),None)
+                text+=' · '+(tr('selection.new_revision',revision=latest.revision) if latest else tr('selection.unavailable'))
             if record and not record.applicable(self.context.get(),self.model.library_service(self.view.kind)):
                 text+=' · '+tr('fire.library.mismatch')
             if self.model.library_inputs.kept.get(name):text+=' · '+tr('fire.library.kept')
@@ -145,6 +154,14 @@ class FireLibraryInputPanel(ttk.Frame):
             for widget in self.view.meta_reason_controls[name]:
                 (widget.grid if not record and override else widget.grid_remove)()
             stale=bool(record and self.model.library_inputs.stale.get(name))
+            candidate=self.choices.get(name,{}).get(self.boxes[name].get())
+            preview=tr('selection.none')
+            if candidate:
+                candidate_value=fraction_to_percent(candidate.value) if name=='foam_fraction' else candidate.value
+                preview=tr('selection.library_preview',source=library_source_name(candidate,tr),field=tr(self.view.spec[name][0]),value=number(candidate_value),unit=unit,action=tr('fire.library.use'))
+            self.choice_hints[name].set_text(preview)
+            for action in ('update','keep'):
+                self.action_hints[(name,action)].set_text(tr('selection.library_update' if action=='update' else 'selection.keep'))
             for action,button in self.buttons[name].items():
                 visible=action=='use' or action=='manual' and record is not None or action in ('update','keep') and stale
                 (button.grid if visible else button.grid_remove)()

@@ -1,7 +1,7 @@
 """Live Fire views consume application results, never engineering equations."""
 import tkinter as tk
 from ui.widgets.input_guidance import localize_guidance
-from ui.widgets.source_status import source_text, source_style
+from ui.widgets.source_status import source_text, source_style, pipe_source_name
 from ui.theme.spacing import SOURCE_FIELD_WIDTH
 from ui.widgets.numeric_input import numeric_entry
 from ui.widgets.calculation_presentation import calculation_button
@@ -9,6 +9,7 @@ from ui.widgets.rounded_button import RoundedButtonPalette
 from ui.theme.fire_identity import FIRE_ACCENT, FIRE_DARK
 from ui.theme import colors
 from tkinter import ttk
+from ui.widgets.tooltip import Tooltip
 from collections.abc import Mapping
 
 from engineering.fire.enums import FireSourceStatus
@@ -188,9 +189,11 @@ class FireCalculatorPage(ttk.Frame):
         self.source_box=ttk.Combobox(self.link,textvariable=self.source_var,state='readonly',width=SOURCE_FIELD_WIDTH,style='Fire.TCombobox');self.source_box.grid(row=2,column=1,sticky='w',pady=4)
         self.service_box.bind('<<ComboboxSelected>>',self._service);self.mode_box.bind('<<ComboboxSelected>>',self._mode)
         buttons=ttk.Frame(self.link,style='Fire.TFrame');buttons.grid(row=3,column=0,columnspan=2,sticky='w')
-        self.link_buttons=[]
+        self.link_buttons=[];self._pipe_action_hints={}
+        self._pipe_choice_hint=Tooltip(self.source_box,'',wraplength=280)
         for col,action in enumerate(('link','update','keep')):
             button=ttk.Button(buttons,command=lambda a=action:self.pipe_action(a),style='Compact.Fire.Secondary.TButton');button.grid(row=0,column=col,padx=(0,6),pady=6);self.link_buttons.append((button,'fire.ui.'+action))
+            if action in ('update','keep'):self._pipe_action_hints[action]=Tooltip(button,'',wraplength=280)
         self.pipe_status=ttk.Label(self.link,style='Fire.TLabel',wraplength=540);self.pipe_status.grid(row=4,column=0,columnspan=2,sticky='ew',pady=4)
 
     def _edit(self,name):
@@ -345,14 +348,25 @@ class FireCalculatorPage(ttk.Frame):
             current=self.source_var.get()
             selected=getattr(self,'source_choices_pipe',{}).get(current)
             selected_id=selected.selection_id if selected else None
-            self.source_choices_pipe={f'{index}. {s.selected_standard_code or ""} · Di {number(s.actual_internal_diameter_mm)} mm · r{s.revision}':s for index,s in enumerate(self.workspace.sources.available(),1)}
+            self.source_choices_pipe={str(index)+'. '+pipe_source_name(self.tr,s.selected_standard_code,s.nominal_diameter,s.revision):s for index,s in enumerate(self.workspace.sources.available(),1)}
             self.source_box.configure(values=tuple(self.source_choices_pipe))
             self.source_var.set(next((label for label,item in self.source_choices_pipe.items() if item.selection_id==selected_id),next(iter(self.source_choices_pipe),'')))
             snap=self.model.pipe.snapshot
-            self.pipe_status.configure(text=(self.tr('discharge.pipe.status.'+self.model.pipe.status.value)+
-                f' · Di {number(snap.values.actual_internal_diameter_mm)} mm · '+self.tr('fire.ui.revision')+f' {snap.source_revision}'
+            applied=(self.tr('selection.applied')+': '+pipe_source_name(self.tr,snap.values.standard_code,snap.values.nominal_diameter,snap.source_revision)+
+                     f' → Di {number(snap.values.actual_internal_diameter_mm)} mm · Q {number(snap.values.flow_rate_m3_h)} m³/h') if snap else ''
+            self.pipe_status.configure(text=(self.tr('discharge.pipe.status.'+self.model.pipe.status.value)+' · '+applied
                 if snap and readonly else self.tr('fire.ui.pipe_missing') if readonly else self.tr('fire.value.MANUAL')))
+            candidate=self.source_choices_pipe.get(self.source_var.get())
+            preview=self.tr('selection.none')
+            if candidate:preview=self.tr('selection.pipe_preview',source=pipe_source_name(self.tr,candidate.selected_standard_code,candidate.nominal_diameter,candidate.revision))+' '+self.tr('selection.pipe_apply')
+            self._pipe_choice_hint.set_text(preview)
+            for action,hint in self._pipe_action_hints.items():hint.set_text(self.tr('selection.pipe_update' if action=='update' else 'selection.keep'))
             pipe_stale=readonly and self.model.pipe.status.value not in ('MANUAL','LINKED_SYNCED')
+            for button,key in self.link_buttons:
+                action=key.rsplit('.',1)[-1]
+                if action in ('update','keep'):
+                    (button.grid if pipe_stale else button.grid_remove)()
+                    if action=='update':button.configure(state='normal' if snap and any(item.selection_id==snap.source_selection_id for item in self.source_choices_pipe.values()) else 'disabled')
             self.pipe_status.configure(style=source_style(self.pipe_status,'Fire.TLabel',stale=pipe_stale))
             self.loading=previous
 

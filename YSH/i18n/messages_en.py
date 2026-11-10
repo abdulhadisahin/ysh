@@ -957,3 +957,20 @@ MESSAGES.update({'source.state.manual': 'Manual',
 
 MESSAGES.update({'discharge.pipe.manual': MESSAGES['source.state.manual'],
                  'discharge.pipe.linked': MESSAGES['source.state.linked']})
+
+MESSAGES.update({'selection.applied': 'Applied source',
+ 'selection.values': 'Feeds',
+ 'selection.candidate': 'Selected candidate',
+ 'selection.none': 'No new candidate selected.',
+ 'selection.library_preview': 'Selected candidate: {source} → {field}: {value} {unit}. Select '
+                              '{action} to apply.',
+ 'selection.library_update': 'Applies the latest source revision; existing user overrides are '
+                             'retained.',
+ 'selection.keep': 'Keeps the applied revision and values; the stale state remains.',
+ 'selection.pipe_update': 'Updates linked diameter and flow from the latest source revision.',
+ 'selection.pipe_preview': 'Selected candidate: {source}. Feeds diameter and flow in Linked mode.',
+ 'selection.pipe_apply': 'Select Link Pipe to apply the selected candidate.',
+ 'selection.new_revision': 'Latest revision: {revision}',
+ 'selection.unavailable': 'Source is not listed in this context.'})
+
+MESSAGES["selection.library_update"] = 'Refreshes the recommendation from the latest revision; entered values are retained.'

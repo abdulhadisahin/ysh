@@ -971,3 +971,20 @@ MESSAGES.update({'source.state.manual': 'Manuel',
 
 MESSAGES.update({'discharge.pipe.manual': MESSAGES['source.state.manual'],
                  'discharge.pipe.linked': MESSAGES['source.state.linked']})
+
+MESSAGES.update({'selection.applied': 'Uygulanan kaynak',
+ 'selection.values': 'Beslediği değerler',
+ 'selection.candidate': 'Seçili aday',
+ 'selection.none': 'Yeni aday seçilmedi.',
+ 'selection.library_preview': 'Seçili aday: {source} → {field}: {value} {unit}. Aktarmak için '
+                              '{action} seçin.',
+ 'selection.library_update': 'Son kaynak revizyonunu alır; mevcut kullanıcı değişikliklerini '
+                             'korur.',
+ 'selection.keep': 'Uygulanan revizyonu ve değerleri korur; güncel değil durumu devam eder.',
+ 'selection.pipe_update': 'Bağlı çap ve debiyi kaynağın son revizyonundan günceller.',
+ 'selection.pipe_preview': 'Seçili aday: {source}. Bağlı modunda çap ve debiyi besler.',
+ 'selection.pipe_apply': 'Seçili adayı uygulamak için Boruyu Bağla seçin.',
+ 'selection.new_revision': 'Yeni revizyon: {revision}',
+ 'selection.unavailable': 'Kaynak bu bağlamda listelenmiyor.'})
+
+MESSAGES["selection.library_update"] = 'Son revizyonun önerisini alır; girilmiş değerleri korur.'

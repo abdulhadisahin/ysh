@@ -3,6 +3,21 @@ from tkinter import ttk
 from ui.theme import colors
 
 
+def library_source_name(record, translate):
+    """A human name/context only; identity remains in the caller's object map."""
+    def compact(text):
+        text=' '.join(text.split())
+        return text if len(text)<=48 else text[:47]+'…'
+    document=compact(record.source.document) if record.source and record.source.document else ''
+    context=compact(record.context)
+    return ' · '.join(dict.fromkeys(part for part in (document,context) if part)) or translate('source.state.library')
+
+
+def pipe_source_name(translate, standard, nominal, revision):
+    return ' · '.join(part for part in (standard,nominal,
+        translate('discharge.pipe.revision')+' '+str(revision)) if part)
+
+
 def source_text(translate, origin, *, linked=False, override=False, stale=False):
     parts=[translate('source.state.'+origin)]
     if linked and origin!='linked':parts.append(translate('source.state.linked'))

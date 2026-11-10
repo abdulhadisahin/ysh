@@ -5,6 +5,7 @@ from collections.abc import Callable
 import logging
 import tkinter as tk
 from tkinter import ttk
+from ui.widgets.tooltip import Tooltip
 from uuid import UUID
 
 from engineering.pipe_design.rules import DesignStatus
@@ -14,7 +15,7 @@ from engineering.validation import ValidationError
 from i18n.validation import render_validation_issue
 from services.discharge_workflow import DischargeWorkflow
 from ui.formatting import format_user_number
-from ui.widgets.source_status import source_style
+from ui.widgets.source_status import source_style, pipe_source_name
 
 
 class DischargePipeSourcePanel(ttk.LabelFrame):
@@ -43,12 +44,15 @@ class DischargePipeSourcePanel(ttk.LabelFrame):
         self._source_box.grid(row=1, column=0, columnspan=2, sticky="ew", pady=3)
         self._source_box.bind("<<ComboboxSelected>>", self._choose_source)
         self._buttons: dict[str, ttk.Button] = {}
+        self._action_hints={}
+        self._choice_hint=Tooltip(self._source_box,'',wraplength=280)
         for column, (key, command) in enumerate((
             ("update", self._update), ("keep", self._keep),
         )):
             button = ttk.Button(self, command=command)
             button.grid(row=2, column=column, sticky="w", padx=(0, 8), pady=3)
             self._buttons[key] = button
+            self._action_hints[key]=Tooltip(button,'',wraplength=280)
         self._status_label=ttk.Label(self, textvariable=self._status, wraplength=600)
         self._status_label.grid(row=0, column=1, columnspan=3, sticky="w")
         self._normal_status_style='Info.TLabel'
@@ -100,16 +104,19 @@ class DischargePipeSourcePanel(ttk.LabelFrame):
         details = self._translate("discharge.pipe.help" if sources else "discharge.pipe.no_available")
         if snapshot:
             values = snapshot.values
-            details = (f"{values.standard_code or '—'} · {values.nominal_diameter or '—'} · "
-                f"NPS {values.nps or '—'} · Schedule {values.schedule or '—'} · "
-                f"OD {self._number(values.outside_diameter_mm)} mm · "
-                f"t {self._number(values.wall_thickness_mm)} mm · "
-                f"Di {format_user_number(values.actual_internal_diameter_mm)} mm · "
-                f"Q {format_user_number(values.flow_rate_m3_h)} m³/h · "
-                f"{self._translate('discharge.pipe.revision')} {snapshot.source_revision}")
+            name=pipe_source_name(self._translate,values.standard_code,values.nominal_diameter,snapshot.source_revision)
+            selected=self.workflow.source(self._selected_id) if self._selected_id else None
+            same=selected and selected.selection_id==snapshot.source_selection_id and selected.revision==snapshot.source_revision
+            prefix=self._translate('selection.values') if same else self._translate('selection.applied')+': '+name
+            details=(prefix+f" → Di {format_user_number(values.actual_internal_diameter_mm)} mm · "
+                     f"Q {format_user_number(values.flow_rate_m3_h)} m³/h")
             if snapshot.upstream_status is not DesignStatus.SUCCESS:
                 details += " · " + self._translate("discharge.pipe.provisional")
         self._details.set(details)
+        selected=self.workflow.source(self._selected_id) if self._selected_id else None
+        if hasattr(self,'_choice_hint'):
+            self._choice_hint.set_text(self._translate('selection.pipe_preview',source=pipe_source_name(self._translate,selected.selected_standard_code,selected.nominal_diameter,selected.revision)) if selected else self._translate('selection.none'))
+            for action,hint in self._action_hints.items():hint.set_text(self._translate('selection.pipe_update' if action=='update' else 'selection.keep'))
         current = self.workflow.source(snapshot.source_selection_id) if snapshot else None
         self._buttons["update"].configure(state="normal" if current and current.selection_id in self._source_ids else "disabled")
         self._buttons["keep"].configure(state="disabled" if state.status in (
@@ -139,12 +146,7 @@ class DischargePipeSourcePanel(ttk.LabelFrame):
         self.render()
 
     def _label(self, source: PipeSelection, index: int) -> str:
-        diameter = source.actual_internal_diameter_mm
-        value = format_user_number(diameter) if diameter is not None else "—"
-        return (f"{index}. {source.selected_standard_code or '—'} · "
-                f"{source.nominal_diameter or '—'} · Di {value} mm · "
-                f"Q {format_user_number(source.flow_rate_m3_h)} m³/h · "
-                f"{self._translate('discharge.pipe.revision')} {source.revision}")
+        return f"{index}. "+pipe_source_name(self._translate,source.selected_standard_code,source.nominal_diameter,source.revision)
 
     def _choose_source(self, _event: object = None) -> None:
         index = self._source_box.current()
