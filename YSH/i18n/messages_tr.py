@@ -943,3 +943,31 @@ MESSAGES.update({'guidance.velocity': 'Boru içindeki hedef ortalama akış hız
  'guidance.empty.foam': 'Gerekli girişleri tamamlayıp Hesapla’yı seçerek köpük miktarını bulun.',
  'guidance.empty.hw': 'Debi, iç çap, uzunluk ve C katsayısını girerek hesaplamayı başlatın.',
  'fire.ui.percent_help': 'Köpük yüzdesini giriniz; %3 için 3 yazınız.'})
+
+# Shared source/status vocabulary; stored state codes remain unchanged.
+MESSAGES.update({'source.state.manual': 'Manuel',
+ 'source.state.library': 'Kütüphane',
+ 'source.state.linked': 'Bağlı',
+ 'source.state.override': 'Değiştirildi',
+ 'source.state.stale': 'Güncel değil',
+ 'source.state.current': 'Güncel',
+ 'message.manual_source': 'Manuel',
+ 'message.material_source': 'Kütüphane',
+ 'fire.library.mode.manual': 'Manuel',
+ 'fire.library.mode.override': 'Değiştirildi',
+ 'fire.library.stale': 'Güncel değil',
+ 'fire.value.MANUAL': 'Manuel',
+ 'fire.value.LINKED': 'Bağlı',
+ 'discharge.pipe.status.MANUAL': 'Manuel',
+ 'fire.library.mode.linked': 'Kütüphane · Bağlı',
+ 'discharge.pipe.status.LINKED_SYNCED': 'Bağlı · Güncel',
+ 'discharge.pipe.status.LINKED_STALE': 'Bağlı · Güncel değil',
+ 'fire.value.LINKED_SYNCED': 'Bağlı · Güncel',
+ 'fire.value.LINKED_STALE': 'Bağlı · Güncel değil',
+ 'result.source_manual': 'Kaynak: Manuel',
+ 'result.source_library': 'Kaynak: Kütüphane',
+ 'result.source_linked_pipe': 'Kaynak: Bağlı',
+ 'source.caption': 'Kaynak'})
+
+MESSAGES.update({'discharge.pipe.manual': MESSAGES['source.state.manual'],
+                 'discharge.pipe.linked': MESSAGES['source.state.linked']})

@@ -1,6 +1,7 @@
 """Live Fire views consume application results, never engineering equations."""
 import tkinter as tk
 from ui.widgets.input_guidance import localize_guidance
+from ui.widgets.source_status import source_text, source_style
 from ui.theme.spacing import SOURCE_FIELD_WIDTH
 from ui.widgets.numeric_input import numeric_entry
 from ui.widgets.calculation_presentation import calculation_button
@@ -312,9 +313,15 @@ class FireCalculatorPage(ttk.Frame):
         (self.empty_result.grid_remove if result else self.empty_result.grid)()
         (self.primary_caption.grid if result else self.primary_caption.grid_remove)()
         for label in self.result_labels:(label.grid if result else label.grid_remove)()
-        source_key=('result.source_linked_pipe' if self.kind=='hw' and self.model.mode is PipeInputMode.LINKED else
-                    'result.source_library' if any(name in self.model.library_inputs.links for name in self.spec) else 'result.source_manual')
-        self.source_summary.configure(text=self.tr(source_key) if result else '')
+        summaries=self.library_panel.summaries.values()
+        source_override=any(getattr(label,'source_override',False) for label in summaries)
+        source_stale=any(getattr(label,'source_stale',False) for label in self.library_panel.summaries.values())
+        pipe_linked=self.kind=='hw' and self.model.mode is PipeInputMode.LINKED
+        if pipe_linked:source_stale=source_stale or self.model.pipe.status.value not in ('MANUAL','LINKED_SYNCED')
+        origin='linked' if pipe_linked else 'library' if any(name in self.model.library_inputs.links for name in self.spec) else 'manual'
+        summary=source_text(self.tr,origin,linked=pipe_linked or origin=='library',override=source_override,stale=source_stale)
+        self.source_summary.configure(text=(self.tr('source.caption')+': '+summary) if result else '',
+            style=source_style(self.source_summary,'Fire.TLabel',override=source_override,stale=source_stale))
         if not result:
             if self.formula.expanded:self.formula.toggle()
             for label in self.result_labels:
@@ -336,13 +343,17 @@ class FireCalculatorPage(ttk.Frame):
             readonly=self.model.mode is PipeInputMode.LINKED
             for name in ('flow_lpm','inside_diameter_mm'):self.entries[name].configure(state='readonly' if readonly else 'normal')
             current=self.source_var.get()
-            self.source_choices_pipe={f'{s.selected_standard_code or ""} · Di {number(s.actual_internal_diameter_mm)} mm · r{s.revision} · {str(s.selection_id)[:8]}':s for s in self.workspace.sources.available()}
+            selected=getattr(self,'source_choices_pipe',{}).get(current)
+            selected_id=selected.selection_id if selected else None
+            self.source_choices_pipe={f'{index}. {s.selected_standard_code or ""} · Di {number(s.actual_internal_diameter_mm)} mm · r{s.revision}':s for index,s in enumerate(self.workspace.sources.available(),1)}
             self.source_box.configure(values=tuple(self.source_choices_pipe))
-            if current not in self.source_choices_pipe:self.source_var.set(next(iter(self.source_choices_pipe),''))
+            self.source_var.set(next((label for label,item in self.source_choices_pipe.items() if item.selection_id==selected_id),next(iter(self.source_choices_pipe),'')))
             snap=self.model.pipe.snapshot
             self.pipe_status.configure(text=(self.tr('discharge.pipe.status.'+self.model.pipe.status.value)+
                 f' · Di {number(snap.values.actual_internal_diameter_mm)} mm · '+self.tr('fire.ui.revision')+f' {snap.source_revision}'
                 if snap and readonly else self.tr('fire.ui.pipe_missing') if readonly else self.tr('fire.value.MANUAL')))
+            pipe_stale=readonly and self.model.pipe.status.value not in ('MANUAL','LINKED_SYNCED')
+            self.pipe_status.configure(style=source_style(self.pipe_status,'Fire.TLabel',stale=pipe_stale))
             self.loading=previous
 
     def refresh_texts(self):

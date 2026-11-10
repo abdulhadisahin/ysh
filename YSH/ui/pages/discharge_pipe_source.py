@@ -14,6 +14,7 @@ from engineering.validation import ValidationError
 from i18n.validation import render_validation_issue
 from services.discharge_workflow import DischargeWorkflow
 from ui.formatting import format_user_number
+from ui.widgets.source_status import source_style
 
 
 class DischargePipeSourcePanel(ttk.LabelFrame):
@@ -115,8 +116,8 @@ class DischargePipeSourcePanel(ttk.LabelFrame):
             PipeLinkStatus.MANUAL, PipeLinkStatus.LINKED_SYNCED) else "normal")
         stale=state.mode is PipeInputMode.LINKED and state.status not in (PipeLinkStatus.MANUAL,PipeLinkStatus.LINKED_SYNCED)
         current_style=self._status_label.cget('style')
-        if current_style and current_style!='StatusWarning.TLabel':self._normal_status_style=current_style
-        self._status_label.configure(style='StatusWarning.TLabel' if stale else self._normal_status_style)
+        if current_style and current_style!='StatusWarning.TLabel' and not str(current_style).startswith('SourceStatus.'):self._normal_status_style=current_style
+        self._status_label.configure(style=source_style(self._status_label,self._normal_status_style,stale=stale))
         for action in ('update','keep'):
             button=self._buttons[action]
             (button.grid if stale else button.grid_remove)()

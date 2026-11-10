@@ -929,3 +929,31 @@ MESSAGES.update({'guidance.velocity': 'The target mean flow velocity inside the 
                         'quantity.',
  'guidance.empty.hw': 'Enter flow, inside diameter, length and C to start the calculation.',
  'fire.ui.percent_help': 'Enter a percentage; for 3%, enter 3.'})
+
+# Shared source/status vocabulary; stored state codes remain unchanged.
+MESSAGES.update({'source.state.manual': 'Manual',
+ 'source.state.library': 'Library',
+ 'source.state.linked': 'Linked',
+ 'source.state.override': 'Override',
+ 'source.state.stale': 'Stale',
+ 'source.state.current': 'Current',
+ 'message.manual_source': 'Manual',
+ 'message.material_source': 'Library',
+ 'fire.library.mode.manual': 'Manual',
+ 'fire.library.mode.override': 'Override',
+ 'fire.library.stale': 'Stale',
+ 'fire.value.MANUAL': 'Manual',
+ 'fire.value.LINKED': 'Linked',
+ 'discharge.pipe.status.MANUAL': 'Manual',
+ 'fire.library.mode.linked': 'Library · Linked',
+ 'discharge.pipe.status.LINKED_SYNCED': 'Linked · Current',
+ 'discharge.pipe.status.LINKED_STALE': 'Linked · Stale',
+ 'fire.value.LINKED_SYNCED': 'Linked · Current',
+ 'fire.value.LINKED_STALE': 'Linked · Stale',
+ 'result.source_manual': 'Source: Manual',
+ 'result.source_library': 'Source: Library',
+ 'result.source_linked_pipe': 'Source: Linked',
+ 'source.caption': 'Source'})
+
+MESSAGES.update({'discharge.pipe.manual': MESSAGES['source.state.manual'],
+                 'discharge.pipe.linked': MESSAGES['source.state.linked']})

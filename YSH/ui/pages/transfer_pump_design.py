@@ -137,7 +137,10 @@ class TransferPumpDesignPanel(ttk.Frame):
         for metric in (self._flow_metric,self._time_metric):(metric.grid if result else metric.grid_remove)()
         self._flow.set(format_user_number(result.required_flow_m3_h) if result else '—')
         self._time.set(format_user_number(result.transfer_time_h) if result and result.transfer_time_h is not None else '—')
-        self._status.set(self._translate(f'transfer.design.status.{result.status.value}') if result else '')
+        status=self._translate(f'transfer.design.status.{result.status.value}') if result else ''
+        if result and all(source.source_type.value=='USER_INPUT' for source in (result.input.volume_source,result.input.target_time_source)):
+            status+=' · '+self._translate('result.source_manual')
+        self._status.set(status)
 
     def _invalidate(self, *_args: object) -> None:
         if not self._suppress:

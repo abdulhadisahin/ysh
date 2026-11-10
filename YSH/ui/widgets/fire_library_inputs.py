@@ -1,6 +1,7 @@
 """Compact source summaries plus explicit Library selection; no engineering math."""
 import tkinter as tk
 from tkinter import ttk
+from ui.widgets.source_status import source_text, source_style
 from ui.theme.spacing import SOURCE_FIELD_WIDTH
 from engineering.input_parsing import parse_engineering_float
 
@@ -128,14 +129,15 @@ class FireLibraryInputPanel(ttk.Frame):
             recommended=(number(value) if record else recommendation)+' '+unit if recommendation not in (None,'') else '—'
             used=self.model.fields[self.view.kind][name] or '—'
             override=self._is_override(name,value if record else self.model.metadata[self.view.kind][name]['recommended'])
-            mode='override' if override else 'linked' if record else 'manual'
-            text=f'{tr(self.view.spec[name][0])} · {tr("fire.library.mode."+mode)}\n{tr("fire.library.recommended")}: {recommended} · {tr("fire.library.used")}: {used} {unit}\n{tr("fire.ui.source."+status)}'
+            stale=bool(record and self.model.library_inputs.stale.get(name))
+            mode_text=source_text(tr,'library' if record else 'manual',linked=bool(record),override=override,stale=stale)
+            text=f'{tr(self.view.spec[name][0])} · {mode_text}\n{tr("fire.library.recommended")}: {recommended} · {tr("fire.library.used")}: {used} {unit}\n{tr("fire.ui.source."+status)}'
             if source:text+=' · '+source+(f' · r{record.revision}' if record else '')
             if record and not record.applicable(self.context.get(),self.model.library_service(self.view.kind)):
                 text+=' · '+tr('fire.library.mismatch')
-            if self.model.library_inputs.stale.get(name):text+=' · '+tr('fire.library.stale')
             if self.model.library_inputs.kept.get(name):text+=' · '+tr('fire.library.kept')
-            label.configure(text=text,style='Fire.Source.'+fire_source_role(status)+'.TLabel')
+            label.configure(text=text,style=source_style(label,'Fire.Source.'+fire_source_role(status)+'.TLabel',override=override,stale=stale))
+            label.source_override=override;label.source_stale=stale
             for widget in self.reasons[name]:(widget.grid if record and override else widget.grid_remove)()
             # Linked source fields are already represented by the frozen summary.
             group=self.view.meta_groups[name]
