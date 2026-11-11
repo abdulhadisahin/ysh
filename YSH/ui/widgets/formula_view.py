@@ -128,6 +128,41 @@ class FormulaReferencePanel(ttk.Frame):
         self._formula_asset_images: list[LoadedImage] = []
         self._section_marker_images: list[LoadedImage] = []
 
+    def configure_post_tools(self, *, on_history, on_pdf, pdf_available,
+                             history_available=None, formula_available=None):
+        """Opt current calculation pages into one row; retain existing callbacks."""
+        from ui.widgets.calculation_presentation import calculation_button
+        from ui.widgets.tooltip import Tooltip
+        self._post_pdf_available=pdf_available
+        self._post_history_available=history_available or (lambda:callable(on_history))
+        self._post_formula_available=formula_available
+        if not hasattr(self,'_history_button'):
+            self._history_button=calculation_button(self,'',lambda:None,
+                style='PostTools.TButton',icon_name='history')
+            self._post_history_hint=Tooltip(self._history_button,'',wraplength=280)
+            self._pdf_button=calculation_button(self,'',lambda:None,
+                style='PostTools.TButton',icon_name='pdf')
+        self._history_button.configure(command=lambda:on_history() if callable(on_history) and self._post_history_available() else None)
+        self._pdf_button.configure(command=lambda:on_pdf() if self._post_pdf_available() else None)
+        for column,button in enumerate((self._toggle,self._history_button,self._pdf_button)):
+            self.columnconfigure(column,weight=0)
+            button.grid(row=0,column=column,sticky='w',padx=(0,8))
+        self.columnconfigure(3,weight=1)
+        self.refresh_post_tools()
+
+    def refresh_post_tools(self):
+        """Presentation eligibility delegates to the page's existing predicates."""
+        if not hasattr(self,'_post_pdf_available'):return
+        available=(self._post_formula_available() if self._post_formula_available is not None else
+                   self._content_available() if self._content_available is not None else
+                   bool(self._step_provider and self._step_provider()))
+        self._toggle.configure(state='normal' if available else 'disabled')
+        self._history_button.configure(text=self._translate('post.history'),
+            state='normal' if self._post_history_available() else 'disabled')
+        self._post_history_hint.set_text(self._translate('post.history.help'))
+        self._pdf_button.configure(text=self._translate('action.pdf_current_result'),
+            state='normal' if self._post_pdf_available() else 'disabled')
+
     def _create_content(self, parent: tk.Misc) -> ttk.LabelFrame:
         content = ttk.LabelFrame(
             parent, text="" if self._step_provider else self._translate("formula.view_title" if self._separate_window else "formula.reference"),
@@ -220,6 +255,7 @@ class FormulaReferencePanel(ttk.Frame):
 
     def refresh_texts(self) -> None:
         """Refresh panel chrome while retaining its expanded/collapsed state."""
+        self.refresh_post_tools()
         if self._content is not None:
             self._content.configure(text="" if self._step_provider else self._translate("formula.view_title" if self._separate_window else "formula.reference"))
         if self._dialog is not None:

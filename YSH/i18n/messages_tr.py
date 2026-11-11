@@ -988,3 +988,5 @@ MESSAGES.update({'selection.applied': 'Uygulanan kaynak',
  'selection.unavailable': 'Kaynak bu bağlamda listelenmiyor.'})
 
 MESSAGES["selection.library_update"] = 'Son revizyonun önerisini alır; girilmiş değerleri korur.'
+
+MESSAGES.update({'post.history': 'Geçmiş', 'post.history.help': 'Önceki hesapları açar; güncel sonuç gerekmez.'})

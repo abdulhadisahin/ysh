@@ -47,11 +47,12 @@ class _FireSubviews(Mapping):
 
 class FireWorkspacePage(ttk.Frame):
     """One cached family workspace; both subviews share existing shell services."""
-    def __init__(self,parent,translate,*,sources,context,project,on_snapshot,on_dirty,state=None,library=None):
+    def __init__(self,parent,translate,*,sources,context,project,on_snapshot,on_dirty,state=None,library=None,on_history=None,history_available=None):
         super().__init__(parent,style='Fire.TFrame')
         configure_fire_visuals(ttk.Style(self))
         self.tr=translate;self.sources=sources;self.context_provider=context;self.project_provider=project
         self.on_snapshot=on_snapshot;self.on_dirty=on_dirty
+        self.on_history=on_history;self.history_available=history_available
         self._library_provider=library;self._library_service=None
         self.model=FireWorkspace.from_state(state or {})
         self.columnconfigure(0,weight=1);self.rowconfigure(1,weight=1)
@@ -155,8 +156,6 @@ class FireCalculatorPage(ttk.Frame):
         self.actions=ttk.Frame(self,style='Fire.TFrame');self.actions.grid(row=4,column=0,sticky='ew',pady=8)
         self.calculate_button=calculation_button(self.actions,'',self.calculate,primary=True,style='Fire.Primary.TButton',palette=RoundedButtonPalette((FIRE_DARK,FIRE_ACCENT),(colors.NAVY,FIRE_ACCENT),(colors.DEEP_NAVY,FIRE_DARK),(colors.TEXT_SECONDARY,colors.STRONG_BORDER),FIRE_ACCENT));self.calculate_button.grid(row=0,column=0,padx=(0,8))
         self.clear_button=calculation_button(self.actions,'',self.clear,style='Fire.Secondary.TButton',icon_name='clear');self.clear_button.grid(row=0,column=1)
-        self.secondary_actions=ttk.Frame(self,style='Fire.TFrame');self.secondary_actions.grid(row=9,column=0,sticky='w',pady=6)
-        self.pdf_button=calculation_button(self.secondary_actions,'',self.pdf,style='Fire.PDF.TButton',icon_name='pdf',state='disabled');self.pdf_button.grid(row=0,column=0,sticky='w')
         self.status=ttk.Label(self,style='Fire.Status.TLabel',wraplength=540);self.status.grid(row=6,column=0,sticky='ew',pady=6)
         self.result_card=ttk.Frame(self,style='Fire.Result.TFrame');self.result_card.grid(row=5,column=0,sticky='ew',pady=8)
         self.result_card.columnconfigure(0,weight=1)
@@ -172,6 +171,11 @@ class FireCalculatorPage(ttk.Frame):
             module_key='fire_foam_system' if kind=='foam' else 'fire_hazen_williams',separate_window=True,
             toggle_button_factory=lambda parent,text,command:calculation_button(parent,text,command,style='Fire.Formula.TButton',icon_name='formula'))
         self.formula.grid(row=8,column=0,sticky='ew',pady=6)
+        self.formula.configure_post_tools(on_history=workspace.on_history,history_available=workspace.history_available,
+            on_pdf=self.pdf,pdf_available=lambda:bool(self.model.results[self.kind] and self.model.snapshots[self.kind]),
+            formula_available=lambda:bool(self.model.results[self.kind]))
+        self.secondary_actions=self.formula
+        self.pdf_button=self.formula._pdf_button
         self.load_fields();self.loading=False
 
     @property
@@ -370,6 +374,8 @@ class FireCalculatorPage(ttk.Frame):
             self.pipe_status.configure(style=source_style(self.pipe_status,'Fire.TLabel',stale=pipe_stale))
             self.loading=previous
 
+        self.formula.refresh_post_tools()
+
     def refresh_texts(self):
         localize_guidance(self, self.kind, self.tr)
         self.input_card.configure(text=self.tr('fire.ui.inputs'))
@@ -393,7 +399,7 @@ class FireCalculatorPage(ttk.Frame):
                 value=self.model.metadata[self.kind][name][field]
                 var.set(next(k for k,v in self.source_choices.items() if v==value) if field=='status' else value)
         self.loading=previous
-        for button,key in ((self.calculate_button,'fire.ui.calculate'),(self.clear_button,'fire.ui.clear'),(self.pdf_button,'fire.ui.pdf')):button.configure(text=self.tr(key))
+        for button,key in ((self.calculate_button,'fire.ui.calculate'),(self.clear_button,'fire.ui.clear')):button.configure(text=self.tr(key))
         if self.kind=='hw':
             self.service_choices={self.tr('fire.value.'+s.value):s for s in HWService}
             self.mode_choices={self.tr('fire.value.'+s.value):s for s in PipeInputMode}

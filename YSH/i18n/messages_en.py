@@ -974,3 +974,5 @@ MESSAGES.update({'selection.applied': 'Applied source',
  'selection.unavailable': 'Source is not listed in this context.'})
 
 MESSAGES["selection.library_update"] = 'Refreshes the recommendation from the latest revision; entered values are retained.'
+
+MESSAGES.update({'post.history': 'History', 'post.history.help': 'Opens previous calculations; no current result is required.'})

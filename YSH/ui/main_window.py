@@ -1339,6 +1339,9 @@ class MainWindow:
 
     def _refresh_pdf_action(self,page) -> None:
         """Enable current-result export only while the captured steps remain displayed."""
+        panel=getattr(page,'_formula_panel',None)
+        if panel is not None and hasattr(panel,'_post_pdf_available'):
+            panel.refresh_post_tools();return
         button=getattr(page,'_pdf_button',None)
         if button is None:return
         ready=MainWindow._pdf_is_current(page)
@@ -1362,16 +1365,17 @@ class MainWindow:
             if hasattr(page, '_formula_panel'):
                 from ui.dialogs.pdf_report import save_snapshot_pdf
                 page._pdf_snapshot = None
-                page._pdf_button = ttk.Button(page._formula_panel,
-                    text=self._translate('action.pdf_current_result'), state='disabled',
-                    style=("PipeSecondary.TButton" if code == "pipe_design" else
-                           {"transfer_pump": "TransferSecondary.TButton",
-                            "discharge_head_loss": "DischargeSecondary.TButton",
-                            "suction_npsh": "SuctionSecondary.TButton"}.get(code, "TButton")),
-                    command=lambda target=page: save_snapshot_pdf(self._root, target._pdf_snapshot) if MainWindow._pdf_is_current(target) else None)
-                page._pdf_button.grid(row=0, column=1, sticky='e', padx=(12, 0))
+                page._formula_panel.configure_post_tools(
+                    on_history=self._open_calculation_history,
+                    history_available=lambda:getattr(self,'_snapshot_history',None) is not None,
+                    on_pdf=lambda target=page:save_snapshot_pdf(self._root,target._pdf_snapshot) if MainWindow._pdf_is_current(target) else None,
+                    pdf_available=lambda target=page:MainWindow._pdf_is_current(target))
+                page._pdf_button=page._formula_panel._pdf_button
             if code == 'transfer_pump' and hasattr(page,'_design_panel'):
                 page._design_panel._snapshot_listener = listener
+        fire=getattr(self,'_fire_workspace',None)
+        if fire is not None:
+            for view in tuple(fire.views.created.values()):view.formula.refresh_post_tools()
 
     def _capture_calculation(self, module: object, stage: str, result: object,
                              selection: object, findings: tuple) -> None:
@@ -1477,6 +1481,8 @@ class MainWindow:
                     sources=self._pipe_sources, context=lambda:self._system_context,
                     project=lambda:self._active_project.id if self._active_project else None,
                     on_snapshot=lambda snapshot:self._snapshot_history.append(snapshot),
+                    on_history=self._open_calculation_history,
+                    history_available=lambda:getattr(self,'_snapshot_history',None) is not None,
                     on_dirty=self._mark_workspace_dirty, state=getattr(self,'_fire_pending_state',{}),
                     library=getattr(self,'_library_service_factory',None))
                 self.register_localizable(self._fire_workspace)
