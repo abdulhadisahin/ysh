@@ -403,6 +403,7 @@ class PipeDesignPage(ttk.Frame):
         self._diameter_inputs.columnconfigure(0, weight=1)
         diameter_inputs.grid(row=1, column=0, sticky="nsew", padx=(0, 6))
         diameter_form = diameter_inputs.content
+        diameter_form.workspace_surface_role="input"
         self._diameter_form = diameter_form
         diameter_form.columnconfigure(1, weight=1)
         diameter_form.columnconfigure(3, weight=1)
@@ -511,6 +512,7 @@ class PipeDesignPage(ttk.Frame):
         )
         wall_inputs.grid(row=4, column=0, columnspan=2, sticky="ew")
         wall_form = wall_inputs.content
+        wall_form.workspace_surface_role="input"
         self._wall_form = wall_form
         for column in range(4):
             wall_form.columnconfigure(column, weight=0)

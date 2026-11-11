@@ -119,6 +119,7 @@ class TransferPumpPage(ttk.LabelFrame):
             self._translate("section.new_vessel"),
         )
         estimate = self._estimate_card
+        estimate.workspace_surface_role="input"
         estimate.grid(row=0, column=0, sticky="new", padx=(0, 10))
         estimate.columnconfigure(1, weight=1)
         self._capacity_mode_label = ttk.Label(

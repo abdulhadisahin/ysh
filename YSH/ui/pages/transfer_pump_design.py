@@ -37,6 +37,7 @@ class TransferPumpDesignPanel(ttk.Frame):
         self._flow = tk.StringVar(value='—'); self._time = tk.StringVar(value='—')
         self._status = tk.StringVar(value=''); self._error = tk.StringVar(value='')
         self._inputs = InputCard(self, '')
+        self._inputs.workspace_surface_role="input"
         self._inputs.grid(row=0, column=0, sticky='new', padx=(0,8))
         self._labels = {}
         for row,key in enumerate(self._fields):

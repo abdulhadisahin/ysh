@@ -3,6 +3,7 @@ import pytest
 from tkinter import ttk
 
 from ui.theme.spacing import SOURCE_FIELD_WIDTH, PANEL_TRANSMISSION_FACTOR
+from ui.widgets.workspace_backdrop import input_surface, OUTSIDE_INPUT_OPACITY_FACTOR
 from .test_fire_phase5cd_navigation import application, shell
 from .test_ui_consistency_phase7 import review_language, descendants, assert_horizontal_bounds
 
@@ -57,6 +58,8 @@ def test_shared_panel_transmission_increases_without_touching_labels(shell):
             color=backdrop.style.lookup(base,'background')
             from ui.theme import colors
             previous=.30 if color.lower() in (colors.WORKSPACE_SURFACE.lower(),'#f1f7fa') else .94 if max(rgb)-min(rgb)>12 else .80
-            assert 1-opacity==pytest.approx((1-previous)*1.2)
+            expected=1-(1-previous)*1.2
+            if not input_surface(widget):expected*=OUTSIDE_INPUT_OPACITY_FACTOR
+            assert opacity==pytest.approx(expected)
             assert widget.winfo_class()!='TLabel'
         assert root.attributes('-alpha')==1.0

@@ -125,6 +125,7 @@ class SuctionNPSHPage(ttk.Frame):
         self._pipe_source_panel.grid(row=1, column=0, columnspan=3, sticky="ew", pady=(0, 8))
         self._fluid_card = InputCard(self, self._translate("section.suction_inputs"))
         fluid = self._fluid_card
+        fluid.workspace_surface_role="input"
         fluid.grid(row=1, column=0, sticky="nsew", padx=(0, 6))
         for row, (key, label, suffix) in enumerate((
             ("diameter", "field.pipe_inside_diameter", " Di"),
@@ -200,6 +201,7 @@ class SuctionNPSHPage(ttk.Frame):
 
         self._enpy_card = InputCard(self, self._translate("section.enpy_inputs"))
         enpy = self._enpy_card
+        enpy.workspace_surface_role="input"
         enpy.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(12, 0))
         self._enpy_card.configure(text=self._translate("section.enpy_calculation"))
         for row, (key, label, suffix) in enumerate((

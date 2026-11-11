@@ -112,6 +112,7 @@ class FireCalculatorPage(ttk.Frame):
         self.columnconfigure(0,weight=1)
         self.input_card=ttk.LabelFrame(self,style='Fire.Card.TLabelframe');self.input_card.grid(row=0,column=0,sticky='ew',pady=6)
         self.input_card.composite_panel=True
+        self.input_card.workspace_surface_role="input"
         self.input_card.columnconfigure(3,weight=1)
         self.variables={};self.labels={};self.entries={};self.meta_vars={};self.status_boxes={};self.meta_editors={}
         for index,(name,(key,unit)) in enumerate(self.spec.items()):
@@ -152,6 +153,7 @@ class FireCalculatorPage(ttk.Frame):
                 if field=='reason':self.meta_reason_controls[name]=(label,widget)
                 variable.trace_add('write',lambda *_,n=name,f=field:self._meta(n,f))
         self.library_panel=FireLibraryInputPanel(self.input_card,self)
+        self.library_panel.workspace_surface_role="support"
         self.library_panel.grid(row=6,column=0,columnspan=3,sticky='ew',pady=4)
         self.actions=ttk.Frame(self,style='Fire.TFrame');self.actions.grid(row=4,column=0,sticky='ew',pady=8)
         self.calculate_button=calculation_button(self.actions,'',self.calculate,primary=True,style='Fire.Primary.TButton',palette=RoundedButtonPalette((FIRE_DARK,FIRE_ACCENT),(colors.NAVY,FIRE_ACCENT),(colors.DEEP_NAVY,FIRE_DARK),(colors.TEXT_SECONDARY,colors.STRONG_BORDER),FIRE_ACCENT));self.calculate_button.grid(row=0,column=0,padx=(0,8))

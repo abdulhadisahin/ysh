@@ -203,6 +203,12 @@ class MainWindow:
         self._command_strip = toolbar
         self._header_group_layout = None
         header.bind('<Configure>', self._reflow_shell_header, add='+')
+        self._header_ship_label=None;self._header_ship_pending=None
+        if isinstance(self._root,tk.Misc):
+            ttk.Style(self._root).configure('HeaderShip.TLabel',background=colors.HEADER_SURFACE,padding=0,borderwidth=0)
+            self._header_ship_label=self._add_decorative_image(header,ysh_ship_top_right_path(),style='HeaderShip.TLabel',maximum_width=280,maximum_height=76)
+            if self._header_ship_label is not None:self._header_ship_label.configure(takefocus=False)
+            header.bind('<Configure>',self._update_header_artwork_visibility,add='+')
 
         workspace = ttk.Frame(self._root, style="Main.TFrame", padding=MD)
         workspace.grid(row=1, column=1, sticky="nsew")
@@ -479,21 +485,30 @@ class MainWindow:
             )
             return None
 
-    def _update_header_artwork_visibility(self, event: tk.Event[tk.Misc]) -> None:
-        """Resize header artwork before hiding it in constrained shell widths."""
-        if self._header_ship_label is None:
+    def _update_header_artwork_visibility(self, event=None) -> None:
+        """Artwork uses free header space without reserving layout or hitboxes."""
+        if self._header_ship_label is None or self._header_ship_pending is not None:return
+        self._header_ship_pending=self._shell_header.after_idle(self._place_header_ship)
+
+    def _place_header_ship(self) -> None:
+        self._header_ship_pending=None
+        if self._header_ship_label is None:return
+        header=self._shell_header
+        rows={}
+        for commands in (self._ribbon_project,self._ribbon_library,self._ribbon_help):
+            group=commands._ribbon_group
+            if group.winfo_ismapped():rows.setdefault(group.winfo_y(),[]).append(group)
+        for top,groups in sorted(rows.items()):
+            right=max(group.winfo_rootx()+group.winfo_width()-header.winfo_rootx() for group in groups)
+            free=header.winfo_width()-MD-right-SM
+            height=min(76,max(group.winfo_height() for group in groups)-SM*2)
+            if free<24 or height<12:continue
+            self._resize_header_ship(min(280,free),height)
+            y=min(group.winfo_rooty()-header.winfo_rooty() for group in groups)+SM
+            self._header_ship_label.place(relx=1,x=-MD,y=y,anchor='ne',bordermode='outside')
+            self._header_ship_label.lift()
             return
-        if event.width < 900:
-            self._header_ship_label.grid_remove()
-            return
-        if event.width < 1080:
-            dimensions = (140, 44)
-        elif event.width < 1280:
-            dimensions = (200, 60)
-        else:
-            dimensions = (260, 76)
-        self._resize_header_ship(*dimensions)
-        self._header_ship_label.grid()
+        self._header_ship_label.place_forget()
 
     def _resize_header_ship(self, maximum_width: int, maximum_height: int) -> None:
         """Scale the approved header ship proportionally for the available width."""

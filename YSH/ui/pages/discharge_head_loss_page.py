@@ -53,7 +53,7 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         workspace.columnconfigure(0,weight=3)
         workspace.columnconfigure(1,weight=3)
         workspace.columnconfigure(2,weight=3)
-        self._pipe_card=InputCard(workspace,self._translate("section.hydraulic_inputs"));pipe=self._pipe_card;pipe.grid(row=0,column=0,sticky="new",padx=(0,6))
+        self._pipe_card=InputCard(workspace,self._translate("section.hydraulic_inputs"));pipe=self._pipe_card;pipe.workspace_surface_role="input";pipe.grid(row=0,column=0,sticky="new",padx=(0,6))
         for row,(key,unit) in enumerate((("d","mm"),("q","m³/h"),("nu",""),("l","m"),("h","m"))):
             localized={"d":"field.pipe_inside_diameter","q":"field.flow_rate","nu":"field.kinematic_viscosity","l":"field.pipe_length","h":"field.geodetic_head"}[key];widget=ttk.Label(pipe,text=f"{self._translate(localized)}");widget.grid(row=row,column=0,sticky="w",pady=3);setattr(self,f"_field_label_{key}",widget);entry=numeric_entry(pipe,textvariable=self._fields[key]);entry.grid(row=row,column=1,sticky="e",padx=(8,0),pady=3);self._entries[key]=entry
             if unit: ttk.Label(pipe,text=unit).grid(row=row,column=2,sticky="w",padx=(8,0))

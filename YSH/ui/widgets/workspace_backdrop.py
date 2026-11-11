@@ -18,6 +18,39 @@ from ui.widgets.cards import ResultCard
 
 PROTECTED = ('warning','critical','error','success','verified','status','source','info','unavailable')
 _SURFACE_IDS = count(1)
+OUTSIDE_INPUT_OPACITY_FACTOR = .72
+
+
+def input_surface(widget):
+    """Semantic input role; empty/calculated result subtrees never inherit it."""
+    current=widget
+    while current is not None:
+        role=getattr(current,'workspace_surface_role',None)
+        if role is not None:return role=='input'
+        if hasattr(current,'result_surface_opaque'):return False
+        current=current.master
+    return False
+
+
+def input_bounds(widget):
+    """Keep the occupied input block solid, not its unused stretching space."""
+    if getattr(widget,'workspace_surface_role',None)!='input':
+        return ((0,0,widget.winfo_width(),widget.winfo_height()),)
+    children=[child for child in widget.winfo_children() if child.winfo_viewable()
+              and getattr(child,'workspace_surface_role',None)!='support'
+              and not hasattr(child,'result_surface_opaque')]
+    rows={}
+    for child in children:
+        row=child.grid_info().get('row',0) if child.winfo_manager()=='grid' else 0
+        rows.setdefault(row,[]).append(child)
+    regions=[]
+    for children in rows.values():
+        left=max(0,min(child.winfo_x() for child in children)-8)
+        top=max(0,min(child.winfo_y() for child in children)-8)
+        right=min(widget.winfo_width(),max(child.winfo_x()+child.winfo_width() for child in children)+8)
+        bottom=min(widget.winfo_height(),max(child.winfo_y()+child.winfo_height() for child in children)+8)
+        regions.append((left,top,max(1,right-left),max(1,bottom-top)))
+    return tuple(regions)
 
 
 def light_surface(rgb):
@@ -62,6 +95,7 @@ class Surface:
     styles: dict
     size: tuple = (1,1)
     signature: tuple | None = None
+    input_bounds: tuple | None = None
 
 
 class WorkspaceBackdrop:
@@ -152,6 +186,7 @@ class WorkspaceBackdrop:
         opacity=.30 if color.lower() in (colors.WORKSPACE_SURFACE.lower(),'#f1f7fa') else .94 if max(rgb)-min(rgb)>12 else .80
         if widget.winfo_class()!='TLabel':
             opacity=1-(1-opacity)*PANEL_TRANSMISSION_FACTOR
+            if not input_surface(widget):opacity*=OUTSIDE_INPUT_OPACITY_FACTOR
         if widget.winfo_class()!='TFrame' and not (getattr(widget,'composite_panel',False) or base=='Fire.Card.TLabelframe'):
             self._native_tint(widget,base,(x,y,width,height),rgb,opacity)
             return
@@ -172,12 +207,18 @@ class WorkspaceBackdrop:
             if widget.winfo_class()=='TLabelframe':
                 self.style.configure(name+'.Label',background=color)
         signature=(x,y,width,height,rgb,opacity,self.size)
-        if signature!=entry.signature:
-            patch=composite_surface(self.image,(x,y,width,height),rgb,opacity)
+        protected=input_surface(widget)
+        occupied=input_bounds(widget) if protected else None
+        if signature!=entry.signature or occupied!=entry.input_bounds:
+            outside=opacity*OUTSIDE_INPUT_OPACITY_FACTOR if protected else opacity
+            patch=composite_surface(self.image,(x,y,width,height),rgb,outside)
+            if occupied:
+                for left,top,box_width,box_height in occupied:
+                    patch.paste(composite_surface(self.image,(x+left,y+top,box_width,box_height),rgb,opacity),(left,top))
             if entry.size!=(width,height):
                 entry.photo.tk.call(str(entry.photo),'configure','-width',width,'-height',height)
                 entry.size=(width,height)
-            entry.photo.paste(patch);entry.signature=signature
+            entry.photo.paste(patch);entry.signature=signature;entry.input_bounds=occupied
         if str(widget.cget('style'))!=entry.styles[base]:widget.configure(style=entry.styles[base])
 
     def _restore_native(self,widget):
