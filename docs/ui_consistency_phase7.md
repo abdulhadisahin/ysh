@@ -1,3 +1,20 @@
+# D243 V2 Final — Güncel kapsam notu
+
+Güncel kabul: `D243-V2-FINAL` → `c9c8dfe8096a128302867d2ece630d9ebb3b5dd7`,
+**2080 passed, 0 failed**, Windows paket **RELEASE_READY**.
+[Güncel kullanıcı akışı](../README.md), [developer handoff](../YSH/docs/AI_HANDOVER.md)
+ve [release kaydı](V2_FINAL_RELEASE.md) esas alınır.
+
+Aşağıdaki Phase 7 metni tarihsel kayıttır. Sonraki kabul edilmiş UX geçişleri;
+compact sayısal alanlar, sabit sidebar ikon/metin kolonları, tek ikincil araç
+satırı, ortak kaynak durumları, dekoratif sağ üst gemi ve viewport filigranını
+korur. Girdi alanları çevreden daha solid; boş sonuçlar geçirgen görünümlü,
+hesaplanmış sonuçlar opaktır. Metinler/kontroller/uyarılar opak kalır.
+Aşağıdaki eski stil adları, test sayısı ve bekleyen görsel kabul bu son durumu
+iptal eden güncel talimatlar değildir.
+
+---
+
 # D243 V2 — Phase 7: Application-wide UX consistency and visual polish
 
 Accepted base: `5db4217c64a3ee28ee5c45086fa504a33d783553`, **1970 passed**.

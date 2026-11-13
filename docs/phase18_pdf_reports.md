@@ -1,3 +1,22 @@
+# V2 Final — Güncel PDF eylem sözleşmesi
+
+Güncel baseline: **D243-V2-FINAL**, `c9c8dfe8096a128302867d2ece630d9ebb3b5dd7`.
+[Release özeti](V2_FINAL_RELEASE.md) ve [kullanıcı kılavuzu](../README.md).
+
+Hesap sayfasındaki Formula View / Geçmiş / PDF ortak ikincil araç grubudur.
+Mevcut sonuç Formula View eylemi geçerli sonuç ister; Geçmiş bağımsız açılır.
+PDF yalnız geçerli/güncel sonuçla eşleşen snapshot için etkindir; girdi değişmiş
+ve stale kalmış sonuç güncelmiş gibi export edilmez. Geçmiş'teki eksiksiz eski
+snapshot raporlanabilir; güncel Library'ye bakılarak yeniden oluşturulmaz.
+Fire/Köpük ve Hazen-Williams da mevcut frozen rapor akışındadır.
+
+Aşağıdaki Phase 18 metni tarihsel tasarım/kabul kaydıdır; dört modüllü eski
+konum tarifi ve son-kayıt vurgusu bu V2 Final eligibility kuralını geçersiz kılmaz.
+Son Windows smoke PDF eyleminin erişimini doğrular; ayrıntılı baskı/DPI kabulüyle
+karıştırılmaz.
+
+---
+
 # D243 V2 Faz 18 — Snapshot tabanlı PDF raporları
 
 ## Mimari ve kullanım

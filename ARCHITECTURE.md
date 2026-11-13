@@ -1,11 +1,21 @@
-# YSH Architecture
+# D243 V2 Architecture
 
 ## Purpose
 
-YSH uses Clean Architecture to keep engineering calculation rules independent
+D243 uses Clean Architecture to keep engineering calculation rules independent
 from the Windows interface and SQLite storage. The architecture is constrained
 to Python 3.14, Tkinter, and SQLite, and operates entirely offline after
 installation.
+
+## V2 Final reference
+
+Release tag `D243-V2-FINAL` points to
+`c9c8dfe8096a128302867d2ece630d9ebb3b5dd7` (2080 passing tests).
+The internal Python/data namespace remains `YSH`; the product name is D243.
+The [current developer handoff](YSH/docs/AI_HANDOVER.md) records module boundaries,
+Family/Profile separation, provenance, immutable snapshots and engineering blockers.
+The [user guide](README.md) and [release summary](docs/V2_FINAL_RELEASE.md) describe
+current behavior and Windows acceptance. Older phase notes are historical evidence.
 
 ## Dependency direction
 
@@ -14,9 +24,9 @@ layers must not depend on Tkinter, SQLite, operating-system details, or other
 infrastructure concerns.
 
 ```
-Tkinter UI  ─┐
-SQLite      ─┼──> Service Layer ───> Domain
-Repositories ─┘
+Tkinter UI → Services / Workflows → Pure domain
+                    ↓
+              Repositories → SQLite
 ```
 
 ## Architectural responsibilities

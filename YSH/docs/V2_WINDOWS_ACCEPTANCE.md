@@ -1,3 +1,17 @@
+# D243 V2 Final — Güncel Windows kabul kaydı
+
+**D243-V2-FINAL** → `c9c8dfe8096a128302867d2ece630d9ebb3b5dd7`.
+Tam regresyon **2080 passed, 0 failed**; Windows paket **RELEASE_READY**;
+tek normal packaged startup **5.76 s**. Kullanıcı destekli temel görsel ve
+etkileşimli smoke PASS, normal kapanış ve izole runtime DB yolları doğrulandı.
+[Kapsam, artefakt hash'i ve sınırlar](../../docs/V2_FINAL_RELEASE.md).
+
+Aşağıdaki Phase 16/17 kayıtları kendi dönemlerinin kanıtıdır. Eski ortam
+blocker'ları ve PENDING_MANUAL_ACCEPTANCE sonuçları güncel release kararını
+anlatmaz. Tüm DPI/temiz makine senaryolarının ayrıca denendiği iddia edilmez.
+
+---
+
 # D243 V2 — Final Windows Acceptance / Faz 16
 
 Başlangıç checkpoint: `d243-v2-handoff`, `03488ec76745a3c48d1384d6e0be1bb81203a135`,

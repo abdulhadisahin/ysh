@@ -1,5 +1,26 @@
 # D243 V2 Windows onedir release
 
+## V2 Final accepted package
+
+Current release: **D243-V2-FINAL** at
+`c9c8dfe8096a128302867d2ece630d9ebb3b5dd7`; **2080 passed, 0 failed**;
+Windows smoke **RELEASE_READY**, one normal packaged launch **5.76 s**.
+See [V2 Final release evidence](../docs/V2_FINAL_RELEASE.md) for exact sizes,
+ZIP hash, build command and the user-assisted smoke scope.
+
+The final acceptance used the existing spec directly, without rerunning the
+wrapper's full pytest step. Matching standalone Tcl/Tk 9.0.4 scripts were supplied
+as build-process environment variables. No packaging script or production code
+was changed. The optional legacy package probe was not run for this acceptance;
+its presence is not evidence for a new smoke run. The trusted regression and
+manual packaged-app checks are recorded separately.
+
+The following wrapper recipe still runs full pytest and its build-only probe;
+do not invoke it for a documentation-only task or an instruction forbidding a
+new full regression. Historical Phase 17 manual-acceptance wording below does
+not supersede the scoped V2 Final Windows decision. Clean-machine/no-Python and
+all-DPI checks are not newly claimed.
+
 Product: D243 Boru ve Tulumba Boyutlandırma Programı.
 The existing manifest version remains 0.1.0. The Python package and writable
 runtime directory retain the internal YSH name. This workflow builds the

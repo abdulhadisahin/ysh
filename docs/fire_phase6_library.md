@@ -1,3 +1,15 @@
+# V2 Final kapsam notu
+
+Bu belge Phase 6'nın ayrıntılı mühendislik ve kaynak sözleşmesi kaydıdır.
+Güncel release: **D243-V2-FINAL**, baseline
+`c9c8dfe8096a128302867d2ece630d9ebb3b5dd7`, **2080 passed, 0 failed**.
+[User guide](../README.md), [geliştirici handoff'u](../YSH/docs/AI_HANDOVER.md)
+ve [release özeti](V2_FINAL_RELEASE.md) güncel UX/kabul durumunu açıklar.
+Kaynak/override/stale ve Library Update'in kullanılan değeri koruma sözleşmeleri
+aynen geçerlidir; aşağıdaki faz başlangıcı/test sayıları tarihsel kayıttır.
+
+---
+
 # Fire Phase 6 — Source-aware engineering Library
 
 ## Recovery and scope
