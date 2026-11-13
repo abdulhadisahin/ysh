@@ -14,6 +14,7 @@ from ui.history_presentation import fire_details
 from ui.theme import typography, colors
 from ui.theme.spacing import CARD_PADDING, CONTROL_PADDING
 from .test_fire_phase5cd_navigation import application, shell
+from ._tk_geometry import settle_geometry
 from .test_fire_phase5_live_ui import fill_view
 from .test_fire_phase6_library import library, record
 from .test_history_visual_harmonization import snapshots
@@ -46,8 +47,10 @@ def test_all_calculation_pages_geometry_and_scroll(shell, language, size):
     w=shell; root=w._root; previous=w._localization.language
     try:
         review_language(w,language)
-        root.deiconify(); root.geometry(f'{size[0]}x{size[1]}'); root.update()
-        sidebar=w._sidebar.winfo_rootx()+w._sidebar.winfo_width()
+        root.deiconify(); root.geometry(f'{size[0]}x{size[1]}')
+        settle_geometry(root,w._sidebar)
+        # Window-manager movement must not invalidate a saved screen coordinate.
+        sidebar=(w._sidebar.winfo_rootx()-root.winfo_rootx(),w._sidebar.winfo_width())
         for family in ('fuel','fire'):
             w._show_family(family,dirty=False); root.update()
             host=w._page_host if family=='fuel' else w._fire_workspace.host
@@ -62,7 +65,9 @@ def test_all_calculation_pages_geometry_and_scroll(shell, language, size):
                     workflow.publish(revise_selection(selection,replace(selection,flow_rate_m3_h=selection.flow_rate_m3_h+1)))
                     panel.render(); root.update()
                 canvas=viewport.canvas
-                assert canvas.winfo_rootx()>=sidebar
+                settle_geometry(root,w._sidebar,canvas)
+                assert (w._sidebar.winfo_rootx()-root.winfo_rootx(),w._sidebar.winfo_width())==sidebar
+                assert canvas.winfo_rootx()-root.winfo_rootx()>=sum(sidebar)
                 assert canvas.winfo_width()>400 and canvas.winfo_height()>150
                 assert_horizontal_bounds(descendants(page),canvas)
                 assert host._active_host()._wheel_active
@@ -74,7 +79,7 @@ def test_all_calculation_pages_geometry_and_scroll(shell, language, size):
                 canvas.yview_moveto(1); root.update()
                 assert canvas.yview()[1]>=.99
                 canvas.yview_moveto(0)
-        assert w._sidebar.winfo_rootx()+w._sidebar.winfo_width()==sidebar
+        assert (w._sidebar.winfo_rootx()-root.winfo_rootx(),w._sidebar.winfo_width())==sidebar
     finally:
         w._localization.set_language(previous)
 

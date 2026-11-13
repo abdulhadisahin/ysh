@@ -6,6 +6,7 @@ import pytest
 from i18n.translator import Translator
 from ui.theme import colors
 from .test_fire_phase5cd_navigation import application, shell
+from ._tk_geometry import settle_geometry
 
 
 @pytest.mark.parametrize('language',['tr','en'])
@@ -15,7 +16,8 @@ def test_logo_selector_actions_and_header_fit(shell,language,size):
     w._translate=Translator(language).translate
     try:
         w._refresh_family_selector();root.deiconify()
-        root.geometry(f'{size[0]}x{size[1]}');root.update()
+        root.geometry(f'{size[0]}x{size[1]}')
+        settle_geometry(root,w._family_selector)
         assert not hasattr(w,'_header_title') and not hasattr(w,'_header_subtitle')
         assert 'D243' in root.title()
         logo=w._sidebar_logo
@@ -32,6 +34,7 @@ def test_logo_selector_actions_and_header_fit(shell,language,size):
         for family in ('fuel','fire'):
             w._show_family(family);root.update()
             combo=w._family_selector
+            settle_geometry(root,combo)
             assert combo.winfo_viewable()
             assert combo.winfo_rooty()+combo.winfo_height()<root.winfo_rooty()+root.winfo_height()
             assert combo.winfo_rootx()+combo.winfo_width()<=w._family_frame.winfo_rootx()+w._family_frame.winfo_width()
