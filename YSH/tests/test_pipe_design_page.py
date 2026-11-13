@@ -28,13 +28,13 @@ def test_pipe_primary_actions_use_shared_visible_icon_plus_text_buttons() -> Non
     """The final Pipe workflow keeps its commands explicit without icon-only actions."""
     source = (ROOT / "ui/pages/pipe_design_page.py").read_text(encoding="utf-8")
 
-    diameter_action = source.split("self._diameter_button = RoundedImageButton", 1)[1].split(
+    diameter_action = source.split("self._diameter_button = calculation_button", 1)[1].split(
         "self._widgets.append(diameter_button)", 1
     )[0]
-    wall_action = source.split("self._wall_button = RoundedImageButton", 1)[1].split(
+    wall_action = source.split("self._wall_button = calculation_button", 1)[1].split(
         "self._widgets.append(wall_button)", 1
     )[0]
-    clear_action = source.split("self._clear_button = RoundedImageButton", 1)[1].split(
+    clear_action = source.split("self._clear_button = calculation_button", 1)[1].split(
         "self._widgets.append(clear_button)", 1
     )[0]
 
@@ -47,6 +47,8 @@ def test_pipe_primary_actions_use_shared_visible_icon_plus_text_buttons() -> Non
     assert 'text=self._translate("common.clear")' in clear_action
     assert "command=self._clear_user_state" in clear_action
     assert 'icon_name="clear"' in clear_action
+    assert 'primary=True' in diameter_action and 'primary=True' in wall_action
+    assert 'primary=True' not in clear_action
 
 
 class _FakeStringVar:

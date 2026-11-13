@@ -167,7 +167,9 @@ def test_pipe_image_button_prototype_keeps_live_text_and_four_surface_states() -
     assert "transparency_set" in widget_source
     for state in ("normal", "hover", "pressed", "disabled"):
         assert state in widget_source
-    assert "RoundedImageButton(" in page_source
+    helper_source = (ROOT / "ui/widgets/calculation_presentation.py").read_text(encoding="utf-8")
+    assert "RoundedImageButton(" in helper_source
+    assert "calculation_button(" in page_source
     assert "_PIPE_BUTTON_PALETTE" in page_source
     assert "_PIPE_NEUTRAL_BUTTON_PALETTE" in page_source
     assert "_PIPE_FORMULA_BUTTON_PALETTE" in page_source

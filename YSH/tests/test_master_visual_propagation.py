@@ -44,8 +44,10 @@ def test_pages_opt_in_without_inline_formula_or_watermark(key):
     assert 'watermark' not in source.lower()
     assert 'pipe_pilot' not in source
     main = (ROOT / 'ui/main_window.py').read_text(encoding='utf-8')
-    assert MODULES[key][0]+'Secondary.TButton' in main
-    assert 'save_snapshot_pdf(self._root, target._pdf_snapshot)' in main
+    assert 'page._formula_panel.configure_post_tools(' in main
+    assert 'page._pdf_button=page._formula_panel._pdf_button' in main
+    assert 'save_snapshot_pdf(self._root,target._pdf_snapshot)' in main.replace(' ', '')
+    assert 'if MainWindow._pdf_is_current(target) else None' in main
 
 
 @pytest.mark.parametrize('key', [

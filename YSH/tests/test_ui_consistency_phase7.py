@@ -138,8 +138,9 @@ def test_shared_typography_control_padding_and_warning_semantics(shell):
         face=font.Font(root=w._root,font=style.lookup(name,'font'))
         assert face.actual('size')==typography.PAGE_TITLE[1]
     assert all(entry.cget('style')=='Fire.TEntry' for entry in view.entries.values())
-    assert view.calculate_button.cget('style')=='Fire.Primary.TButton'
-    assert all(button.cget('style')=='Fire.Secondary.TButton' for buttons in view.library_panel.buttons.values() for button in buttons.values())
+    assert view.calculate_button.cget('style')=='Calculation.Fire.Primary.TButton'
+    assert view.calculate_button.calculation_action_role=='primary'
+    assert all(button.cget('style')=='Compact.Fire.Secondary.TButton' for buttons in view.library_panel.buttons.values() for button in buttons.values())
     assert style.lookup('Fire.Secondary.TButton','background')==colors.WHITE
     for key,prefix in (('discharge_head_loss','Discharge'),('suction_npsh','Suction')):
         assert all(button.cget('style')==prefix+'Secondary.TButton' for button in w._pages[key]._pipe_source_panel._buttons.values())
@@ -184,7 +185,8 @@ def test_pipe_link_actions_are_contextual_and_preserve_values(shell,page_key):
     updated=revise_selection(selection,replace(selection,flow_rate_m3_h=selection.flow_rate_m3_h+1))
     workflow.publish(updated); panel.render()
     assert all(button.grid_info() for button in panel._buttons.values())
-    assert panel._status_label.cget('style')=='StatusWarning.TLabel'
+    assert panel._status_label.cget('style')=='SourceStatus.Stale.'+('Discharge' if page_key=='discharge_head_loss' else 'Suction')+'Info.TLabel'
+    assert panel._translate('source.state.stale') in panel._status.get()
     workflow.keep_current(); panel.render()
     assert workflow.pipe_input.snapshot is old
     workflow.update(); panel.render()

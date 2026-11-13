@@ -212,7 +212,8 @@ def test_localization_subview_and_project_load(live):
     for view in page.views.values():view.tr=en
     page.refresh_texts()
     assert page.title['text']=='Fire Fighting'
-    assert page.views['foam'].calculate_button['text']=='Calculate'
+    assert page.views['foam'].calculate_button._logical_text=='Calculate'
+    assert page.views['foam'].calculate_button['text'].strip()=='Calculate'
 
 
 def test_no_engineering_equations_assets_or_workbook_access_in_new_ui():

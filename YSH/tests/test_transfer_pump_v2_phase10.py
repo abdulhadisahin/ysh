@@ -199,6 +199,10 @@ def design_panel() -> TransferPumpDesignPanel:
     panel._state=TransferPumpPageState();panel._suppress=False
     panel._fields={key:Var(value) for key,value in dict(volume='120',target_time='3',pump_capacity='60').items()}
     panel._flow=Var();panel._time=Var();panel._status=Var();panel._error=Var()
+    # The production renderer now manages empty/calculated visual surfaces.
+    panel._results=Group();panel._results.master=None
+    panel._results.winfo_children=lambda:()
+    panel._empty_result=Group();panel._flow_metric=Group();panel._time_metric=Group()
     panel._events=[];panel._changed=lambda:panel._events.append('changed')
     panel.visible=True
     panel.grid=lambda: setattr(panel,'visible',True)

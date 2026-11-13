@@ -322,11 +322,11 @@ def test_page_mode_update_keep_and_publish_callbacks_without_recalculation() -> 
     panel._publish()
     assert page._events==['dirty']
     assert page._last_result is old_result
-    assert 'sonucu değişti' in panel._status.get()
+    assert panel._status.get() == panel._translate('discharge.pipe.status.LINKED_STALE')
     assert page._fields['q'].get()=='20'
     panel._keep()
     assert page._workflow.pipe_input.kept_current
-    assert 'korundu' in panel._status.get() and 'değişti' in panel._status.get()
+    assert panel._status.get() == panel._translate('discharge.pipe.status.LINKED_STALE')+' · '+panel._translate('discharge.pipe.kept')
     assert page._last_result is old_result
     assert 'render' not in page._events
     page._events.clear();panel._update()

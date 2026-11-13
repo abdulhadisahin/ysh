@@ -292,7 +292,7 @@ def test_main_window_initializes_projects_tree(monkeypatch: object) -> None:
 
     monkeypatch.setattr(main_window_module, "tk", type("TkStub", (), {
         "Menu": _FakeMenuBar,
-        "Misc": object,
+        "Misc": type("NativeTkWidget", (), {}),
         "StringVar": _DummyStringVar,
     }))
     monkeypatch.setattr(main_window_module.ttk, "Entry", _DummyWidget)

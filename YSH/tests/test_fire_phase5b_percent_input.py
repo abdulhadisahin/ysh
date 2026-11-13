@@ -91,7 +91,7 @@ def test_clarification_localization(language,live):
     view.variables['foam_fraction'].set('0.5');view.refresh_texts()
     assert view.concentration_help['text']==view.tr('fire.ui.percent_help')
     assert view.concentration_warning['text']==view.tr('fire.ui.percent_low')
-    if language=='en':assert view.concentration_help['text']=='Enter foam concentration as percent.'
+    if language=='en':assert view.concentration_help['text']=='Enter a percentage; for 3%, enter 3.'
 
 
 def test_frozen_history_and_pdf_show_percent_with_canonical_formula_and_overrides(live):

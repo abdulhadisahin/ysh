@@ -38,7 +38,8 @@ def test_state_for_uncreated_view_is_preserved_and_language_changes_apply_later(
     page.refresh_texts()
     hw=page.views['hw']
     assert hw.variables['hazen_williams_c'].get()=='120'
-    assert hw.calculate_button['text']=='Calculate'
+    assert hw.calculate_button._logical_text=='Calculate'
+    assert hw.calculate_button['text'].strip()=='Calculate'
 
 
 def test_saved_hw_subview_can_be_first_without_creating_foam(live):

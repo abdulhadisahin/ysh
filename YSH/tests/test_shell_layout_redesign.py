@@ -70,7 +70,9 @@ def test_context_state_preserved_and_optional_editor_available(shell):
 
 
 def test_compositing_is_backdrop_relative_and_preserves_source_pixels():
-    emblem=Image.new('RGBA',(50,50),(20,40,60,255));before=emblem.tobytes()
+    emblem=Image.new('RGBA',(50,50),(0,0,0,0))
+    emblem.paste((20,40,60,255),(10,10,40,40))
+    before=emblem.tobytes()
     image=compose_backdrop((900,650),emblem)
     assert image.size==(900,650) and image.getextrema()[0][0]<image.getextrema()[0][1]
     patch=composite_surface(image,(150,100,200,180),(255,255,255),.86)

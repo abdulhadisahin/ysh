@@ -33,7 +33,25 @@ def test_compact_fire_sources_and_actions(shell,size,language):
                     assert int(box.cget('width'))==SOURCE_FIELD_WIDTH
                     assert box.winfo_width()==box.winfo_reqwidth()
                     assert box.winfo_rootx()+box.winfo_width()<viewport.canvas.winfo_rootx()+viewport.canvas.winfo_width()-80
-                buttons=[button for button,_ in view.link_buttons]
+                # Hidden Update/Keep widgets retain old Tk coordinates. Check
+                # contextual visibility, then measure all actions in a real stale link.
+                from dataclasses import replace
+                from engineering.pipe_design.transfer import revise_selection
+                from .test_fire_phase5_live_ui import selection
+                actions={key.rsplit('.',1)[-1]:button for button,key in view.link_buttons}
+                assert actions['link'].grid_info()
+                assert not actions['update'].grid_info() and not actions['keep'].grid_info()
+                item=selection();page.sources.publish(item);view.sync()
+                view.source_var.set(next(label for label,value in view.source_choices_pipe.items()
+                                         if value.selection_id==item.selection_id))
+                view.pipe_action('link');root.update()
+                assert not actions['update'].grid_info() and not actions['keep'].grid_info()
+                applied=page.model.pipe.snapshot
+                newer=revise_selection(item,replace(item,flow_rate_m3_h=item.flow_rate_m3_h+1))
+                page.sources.publish(newer);page.model.observe(newer);view.sync();root.update()
+                assert page.model.pipe.snapshot is applied
+                buttons=list(actions.values())
+                assert all(button.grid_info() for button in buttons)
                 assert len({button.winfo_rooty() for button in buttons})==1
                 assert len({button.winfo_height() for button in buttons})==1
                 assert all(button.winfo_width()==button.winfo_reqwidth() for button in buttons)

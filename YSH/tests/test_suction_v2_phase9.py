@@ -255,7 +255,7 @@ def test_suction_update_keep_missing_and_manual_actions_never_calculate_implicit
     local={key:var.get() for key,var in page._fields.items() if key not in ('diameter','flow')}
     discovery.publish(revised(source()))
     assert page._last_loss is loss and page._last_enpy is enpy
-    assert 'sonucu değişti' in panel._status.get()
+    assert panel._status.get() == panel._translate('discharge.pipe.status.LINKED_STALE')
     panel._keep()
     assert page._workflow.pipe_input.kept_current
     assert page._last_enpy is enpy and 'korundu' in panel._status.get()

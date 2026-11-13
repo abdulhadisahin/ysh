@@ -17,12 +17,18 @@ def test_design_panel_constructor_uses_real_button_factory(monkeypatch, language
     """Only native widgets are replaced; missing factory keywords still raise TypeError."""
     import ui.pages.transfer_pump_design as page
     import ui.widgets.rounded_button as buttons
+    import ui.widgets.calculation_presentation as presentation
 
     class Widget(_DummyWidget):
         """Reuse the existing layout double while retaining configured button options."""
         def configure(self, **kwargs: object) -> None:
             """Record localized captions and styles for constructor assertions."""
             self.kwargs.update(kwargs)
+
+        master = None
+
+        def winfo_children(self):
+            return ()
 
         def set_label(self, text: str) -> None:
             """Accept the result metric's normal caption update."""
@@ -58,10 +64,13 @@ def test_design_panel_constructor_uses_real_button_factory(monkeypatch, language
         monkeypatch.setattr(page, name, Widget)
     monkeypatch.setattr(page.tk, 'StringVar', Variable)
     monkeypatch.setattr(buttons, 'RoundedImageButton', Widget)
-    assert page.create_rounded_button is create_rounded_button
+    monkeypatch.setattr(presentation, 'RoundedImageButton', Widget)
+    monkeypatch.setattr(presentation.ttk, 'Style', lambda *args: SimpleNamespace(configure=lambda *a, **k: None))
+    monkeypatch.setattr(page, 'numeric_pair', lambda parent, **options: (Widget(parent), Widget(parent, **options)))
+    assert page.create_rounded_button is presentation.calculation_button
     panel = TransferPumpDesignPanel(object(), object(), Translator(language).translate, lambda: None)
-    assert panel._calculate.kwargs['style'] == 'TransferRoundedPrimary.TButton'
-    assert panel._clear.kwargs['style'] == 'RoundedNeutral.TButton'
+    assert panel._calculate.kwargs['style'] == 'Calculation.TransferRoundedPrimary.TButton'
+    assert panel._clear.kwargs['style'] == 'Calculation.RoundedNeutral.TButton'
     assert panel._calculate.kwargs['palette'] is buttons.TRANSFER_PRIMARY_PALETTE
     assert panel._clear.kwargs['palette'] is buttons.NEUTRAL_BUTTON_PALETTE
     assert panel._calculate.kwargs['icon_name'] == 'calculate'
@@ -69,6 +78,12 @@ def test_design_panel_constructor_uses_real_button_factory(monkeypatch, language
     assert panel._calculate.kwargs['command'] == panel.calculate
     assert panel._clear.kwargs['command'] == panel.clear
     assert panel._calculate.kwargs['text'] == Translator(language).translate('calculation.calculate')
+    assert panel._calculate.kwargs['minimum_height'] == presentation.PRIMARY_HEIGHT
+    assert panel._clear.kwargs['minimum_height'] == presentation.SECONDARY_HEIGHT
+    # Exercise the wrapper's dynamic forwarding branch against the real factory.
+    icon = page.create_rounded_button(object(), 'Icon', lambda: None, icon_only=True,
+        style='HeaderCommand.TButton', palette=buttons.TRANSFER_PRIMARY_PALETTE)
+    assert icon.kwargs['icon_only'] is True
     assert panel._flow.get() == panel._time.get() == '—'
     assert all(len(variable.traces) == 1 for variable in panel._fields.values())
 
@@ -97,7 +112,16 @@ def test_all_project_rounded_button_calls_bind_current_signature() -> None:
             location = f'{path.relative_to(Path(__file__).parents[1])}:{node.lineno}'
             # Dynamic argument forwarding needs an explicit review rather than silently escaping this audit.
             assert not any(isinstance(arg, ast.Starred) for arg in node.args), location
-            assert all(keyword.arg is not None for keyword in node.keywords), location
+            if any(keyword.arg is None for keyword in node.keywords):
+                # The shared presentation wrapper is the single reviewed forwarding
+                # boundary; its real factory branch is exercised above in both languages.
+                assert path.name == 'calculation_presentation.py', location
+                assert [keyword.value.id for keyword in node.keywords if keyword.arg is None] == ['options'], location
+                forwarded={'style':'TButton', 'palette':object()}
+                forwarded.update({keyword.arg: object() for keyword in node.keywords if keyword.arg is not None})
+                signature.bind(*[object() for _ in node.args], **forwarded)
+                checked.append(location)
+                continue
             checked.append(location)
             try:
                 signature.bind(*[object() for _ in node.args],

@@ -71,12 +71,13 @@ def test_identity_text_and_optional_asset_hooks_are_safe() -> None:
     assert local_asset_path(ASSET_DIRECTORY / "missing-approved-logo.png") is None
 
 
-def test_unified_header_reserves_the_d243_logo_slot_without_legacy_ship_art() -> None:
-    """The D243 shell does not depend on temporary marine decoration."""
+def test_unified_header_keeps_sidebar_logo_and_optional_header_ship() -> None:
+    """The optional ship uses free header space without replacing the approved logo."""
     source = (ROOT / "ui" / "main_window.py").read_text(encoding="utf-8")
 
     assert "d243_main_logo_path" in source
-    assert "ysh_ship_top_right_path()," not in source
+    assert "ysh_ship_top_right_path()," in source
+    assert "self._header_ship_label.place(" in source
     assert "self._header_workspace" not in source
 
 
@@ -161,7 +162,7 @@ def test_command_group_structures_share_the_authoritative_navy_surface() -> None
 
 
 def test_optional_naval_artwork_is_scoped_and_keeps_strong_references() -> None:
-    """Keep decorative ships optional, constrained, and free of absolute placement."""
+    """Only the decorative header ship may use overlay placement; command layout is unchanged."""
     source = (ROOT / "ui/main_window.py").read_text(encoding="utf-8")
 
     assert "ysh_ship_top_right_path" in source
@@ -171,4 +172,7 @@ def test_optional_naval_artwork_is_scoped_and_keeps_strong_references() -> None:
     assert "_update_header_artwork_visibility" in source
     assert "_update_sidebar_artwork_visibility" in source
     assert ".grid_remove()" in source
-    assert ".place(" not in source
+    assert source.count(".place(")==1
+    assert "self._header_ship_label.place(" in source
+    assert "bordermode='outside'" in source
+    assert "free<24" in source

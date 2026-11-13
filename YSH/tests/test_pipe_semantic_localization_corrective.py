@@ -70,7 +70,8 @@ def test_turkish_resource_denylist_allows_symbols_codes_and_proper_names() -> No
     forbidden = {p.casefold() for p in phrases}
     assert not {key: value for key, value in TR.items() if value.strip().casefold() in forbidden}
     assert not {key: value for key, value in TR.items() if re.search(r'\bmaterial library\b', value, re.I)}
-    assert TR['message.material_source'] == TR['library.materials'] == 'Malzeme Kütüphanesi'
+    assert TR['message.material_source'] == TR['source.state.library'] == 'Kütüphane'
+    assert TR['library.materials'] == 'Malzeme Kütüphanesi'
     assert TR['library2.read_only'] == 'Salt okunur'
     assert 'Fabrika' in TR['library2.ownership.factory']
 
@@ -136,7 +137,7 @@ def test_localizing_saved_library_label_does_not_refresh_frozen_rp() -> None:
     page.load_state({'source_mode': 'Malzeme Kütüphanesi', 'material_id': str(identity),
                      'fields': {'rp': '195'}, 'bend_enabled': False})
     assert page._fields['rp'].get() == '195'
-    assert page._source.get() == 'Malzeme Kütüphanesi'
+    assert page._source.get() == TR['source.state.library']
 
 
 def test_micro_correction_hides_only_redundant_corrosion_row() -> None:

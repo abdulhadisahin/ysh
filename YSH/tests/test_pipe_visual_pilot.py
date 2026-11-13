@@ -74,7 +74,8 @@ def test_pipe_semantics_actions_units_and_source_safety_survive_visual_pilot() -
     assert 'self._calculate_wall' in source and 'self._clear_user_state' in source
     assert 'watermark' not in source.lower()
     main = (ROOT / 'ui/main_window.py').read_text(encoding='utf-8')
-    assert 'save_snapshot_pdf(self._root, target._pdf_snapshot)' in main
+    assert 'save_snapshot_pdf(self._root,target._pdf_snapshot)' in main.replace(' ', '')
+    assert 'if MainWindow._pdf_is_current(target) else None' in main
     assert 'icon_size=79' in main and 'square_size=86' in main
     assert 'icon_size=32' in main and 'minimum_height=44' in main
 

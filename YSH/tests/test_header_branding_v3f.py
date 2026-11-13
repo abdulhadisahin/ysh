@@ -27,13 +27,14 @@ def test_brand_lockup_moves_to_sidebar_without_large_header_text() -> None:
     assert 'background=colors.CARD_SURFACE' not in styles.split('"HeaderLogoPlate.TFrame"', 1)[1].split('"Ribbon.TFrame"', 1)[0]
 
 
-def test_shell_removes_temporary_ship_art_before_the_d243_emblem_is_supplied() -> None:
-    """The final D243 shell reserves branding space rather than showing placeholders."""
+def test_shell_reuses_ship_decoration_without_replacing_sidebar_emblem() -> None:
+    """The accepted ship is decorative while the emblem stays in the sidebar."""
     window = _source("ui/main_window.py")
 
     assert "d243_main_logo_path" in window
     assert "Branding belongs to the Project panel" in window
-    assert "ysh_ship_top_right_path()," not in window
+    assert "ysh_ship_top_right_path()," in window
+    assert "self._header_ship_label.place(" in window
 
 
 def test_header_keeps_shell_command_hosts_and_packaged_asset_references() -> None:

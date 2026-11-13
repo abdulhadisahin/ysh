@@ -115,7 +115,8 @@ def test_linked_pipe_freeze_after_newer_external_selection():
     assert dict(frozen_pipe(restored.evidence))=={'mode':'LINKED','status':'LINKED_STALE','revision':3}
     assert before==restored.to_json()
     report=adapt_snapshot(restored)
-    assert any(row.value=='Uygulanan revizyon eski' for row in report.selections)
+    from i18n.translator import Translator
+    assert any(row.value==Translator('tr').translate('fire.value.LINKED_STALE') for row in report.selections)
 
 
 def test_source_required_is_not_upgraded_historically():
