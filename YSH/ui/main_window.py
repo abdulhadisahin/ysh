@@ -249,7 +249,17 @@ class MainWindow:
         content.grid(row=0, column=0, sticky="nsew")
         content.columnconfigure(0, weight=1)
         content.rowconfigure(1, weight=1)
-        self._project_family_indicator = ttk.Label(content, style='Info.TLabel', wraplength=700)
+        self._project_status_strip = ttk.Frame(content, style='Workspace.TFrame')
+        self._project_status_strip.grid(row=0, column=0, sticky='ew')
+        self._project_status_strip.columnconfigure(0, weight=1)
+        self._project_family_indicator = ttk.Label(self._project_status_strip, style='Info.TLabel', wraplength=450)
+        self._warning_center_button = ttk.Button(self._project_status_strip,
+            command=self._open_warning_center, style='Neutral.TButton')
+        self._warning_center_button.grid(row=0, column=1, sticky='e', padx=SM)
+        self._warning_center_dialog = None
+        self._warning_center_job = None
+        self._root.bind('<Destroy>', self._cancel_warning_center_refresh, add='+')
+        self._warning_center_job = self._root.after_idle(self._poll_warning_center)
         self._project_family_indicator.grid(row=0, column=0, sticky='w', padx=SM, pady=(0, SM))
         self._project_family_indicator.grid_remove()
 
@@ -1462,6 +1472,45 @@ class MainWindow:
         self._history_window=CalculationHistoryWindow(self._root,service,
             lambda:self._active_project.id if self._active_project else None,self._translate,self)
 
+    def _refresh_warning_center(self):
+        strip = getattr(self, '_project_status_strip', None)
+        if strip is None:
+            return
+        from ui.warning_center_state import collect_warning_summary
+        summary = collect_warning_summary(self)
+        active = getattr(self, '_active_project', None) is not None
+        (strip.grid if active else strip.grid_remove)()
+        count = len(summary.items) - summary.info_count
+        self._warning_center_button.configure(text=self._translate('center.entry', count=count, completed=summary.completed_count))
+        dialog = getattr(self, '_warning_center_dialog', None)
+        if dialog is not None and dialog.window.winfo_exists():
+            dialog.render(summary, self._translate)
+            if not active:
+                dialog.window.destroy()
+        return summary
+
+    def _open_warning_center(self):
+        if getattr(self, '_active_project', None) is None:
+            return
+        from ui.dialogs.engineering_warning_center import EngineeringWarningCenter
+        dialog = getattr(self, '_warning_center_dialog', None)
+        if dialog is None or not dialog.window.winfo_exists():
+            self._warning_center_dialog = EngineeringWarningCenter(self._root, self._translate)
+        self._refresh_warning_center()
+        self._warning_center_dialog.window.lift()
+
+    def _poll_warning_center(self):
+        # Read cached presentation state only, including source observations that
+        # do not mark inputs dirty. No Library/discovery/calculator calls.
+        self._warning_center_job = None
+        self._refresh_warning_center()
+        self._warning_center_job = self._root.after(750, self._poll_warning_center)
+
+    def _cancel_warning_center_refresh(self, event):
+        if event.widget is self._root and self._warning_center_job is not None:
+            self._root.after_cancel(self._warning_center_job)
+            self._warning_center_job = None
+
     def _locked_project_family(self) -> str | None:
         """Use the persisted family, never the currently displayed module."""
         if getattr(self, '_active_project', None) is None:
@@ -1484,6 +1533,7 @@ class MainWindow:
                 indicator.grid()
             else:
                 indicator.grid_remove()
+        MainWindow._refresh_warning_center(self)
         MainWindow._refresh_family_notice(self)
 
     def _prepare_family_choices(self) -> None:

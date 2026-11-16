@@ -296,6 +296,7 @@ class FireCalculatorPage(ttk.Frame):
         self.model.invalidate(self.kind);self.load_fields();self.workspace.on_dirty();self.sync()
 
     def sync(self,message=None):
+        self._center_message = message
         if hasattr(self,'library_panel'):self.library_panel.sync()
         if self.kind=='foam':
             self.clarifications=foam_percent_clarifications(self.variables['foam_fraction'].get())

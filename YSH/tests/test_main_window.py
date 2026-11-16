@@ -260,6 +260,12 @@ def test_main_window_initializes_projects_tree(monkeypatch: object) -> None:
             del args
 
     class _TestRoot(_FakeRoot):
+        def bind(self, *args, **kwargs):
+            self.destroy_binding = (args, kwargs)
+
+        def after_idle(self, callback):
+            self.idle_callback = callback
+
         def __init__(self) -> None:
             self.title_value = ""
             self.menu = None

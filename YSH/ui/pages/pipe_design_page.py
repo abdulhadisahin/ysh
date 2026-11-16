@@ -1274,7 +1274,7 @@ class PipeDesignPage(ttk.Frame):
                 self._diameter_result = {}
                 self._diameter_warning_codes = []
                 self._update_diameter_summary()
-                self._message.set(self._t("validation.unexpected_error"));return
+                self._message.set(self._t("validation.unexpected_error"));self._center_error_text=self._message.get();return
             assert result.diameter is not None
             self._diameter_result = result.diameter.to_dict()
             self._diameter_formula_result = result
@@ -1296,6 +1296,7 @@ class PipeDesignPage(ttk.Frame):
                 self._warning_panel.set_findings(())
             self._update_diameter_summary()
             self._message.set(render_validation_issue(error.issue, self._translator_proxy()))
+            self._center_error_text = self._message.get()
         except ValueError:
             self._diameter_result = {}
             self._diameter_warning_velocity_m_s = None
@@ -1305,6 +1306,7 @@ class PipeDesignPage(ttk.Frame):
                 self._warning_panel.set_findings(())
             self._update_diameter_summary()
             self._message.set(self._t("validation.unexpected_error"))
+            self._center_error_text = self._message.get()
         finally:self._sync_pipe_result_empty_state()
 
     def _sync_pipe_result_empty_state(self)->None:
@@ -1325,6 +1327,7 @@ class PipeDesignPage(ttk.Frame):
             result=self._service.calculate(wall=WallThicknessInput(self._number("da"),self._number("pc"),self._number("rp"),self._number("sf"),self._number("wf"),self._number("c"),self._bend.get(),self._number("r") if self._bend.get() else None),material_id=material_id)
             if result.errors:
                 self._message.set(self._t("validation.unexpected_error"))
+                self._center_error_text = self._message.get()
                 return
             assert result.wall_thickness is not None
             self._wall_result = result.wall_thickness.to_dict()
@@ -1335,8 +1338,8 @@ class PipeDesignPage(ttk.Frame):
             self._refresh_formula_panel()
             from services.snapshot_events import notify_success
             notify_success(self,"wall",result,selection=getattr(self,"_formula_selection",None))
-        except ValidationError as error:self._message.set(render_validation_issue(error.issue, self._translator_proxy()))
-        except ValueError as error:self._message.set(self._t("validation.unexpected_error"))
+        except ValidationError as error:self._message.set(render_validation_issue(error.issue, self._translator_proxy()));self._center_error_text=self._message.get()
+        except ValueError as error:self._message.set(self._t("validation.unexpected_error"));self._center_error_text=self._message.get()
 
     def _use_recommended_pipe(self) -> None:
         """Explicitly transfer only the recommended record's authoritative outside diameter."""
