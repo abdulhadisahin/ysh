@@ -27,6 +27,7 @@ def _state(marker: str) -> dict[str, object]:
     """Return a deterministic four-page state with distinct data."""
     return {
         "schema_version": 1,
+        "navigation": {"version": 1, "active_system_family": "fuel"},
         "pipe_design": {"fields": {"q": marker}, "diameter_result": {"diameter_mm": marker}},
         "transfer_pump": {"capacity": marker},
         "discharge_head_loss": {"fields": {"d": marker}, "items": [{"name": marker}]},

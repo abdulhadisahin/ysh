@@ -27,10 +27,10 @@ def test_project_state_round_trip_and_delete(tmp_path: Path) -> None:
     assert ProjectStateRepository(database).get(project.id) is None
 
 
-def test_empty_project_has_no_implicit_state_and_populated_project_is_isolated(
+def test_empty_project_stores_only_family_and_populated_project_is_isolated(
     tmp_path: Path,
 ) -> None:
-    """Opening an empty project never creates or inherits another state."""
+    """A new project stores its family immediately without inheriting calculations."""
     database = ProjectDatabase(tmp_path / "projects.db")
     database.initialize()
     states = ProjectStateRepository(database)
@@ -46,9 +46,9 @@ def test_empty_project_has_no_implicit_state_and_populated_project_is_isolated(
     project_b = service.create_project("Project B")
 
     assert service.has_saved_state(project_a.id) is True
-    assert service.has_saved_state(project_b.id) is False
-    assert states.get(project_b.id) is None
+    assert service.has_saved_state(project_b.id) is True
+    assert states.get(project_b.id) == {"schema_version": 1, "navigation": {"version": 1, "active_system_family": "fuel"}}
     assert service.open(project_a.id)[1]["pipe_design"] == state_a["pipe_design"]
-    assert service.open(project_b.id)[1] == {"schema_version": 1}
-    assert service.has_saved_state(project_b.id) is False
+    assert service.open(project_b.id)[1] == states.get(project_b.id)
+    assert service.has_saved_state(project_b.id) is True
     assert service.open(project_a.id)[1]["suction_npsh"] == state_a["suction_npsh"]

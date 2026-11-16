@@ -410,7 +410,7 @@ def test_create_project_clears_pages_then_activates_persistence_project() -> Non
     class _Persistence:
         is_dirty = False
 
-        def create_project(self, *args: object) -> Project:
+        def create_project(self, *args: object, **kwargs: object) -> Project:
             return project
 
         def open(self, project_id: object) -> tuple[Project, dict[str, object]]:
@@ -445,7 +445,7 @@ def test_create_project_clears_pages_then_activates_persistence_project() -> Non
     window._file_menu = _FakeMenu()
     window._status_bar = _FakeStatusBar()
 
-    assert window._create_project("New Project", "", "") is True
+    assert window._create_project("New Project", "", "", "fuel") is True
     assert page.cleared is True
     assert window._active_project == project
     assert window._root.title_value == "D243 Boru ve Tulumba Boyutlandırma Programı — New Project"

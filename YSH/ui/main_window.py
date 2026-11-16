@@ -55,6 +55,7 @@ from ui.widgets.scrollable_frame import ScrollableFrame
 from ui.widgets.scrollable_page_host import ScrollablePageHost
 from ui.widgets.system_context_panel import SystemContextPanel
 from ui.workspace_navigation import WorkspaceNavigation, FAMILIES
+from core.project_family import FAMILY_KEYS
 from engineering.system_context import SystemContext
 from services.system_context_service import SystemContextService
 from ui.widgets.scrollable_treeview import ScrollableTreeview
@@ -247,7 +248,10 @@ class MainWindow:
         content = ttk.Frame(workspace, style="Workspace.TFrame")
         content.grid(row=0, column=0, sticky="nsew")
         content.columnconfigure(0, weight=1)
-        content.rowconfigure(0, weight=1)
+        content.rowconfigure(1, weight=1)
+        self._project_family_indicator = ttk.Label(content, style='Info.TLabel', wraplength=700)
+        self._project_family_indicator.grid(row=0, column=0, sticky='w', padx=SM, pady=(0, SM))
+        self._project_family_indicator.grid_remove()
 
         self._project_tree_container = ScrollableTreeview(
             navigation,
@@ -326,18 +330,18 @@ class MainWindow:
         self._family_notice.grid(row=2, column=0, sticky='ew')
         self._family_notice.grid_remove()
         self._family_parent = content
-        self._workspace_row = 0
+        self._workspace_row = 1
         self._page_host = ScrollablePageHost(content)
-        self._page_host.grid(row=0, column=0, sticky="nsew")
+        self._page_host.grid(row=1, column=0, sticky="nsew")
         if getattr(self, "_system_context_service", None) is not None:
             self._context_panel = SystemContextPanel(
                 content, self._system_context_service, self._translate,
                 self._change_system_context, compact=True)
             # Preserve project context/state and services without a permanent strip.
-            self._context_panel.grid(row=0, column=0, sticky="ew")
+            self._context_panel.grid(row=1, column=0, sticky="ew")
             self._context_panel.grid_remove()
-            self._workspace_row = 0
-            content.rowconfigure(0, weight=1)
+            self._workspace_row = 1
+            content.rowconfigure(1, weight=1)
             self.register_localizable(self._context_panel)
         self._page_host.bind('<<NotebookTabChanged>>', self._remember_module, add='+')
         self._refresh_family_selector()
@@ -716,6 +720,9 @@ class MainWindow:
         """Restore each registered page only after state validation succeeds."""
         if state.get("schema_version") != 1:
             raise ValidationError(ValidationIssue("project_state_unsupported"))
+        locked = MainWindow._locked_project_family(self)
+        if locked is not None and WorkspaceNavigation.from_workspace(state).active_system_family != locked:
+            raise ValidationError(ValidationIssue('project_family_locked'))
         from engineering.pipe_design.transfer_serialization import transfer_from_workspace
         transfer = transfer_from_workspace(state)
         from engineering.system_context import SystemContext
@@ -755,8 +762,9 @@ class MainWindow:
             MainWindow._apply_system_context(self, SystemContext())
 
         if hasattr(self, '_navigation'):
-            self._navigation = WorkspaceNavigation()
-            MainWindow._show_family(self, 'fuel', dirty=False, remember=False)
+            family = MainWindow._locked_project_family(self) or 'fuel'
+            self._navigation = WorkspaceNavigation(active_system_family=family)
+            MainWindow._show_family(self, family, dirty=False, remember=False)
 
     def _attach_dirty_callbacks(self) -> None:
         """Route page edits to optional project dirty tracking."""
@@ -968,12 +976,13 @@ class MainWindow:
         name: str,
         description: str,
         notes: str,
+        system_family: str,
     ) -> bool:
         try:
             persistence = getattr(self, "_project_persistence_service", None)
             if persistence is None:
                 raise RuntimeError("Project persistence is unavailable.")
-            project = persistence.create_project(name, description, notes)
+            project = persistence.create_project(name, description, notes, system_family=system_family)
         except ProjectValidationError:
             messagebox.showerror(
                 self._translate("dialog.error"),
@@ -1032,12 +1041,12 @@ class MainWindow:
         except Exception:
             LOGGER.exception("Unable to load project '%s'.", project.id)
             try:
-                self._load_all_page_states(previous_state)
                 if persistence is not None:
                     if previous_project is None:
                         persistence.close()
                     else:
                         persistence.open(previous_project.id)
+                self._load_all_page_states(previous_state)
             except Exception:
                 LOGGER.exception("Unable to restore the prior project workspace.")
             messagebox.showerror(
@@ -1047,6 +1056,8 @@ class MainWindow:
             )
             return
         self._active_project = project
+        if hasattr(self, '_family_selector'):
+            MainWindow._refresh_family_selector(self)
         MainWindow._clear_pdf_snapshots(self)
         if hasattr(self, "_projects_tree"):
             search = getattr(self, "_project_search", None)
@@ -1112,16 +1123,39 @@ class MainWindow:
                 parent=self._root,
             )
             return
+        locked_family = MainWindow._locked_project_family(self)
         metadata = SaveProjectAsDialog(
             self._root,
             self._translate,
             self,
+            locked_family=locked_family,
         ).show()
         if metadata is None:
             return
+        name, description, notes, chosen_family = metadata
+        family = locked_family or chosen_family
+        state = self._export_all_page_states()
+        navigation = WorkspaceNavigation.from_workspace(state)
+        navigation.active_system_family = family
+        state['navigation'] = navigation.to_payload()
+        persistence = self._project_persistence_service
+        previous_project = persistence.active_project
+        previous_dirty = persistence.is_dirty
+        project = None
         try:
-            project = self._project_persistence_service.create_project(*metadata)
-            self._project_persistence_service.save(self._export_all_page_states())
+            try:
+                project = persistence.create_project(
+                    name, description, notes, system_family=family)
+                persistence.save(state)
+            except Exception:
+                # A failed copy must not leave the UI bound to a different family.
+                if project is not None:
+                    persistence.delete(project.id)
+                    if previous_project is not None:
+                        persistence.open(previous_project.id)
+                        if previous_dirty:
+                            persistence.mark_dirty()
+                raise
         except ProjectValidationError:
             messagebox.showerror(
                 self._translate("dialog.error"),
@@ -1155,6 +1189,9 @@ class MainWindow:
             )
             return
         self._active_project = project
+        if hasattr(self, '_navigation'):
+            self._navigation = navigation
+            MainWindow._show_family(self, family, dirty=False, remember=False)
         MainWindow._clear_pdf_snapshots(self)
         self._refresh_projects()
         self._refresh_window_title()
@@ -1425,11 +1462,28 @@ class MainWindow:
         self._history_window=CalculationHistoryWindow(self._root,service,
             lambda:self._active_project.id if self._active_project else None,self._translate,self)
 
+    def _locked_project_family(self) -> str | None:
+        """Use the persisted family, never the currently displayed module."""
+        if getattr(self, '_active_project', None) is None:
+            return None
+        persistence = getattr(self, '_project_persistence_service', None)
+        return persistence.active_system_family
+
     def _refresh_family_selector(self) -> None:
         self._family_label.configure(text=self._translate('navigation.system'))
         self._family_selector.configure(values=tuple(self._translate(key) for key in FAMILIES.values()))
         self._family_value.set(self._translate(FAMILIES[self._family]))
         self._family_selector.configure(style='FireFamily.TCombobox' if self._family == 'fire' else 'TCombobox')
+        active = getattr(self, '_active_project', None)
+        self._family_selector.configure(state='disabled' if active else 'readonly')
+        indicator = getattr(self, '_project_family_indicator', None)
+        if indicator is not None:
+            if active:
+                indicator.configure(text=self._translate('project.family.context',
+                    name=active.name, family=self._translate(FAMILY_KEYS[self._family])))
+                indicator.grid()
+            else:
+                indicator.grid_remove()
         MainWindow._refresh_family_notice(self)
 
     def _prepare_family_choices(self) -> None:
@@ -1466,6 +1520,9 @@ class MainWindow:
             self._family_notice.grid_remove()
 
     def _select_family(self, _event=None) -> None:
+        if MainWindow._locked_project_family(self) is not None:
+            MainWindow._refresh_family_selector(self)
+            return
         index = self._family_selector.current()
         if index >= 0:
             self._show_family(tuple(FAMILIES)[index])
@@ -1486,6 +1543,9 @@ class MainWindow:
         """Switch cached hosts only; engineering values and results are untouched."""
         if family not in FAMILIES:
             raise ValueError('Unknown system family')
+        locked = MainWindow._locked_project_family(self)
+        if locked is not None and family != locked:
+            return
         changed = family != getattr(self, '_family', 'fuel')
         if remember:
             MainWindow._remember_module(self, dirty=False)

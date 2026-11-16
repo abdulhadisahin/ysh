@@ -7,6 +7,7 @@ from collections.abc import Callable
 from tkinter import messagebox, ttk
 
 from i18n.translator import Translator
+from ui.widgets.project_family_choice import ProjectFamilyChoice
 from ui.theme.spacing import LG, MD, SM
 
 
@@ -22,7 +23,7 @@ class NewProjectDialog:
         """Create and display a modal dialog for a new project."""
         self._translate = translate or Translator().translate
         self._localization_owner = localization_owner
-        self.result: tuple[str, str, str] | None = None
+        self.result: tuple[str, str, str, str] | None = None
         self._dialog = tk.Toplevel(parent)
         self._dialog.title(self._translate("menu.file.new_project"))
         self._dialog.transient(parent)
@@ -41,7 +42,7 @@ class NewProjectDialog:
             if callable(register):
                 register(self)
 
-    def show(self) -> tuple[str, str, str] | None:
+    def show(self) -> tuple[str, str, str, str] | None:
         """Wait for completion and return normalized metadata or ``None``."""
         self._dialog.wait_window()
         return self.result
@@ -92,8 +93,10 @@ class NewProjectDialog:
             pady=(MD, 0),
         )
 
+        self._family_choice = ProjectFamilyChoice(content, self._translate)
+        self._family_choice.grid(row=3, column=0, columnspan=2, sticky='ew', pady=(MD, 0))
         actions = ttk.Frame(content)
-        actions.grid(row=3, column=1, sticky="e", pady=(LG, 0))
+        actions.grid(row=4, column=1, sticky="e", pady=(LG, 0))
         self._cancel_button = ttk.Button(actions, command=self._cancel, style="Neutral.TButton")
         self._cancel_button.pack(
             side="left"
@@ -111,6 +114,7 @@ class NewProjectDialog:
         self._name_label.configure(text=f"{self._translate('project.name')}:")
         self._description_label.configure(text=f"{self._translate('project.description')}:")
         self._notes_label.configure(text=f"{self._translate('project.notes')}:")
+        self._family_choice.refresh_texts()
         self._cancel_button.configure(text=self._translate("common.cancel"))
         self._submit_button.configure(text=self._translate("common.save"))
 
@@ -127,7 +131,10 @@ class NewProjectDialog:
             return "break"
         description = self._description_text.get("1.0", "end-1c").strip()
         notes = self._notes_text.get("1.0", "end-1c").strip()
-        self.result = (name, description, notes)
+        family = self._family_choice.selected()
+        if family is None:
+            return "break"
+        self.result = (name, description, notes, family)
         self._dialog.grab_release()
         self._destroy()
         return "break"

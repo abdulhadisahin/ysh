@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from engineering.pipe_design.transfer import PipeTransferProjectState
 
 from core.project import Project
+from core.project_family import project_family, family_navigation
 from repositories.project_state_repository import ProjectStateRepository
 from services.project_service import ProjectService
 from engineering.validation import ValidationError, ValidationIssue
@@ -34,23 +35,49 @@ class ProjectPersistenceService:
         """Return active-project dirty state."""
         return self._is_dirty
 
-    def create_project(self, name: str, description: str = "", notes: str = "") -> Project:
-        """Create and activate an initially clean project."""
-        self._active_project = self._projects.create_project(name, description, notes)
+    @property
+    def active_system_family(self) -> str | None:
+        """Read the active project's authoritative persisted family."""
+        if self._active_project is None:
+            return None
+        return project_family(self._states.get(self._active_project.id) or {})
+
+    def create_project(self, name: str, description: str = "", notes: str = "",
+                       *, system_family: str = 'fuel') -> Project:
+        """Persist family immediately; legacy service callers retain Fuel defaults."""
+        navigation = family_navigation(system_family)
+        project = self._projects.create_project(name, description, notes)
+        try:
+            self._states.save(project.id, {'schema_version': 1, 'navigation': navigation})
+        except Exception:
+            self._projects.delete_project(project.id)
+            raise
+        self._active_project = project
         self._is_dirty = False
-        return self._active_project
+        return project
 
     def save(self, state: dict[str, object]) -> None:
         """Save a version-1 workspace for the active project."""
         if self._active_project is None:
             raise ValidationError(ValidationIssue("project_selection_required"))
+        previous = self._states.get(self._active_project.id) or {}
+        family = project_family(previous)
+        if 'navigation' in state:
+            incoming = state['navigation']
+            # Preserve opaque legacy navigation unchanged, but do not allow an
+            # explicit family to be erased or changed through a workspace save.
+            if incoming != previous.get('navigation') and (
+                not isinstance(incoming, dict) or incoming.get('active_system_family') != family
+            ):
+                raise ValidationError(ValidationIssue('project_family_locked'))
         # Existing pages export only their own keys. Preserve the opt-in namespace
         # when those pages save, including future namespace versions kept opaque.
         if any(namespace not in state for namespace in ('pipe_transfer','system_context','fire_workspace','navigation')):
-            previous = self._states.get(self._active_project.id) or {}
             for namespace in ("pipe_transfer", "system_context", "fire_workspace", "navigation"):
                 if namespace not in state and namespace in previous:
                     state = {**state, namespace: previous[namespace]}
+        if 'navigation' not in state:
+            state['navigation'] = family_navigation(family)
         state["schema_version"] = 1
         self._states.save(self._active_project.id, state)
         self._is_dirty = False

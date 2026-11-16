@@ -121,11 +121,10 @@ def test_roundtrip_preserves_live_fields_results_and_module_memory(shell):
     assert len(page.views.created)==2
 
 
-def test_saved_project_restores_family_and_both_module_ids(shell):
+def test_saved_fire_project_restores_family_and_selected_module_without_switching(shell):
     w=shell;root=w._root;service=w._project_persistence_service
-    project=service.create_project('Navigation '+str(uuid4()));w._active_project=project
-    select(w._page_host,'suction_npsh',root)
-    w._show_family('fire');root.update()
+    project=service.create_project('Navigation '+str(uuid4()),system_family='fire')
+    w._activate_project(project);root.update()
     select(w._fire_workspace.host,'hw',root)
     w._fire_workspace.views['hw'].variables['inside_diameter_mm'].set('105')
     state=w._export_all_page_states();service.save(state)
@@ -138,7 +137,8 @@ def test_saved_project_restores_family_and_both_module_ids(shell):
     assert w._fire_workspace.views['hw'].variables['inside_diameter_mm'].get()=='105'
     assert not service.is_dirty
     w._show_family('fuel');root.update()
-    assert w._page_host.select()==str(w._page_host._page_keys['suction_npsh'])
+    assert w._family=='fire'
+    assert not w._page_host.winfo_ismapped()
 
 
 def test_legacy_workspace_and_new_project_default_to_fuel(shell):
@@ -197,7 +197,7 @@ def test_unknown_or_legacy_navigation_has_safe_defaults(payload):
 
 def test_partial_project_save_preserves_navigation(shell):
     service=shell._project_persistence_service
-    project=service.create_project('Partial '+str(uuid4()))
+    project=service.create_project('Partial '+str(uuid4()),system_family='fire')
     state=WorkspaceNavigation();state.active_system_family='fire'
     service.save({'schema_version':1,'navigation':state.to_payload()})
     service.save({'schema_version':1,'pipe_design':{}})

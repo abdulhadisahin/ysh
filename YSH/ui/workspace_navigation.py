@@ -1,5 +1,6 @@
 """Versioned project navigation; independent of engineering system context."""
 from dataclasses import dataclass, field
+from core.project_family import project_family
 
 FAMILIES = {'fuel': 'navigation.fuel', 'fire': 'fire.system'}
 MODULES = {
@@ -21,7 +22,7 @@ class WorkspaceNavigation:
     @classmethod
     def from_workspace(cls, workspace):
         """Missing/unknown navigation preferences safely use deterministic defaults."""
-        result = cls()
+        result = cls(active_system_family=project_family(workspace))
         raw = workspace.get('navigation', {})
         if not isinstance(raw, dict) or raw.get('version') != 1:
             return result

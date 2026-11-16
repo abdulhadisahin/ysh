@@ -990,3 +990,5 @@ MESSAGES.update({'selection.applied': 'Uygulanan kaynak',
 MESSAGES["selection.library_update"] = 'Son revizyonun önerisini alır; girilmiş değerleri korur.'
 
 MESSAGES.update({'post.history': 'Geçmiş', 'post.history.help': 'Önceki hesapları açar; güncel sonuç gerekmez.'})
+
+MESSAGES.update({'project.family': 'Sistem Ailesi', 'project.family.fuel': 'Yakıt Sistemi', 'project.family.fire': 'Yangın Söndürme Sistemi', 'project.family.context': 'Proje: {name} · {family}', 'validation.project_family_required': 'Yeni proje için sistem ailesini seçin.', 'validation.project_family_locked': 'Projenin sistem ailesi değiştirilemez.'})

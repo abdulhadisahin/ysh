@@ -102,7 +102,7 @@ def shell(project_database, monkeypatch):
 
 def create(window, name):
     """Use the actual New Project callback including activation and list refresh."""
-    assert window._create_project(name, 'Description', 'Notes')
+    assert window._create_project(name, 'Description', 'Notes', 'fuel')
     return window._active_project
 
 

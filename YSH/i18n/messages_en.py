@@ -976,3 +976,5 @@ MESSAGES.update({'selection.applied': 'Applied source',
 MESSAGES["selection.library_update"] = 'Refreshes the recommendation from the latest revision; entered values are retained.'
 
 MESSAGES.update({'post.history': 'History', 'post.history.help': 'Opens previous calculations; no current result is required.'})
+
+MESSAGES.update({'project.family': 'System Family', 'project.family.fuel': 'Fuel System', 'project.family.fire': 'Fire Fighting System', 'project.family.context': 'Project: {name} · {family}', 'validation.project_family_required': 'Choose a system family for the new project.', 'validation.project_family_locked': "The project's system family cannot be changed."})
