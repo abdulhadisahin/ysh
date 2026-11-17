@@ -66,7 +66,7 @@ def test_pdf_structure_text_metadata_and_fidelity(snapshots, index):
     first_title = Translator('tr').translate(report.formulas[0].title_key)
     for page in reader.pages:
         page_text = page.extract_text()
-        if '4. Hesap Adımları' in page_text:
+        if '5. Hesap Adımları' in page_text:
             assert first_title in page_text
     assert 'Örnek Çalışma ŞĞİıçöü' in text and 'None' not in text
     assert reader.metadata.title.startswith('D243')

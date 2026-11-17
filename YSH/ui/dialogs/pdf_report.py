@@ -4,23 +4,25 @@ from tkinter import filedialog, messagebox
 from engineering.snapshots.models import CalculationSnapshot
 
 
-def save_snapshot_pdf(parent: object, snapshot: CalculationSnapshot | None) -> None:
+def save_snapshot_pdf(parent: object, snapshot: CalculationSnapshot | None, *, translate=None) -> None:
     """Cancel quietly and report export errors without affecting engineering results."""
+    from i18n.translator import Translator
+    tr = translate or getattr(parent, '_translate', None) or getattr(parent, 'tr', None) or Translator('tr').translate
+    language = getattr(getattr(tr, '__self__', None), 'language', 'tr')
     if snapshot is None:
-        messagebox.showinfo('PDF Raporu', 'Önce başarılı bir hesap kaydı oluşturun.', parent=parent)
+        messagebox.showinfo(tr('report.export_title'), tr('report.no_snapshot'), parent=parent)
         return
     try:
         from reporting.models import adapt_snapshot
         from reporting.export import default_filename, export_pdf
-        report = adapt_snapshot(snapshot)
-        filename = filedialog.asksaveasfilename(parent=parent, title='PDF Raporu Oluştur',
-            defaultextension='.pdf', filetypes=[('PDF Dosyası', '*.pdf')],
+        report = adapt_snapshot(snapshot, language=language)
+        filename = filedialog.asksaveasfilename(parent=parent, title=tr('report.export_title'),
+            defaultextension='.pdf', filetypes=[('PDF', '*.pdf')],
             initialfile=default_filename(report))
         if not filename:
             return
         path = export_pdf(report, filename)
     except Exception:
-        messagebox.showerror('PDF Raporu',
-            'PDF kaydedilemedi. Klasörü, dosya yazma iznini ve boş disk alanını kontrol edin.', parent=parent)
+        messagebox.showerror(tr('report.export_title'), tr('report.export_error'), parent=parent)
         return
-    messagebox.showinfo('PDF Raporu', f'PDF raporu oluşturuldu:\n{path}', parent=parent)
+    messagebox.showinfo(tr('report.export_title'), tr('report.export_success', path=path), parent=parent)

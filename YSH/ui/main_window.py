@@ -1436,7 +1436,7 @@ class MainWindow:
                 page._formula_panel.configure_post_tools(
                     on_history=self._open_calculation_history,
                     history_available=lambda:getattr(self,'_snapshot_history',None) is not None,
-                    on_pdf=lambda target=page:save_snapshot_pdf(self._root,target._pdf_snapshot) if MainWindow._pdf_is_current(target) else None,
+                    on_pdf=lambda target=page:save_snapshot_pdf(self._root,target._pdf_snapshot,translate=self._translate) if MainWindow._pdf_is_current(target) else None,
                     pdf_available=lambda target=page:MainWindow._pdf_is_current(target))
                 page._pdf_button=page._formula_panel._pdf_button
             if code == 'transfer_pump' and hasattr(page,'_design_panel'):
@@ -1444,6 +1444,14 @@ class MainWindow:
         fire=getattr(self,'_fire_workspace',None)
         if fire is not None:
             for view in tuple(fire.views.created.values()):view.formula.refresh_post_tools()
+
+    def _freeze_report_identity(self, snapshot):
+        """Freeze current project identity once, before capture/persistence."""
+        from reporting.context import freeze_report_context
+        project = getattr(self, '_active_project', None)
+        family = MainWindow._locked_project_family(self) if project else None
+        return freeze_report_context(snapshot, project_name=project.name if project else None,
+                                     system_family=family)
 
     def _capture_calculation(self, module: object, stage: str, result: object,
                              selection: object, findings: tuple) -> None:
@@ -1454,6 +1462,7 @@ class MainWindow:
             snapshot = build_snapshot(module,stage,result,context=self._system_context,
                                       project_id=project.id if project else None,
                                       selection=selection,findings=findings)
+            snapshot = MainWindow._freeze_report_identity(self, snapshot)
             self._snapshot_history.append(snapshot)
             page = getattr(self, '_pages', {}).get(module.value)
             if page is not None and hasattr(page, '_pdf_button'):
@@ -1615,6 +1624,7 @@ class MainWindow:
                     sources=self._pipe_sources, context=lambda:self._system_context,
                     project=lambda:self._active_project.id if self._active_project else None,
                     on_snapshot=lambda snapshot:self._snapshot_history.append(snapshot),
+                    prepare_snapshot=lambda snapshot:MainWindow._freeze_report_identity(self,snapshot),
                     on_history=self._open_calculation_history,
                     history_available=lambda:getattr(self,'_snapshot_history',None) is not None,
                     on_dirty=self._mark_workspace_dirty, state=getattr(self,'_fire_pending_state',{}),

@@ -47,11 +47,12 @@ class _FireSubviews(Mapping):
 
 class FireWorkspacePage(ttk.Frame):
     """One cached family workspace; both subviews share existing shell services."""
-    def __init__(self,parent,translate,*,sources,context,project,on_snapshot,on_dirty,state=None,library=None,on_history=None,history_available=None):
+    def __init__(self,parent,translate,*,sources,context,project,on_snapshot,on_dirty,state=None,library=None,on_history=None,history_available=None,prepare_snapshot=None):
         super().__init__(parent,style='Fire.TFrame')
         configure_fire_visuals(ttk.Style(self))
         self.tr=translate;self.sources=sources;self.context_provider=context;self.project_provider=project
         self.on_snapshot=on_snapshot;self.on_dirty=on_dirty
+        self.prepare_snapshot=prepare_snapshot
         self.on_history=on_history;self.history_available=history_available
         self._library_provider=library;self._library_service=None
         self.model=FireWorkspace.from_state(state or {})
@@ -262,7 +263,10 @@ class FireCalculatorPage(ttk.Frame):
         except (ValueError,TypeError):self.sync(message='fire.ui.invalid');return
         self.sync()
         self.after_idle(self._reveal_primary_result)
-        try:self.workspace.on_snapshot(self.model.snapshots[self.kind])
+        try:
+            if self.workspace.prepare_snapshot is not None:
+                self.model.snapshots[self.kind] = self.workspace.prepare_snapshot(self.model.snapshots[self.kind])
+            self.workspace.on_snapshot(self.model.snapshots[self.kind])
         except Exception:self.status.configure(text=self.tr('history.persistence_failed'))
 
     def _reveal_primary_result(self):

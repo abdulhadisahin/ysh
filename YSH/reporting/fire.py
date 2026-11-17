@@ -14,8 +14,10 @@ INPUT_LABELS = {
 }
 
 
-def enrich_fire_report(snapshot, report):
+def enrich_fire_report(snapshot, report, language='tr'):
     """Use stable whitelists; missing optional fields simply produce no extra row."""
+    from i18n.translator import Translator
+    _TR = Translator(language).translate
     payload = snapshot.evidence['facts'].get('fire') or {}
     inputs = tuple(ReportField(_TR(INPUT_LABELS[name][0]), INPUT_LABELS[name][1], value,
                               (payload.get('input_units') or {}).get(name,''))
