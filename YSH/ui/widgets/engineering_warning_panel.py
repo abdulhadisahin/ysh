@@ -55,11 +55,13 @@ class EngineeringWarningPanel(ttk.Frame):
         self.set_findings(self._findings)
 
     def _render_finding(self, row: int, finding: EngineeringFinding) -> None:
-        critical = finding.severity is WarningSeverity.CRITICAL_WARNING
-        error = finding.severity is WarningSeverity.ERROR
+        visual=getattr(finding,'visual_status',None)
+        critical = finding.severity is WarningSeverity.CRITICAL_WARNING or visual in ('CRITICAL','OUT_OF_RANGE')
+        error = finding.severity is WarningSeverity.ERROR or visual=='OUT_OF_RANGE'
         title_key = "warning.title.critical" if critical else "warning.title.engineering"
         title_style = "EngineeringCriticalWarningTitle.TLabel" if critical else "EngineeringWarningTitle.TLabel"
         body_style = "EngineeringCriticalWarning.TLabel" if critical else "EngineeringWarning.TLabel"
+        if visual=='CRITICAL':title_style='EngineeringBlackWarningTitle.TLabel'
         icon_state = "error" if error else "critical" if critical else "warning"
         StatusBadge(
             self,
@@ -79,6 +81,12 @@ class EngineeringWarningPanel(ttk.Frame):
         )
 
     def _message(self, finding: EngineeringFinding) -> str:
+        if finding.code.startswith('engineering.value.'):
+            return self._translate('engineering.value_issue',property=self._translate('engineering.property.'+finding.context['property']),
+                status=self._translate('engineering.status.'+finding.context['status']))
+        if finding.rule_record_json:
+            from engineering.rule_presentation import finding_text
+            return finding_text(finding,self._translate)
         if finding.code == 'd243.pipe.velocity_max':
             details = [self._translate(finding.message_key,
                 limit=format_user_number(finding.upper_bound))]

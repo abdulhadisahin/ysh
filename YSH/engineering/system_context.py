@@ -33,6 +33,11 @@ class SystemContext:
     material_id: UUID | None = None
     pipe_standard_id: UUID | None = None
     rule_set_id: UUID | None = None
+    service: str = ''
+    line_type: str = ''
+    applicability_scope: str = ''
+    surface_profile_id: UUID | None = None
+    engineering_defaults_json: str = '{}'
     revision: int = 1
     is_active: bool = True
 
@@ -40,9 +45,18 @@ class SystemContext:
         for name in ("system", "circuit", "fluid"):
             if getattr(self, name) is not None and not isinstance(getattr(self, name), ContextReference):
                 raise ValueError("Invalid context reference")
-        for name in ("material_id", "pipe_standard_id", "rule_set_id"):
+        for name in ("material_id", "pipe_standard_id", "rule_set_id", "surface_profile_id"):
             if getattr(self, name) is not None and not isinstance(getattr(self, name), UUID):
                 raise ValueError("Invalid context UUID")
+        import json
+        for name in ('service','line_type','applicability_scope','engineering_defaults_json'):
+            if not isinstance(getattr(self,name),str):raise ValueError('Invalid engineering context text')
+        defaults=json.loads(self.engineering_defaults_json)
+        if not isinstance(defaults,dict):raise ValueError('Invalid project defaults')
+        import math
+        for key,value in defaults.items():
+            UUID(key)
+            if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) or value<0:raise ValueError('Invalid project default')
         if self.circuit is not None and self.system is None:
             raise ValueError("A circuit requires a system")
         if type(self.revision) is not int or self.revision < 1 or type(self.is_active) is not bool:
@@ -74,7 +88,7 @@ class SystemContext:
         for name in ("system", "circuit", "fluid"):
             if data[name] is not None:
                 data[name]["id"] = str(data[name]["id"])
-        for name in ("material_id", "pipe_standard_id", "rule_set_id"):
+        for name in ("material_id", "pipe_standard_id", "rule_set_id", "surface_profile_id"):
             data[name] = str(data[name]) if data[name] is not None else None
         return {"version": 1, **data}
 
@@ -92,7 +106,7 @@ class SystemContext:
                 ref = values.get(name)
                 if ref is not None:
                     values[name] = ContextReference(**{**ref, "id": UUID(ref["id"])})
-            for name in ("material_id", "pipe_standard_id", "rule_set_id"):
+            for name in ("material_id", "pipe_standard_id", "rule_set_id", "surface_profile_id"):
                 if values.get(name) is not None:
                     values[name] = UUID(values[name])
             return cls(**values)

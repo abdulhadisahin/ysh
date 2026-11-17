@@ -277,6 +277,10 @@ class DischargeHeadLossPage(ttk.LabelFrame):
     def _evaluate_velocity_warning(self)->None:
         result=getattr(self,"_last_result",None);fluid=self._selected_warning_fluid()
         findings=() if result is None or fluid is None else evaluate_velocity(fluid,"DELIVERY",result.flow_velocity_m_s)
+        provider=getattr(self,'_engineering_rule_provider',None)
+        if result is not None and callable(provider):
+            projected=provider(result.flow_velocity_m_s)
+            if projected is not None:findings=projected
         if hasattr(self,"_warning_panel"):self._warning_panel.set_findings(findings)
 
     def export_state(self)->dict[str,object]:

@@ -64,6 +64,8 @@ class EngineeringFinding:
     unit: str | None
     source_id: str | None
     context: dict[str, str]
+    visual_status: str | None = None
+    rule_record_json: str | None = None
 
     @property
     def blocks_calculation(self) -> bool:
@@ -110,14 +112,10 @@ def _velocity_rule(system: str, line_role: str, lower: float, upper: float) -> W
     )
 
 
-VELOCITY_RULES: tuple[WarningRule, ...] = (
-    _velocity_rule("DIESEL_FUEL", "SUCTION", 0.5, 1.0),
-    _velocity_rule("DIESEL_FUEL", "DELIVERY", 1.5, 2.0),
-    _velocity_rule("LUBE_OIL", "SUCTION", 0.5, 1.0),
-    _velocity_rule("LUBE_OIL", "DELIVERY", 1.5, 2.5),
-    _velocity_rule("SEA_WATER", "SUCTION", 1.0, 1.5),
-    _velocity_rule("SEA_WATER", "DELIVERY", 1.5, 2.5),
-)
+from engineering.catalog_seeds import rule_seeds
+VELOCITY_RULES: tuple[WarningRule, ...] = tuple(
+    _velocity_rule(rule.fluid_group,rule.line_type,rule.recommended_min,rule.recommended_max)
+    for rule in rule_seeds() if rule.source_authority=='Everllence' and rule.fluid_group in ('DIESEL_FUEL','LUBE_OIL','SEA_WATER'))
 
 # Kept source-modelled but intentionally inactive: current material selection
 # cannot reliably identify galvanized steel versus CuNi alloy grade.

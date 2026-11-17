@@ -35,7 +35,16 @@ def finalize_report(snapshot, report, language):
                        tr('report.source_required') if status == 'SOURCE_REQUIRED' else tr('formula2.check.NOT_CONFIGURED'))
             if 'message_key' in node:
                 key = node['message_key']
+                if node.get('rule_record_json'):
+                    from types import SimpleNamespace
+                    from engineering.rule_presentation import finding_text
+                    visual=node.get('visual_status') or 'WARNING'
+                    notice(visual,finding_text(SimpleNamespace(**node),tr))
+                    return
                 args = dict(node.get('context') or {})
+                if str(node.get('code','')).startswith('engineering.value.'):
+                    args['property']=tr('engineering.property.'+args['property'])
+                    args['status']=tr('engineering.status.'+args['status'])
                 if node.get('code') == 'd243.pipe.velocity_max':
                     args['limit'] = format_number(node['upper_bound']).replace(',', '.') if language == 'en' else format_number(node['upper_bound'])
                 elif str(node.get('code','')).startswith('velocity.'):
@@ -45,10 +54,10 @@ def finalize_report(snapshot, report, language):
                     message = tr(key, **args)
                 except (KeyError, ValueError):
                     message = tr('report.recorded_warning')
-                severity = node.get('category') or node.get('severity') or 'INFO'
+                severity = node.get('visual_status') or node.get('category') or node.get('severity') or 'INFO'
                 severity = {'ENGINEERING_WARNING':'WARNING','CRITICAL_WARNING':'WARNING',
                             'SOURCE_CONTEXT_REQUIRED':'SOURCE_REQUIRED'}.get(severity,severity)
-                if severity not in ('INFO','WARNING','STALE','SOURCE_REQUIRED','ERROR','BLOCKED'):
+                if severity not in ('INFO','WARNING','STALE','SOURCE_REQUIRED','ERROR','BLOCKED','OUT_OF_RANGE','CRITICAL'):
                     severity = 'INFO'
                 name = node.get('field_name','')
                 from reporting.fire import INPUT_LABELS
@@ -155,5 +164,6 @@ def finalize_report(snapshot, report, language):
         project_name=context.get('project_name'), system_family=family,
         revision=str(fire['revision']) if fire.get('revision') is not None else None,
         inputs=inputs, results=results, primary_result=primary, warning_items=tuple(warnings),
+        engineering_basis_json=next((step.engineering_basis_json for step in report.formulas if step.engineering_basis_json),None),
         identification=identification, selections=tuple(field(r) for r in report.selections),
         metadata=tuple(field(r) for r in report.metadata))

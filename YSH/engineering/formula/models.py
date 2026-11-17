@@ -81,6 +81,7 @@ class FormulaStep:
     substitution: str | None = None
     check: FormulaCheck | None = None
     classification: CalculationClassification = CalculationClassification.ENGINEERING_CALCULATION
+    engineering_basis_json: str | None = None
 
 
 def ordered_steps(steps: tuple[FormulaStep, ...]) -> tuple[FormulaStep, ...]:

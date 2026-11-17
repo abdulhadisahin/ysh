@@ -146,6 +146,9 @@ class YSHApplication:
                 from services.engineering_library_service import EngineeringLibraryService
                 return EngineeringLibraryService(self._library_database)
             self._main_window.set_library_service_factory(library_factory)
+        if hasattr(self._main_window, "set_engineering_catalog_service"):
+            from services.engineering_catalog_service import EngineeringCatalogService
+            self._main_window.set_engineering_catalog_service(EngineeringCatalogService(self._library_database))
         if hasattr(self._main_window, "set_snapshot_history_service"):
             from services.snapshot_history_service import SnapshotHistoryService
             from repositories.calculation_repository import CalculationRepository

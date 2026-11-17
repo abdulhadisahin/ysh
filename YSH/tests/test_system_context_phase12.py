@@ -59,12 +59,13 @@ def test_application_defaults_are_stable_without_database_writes(library_databas
                          for table in ('systems','circuits','fluids','fluid_properties','rule_sets'))
     before=counts()
     service=SystemContextService(SystemRepository(library_database),CircuitRepository(library_database),FluidRepository(library_database))
-    expected=service.systems()
+    expected=service.systems();expected_fluids=service.fluids()
+    assert len(expected_fluids)==14 and all(f.is_factory for f in expected_fluids)
     for _ in range(3):
         service.reload()
         assert service.systems()==expected
         assert all(service.circuits(row.id)==() for row in expected)
-        assert service.fluids()==()
+        assert service.fluids()==expected_fluids
     assert {s.code for s in expected}=={'FUEL','FRESH_WATER','OIL'}
     assert {s.name_tr for s in expected}=={'Yakıt','Tatlı Su','Yağ'}
     assert counts()==before

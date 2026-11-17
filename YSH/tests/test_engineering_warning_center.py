@@ -17,10 +17,10 @@ from ._tk_geometry import settle_geometry
 def test_aggregation_family_filter_and_counts(family, allowed, other):
     items = tuple(W(allowed, status, status.value) for status in S)
     summary = aggregate_warnings(family, (M(allowed, items + items, 2), M(other, (W(other,S.ERROR,'bad'),),9)))
-    assert len(summary.items) == 6
+    assert len(summary.items) == 8
     assert summary.completed_count == 2
     assert (summary.info_count, summary.warning_count, summary.source_required_count,
-            summary.stale_count, summary.error_count) == (1,1,1,1,2)
+            summary.stale_count, summary.error_count) == (1,1,1,1,4)
     assert all(item.module_id == allowed for item in summary.items)
     assert not aggregate_warnings(None, (M(allowed, items, 1),)).items
 

@@ -68,6 +68,7 @@ class EngineeringReport:
     revision: str | None = None
     primary_result: ReportField | None = None
     warning_items: tuple[ReportWarning, ...] = ()
+    engineering_basis_json: str | None = None
 
     def to_json(self) -> str:
         """Serialize without display rounding or mutable references."""

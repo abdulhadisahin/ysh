@@ -1200,6 +1200,10 @@ class PipeDesignPage(ttk.Frame):
                 # Preserve non-MAN findings and shared rules for other modules.
                 findings += tuple(finding for finding in evaluate_velocity(system, role, velocity)
                                  if finding.source_id != MAN_EVERLLENCE_SOURCE_ID)
+        provider=getattr(self,'_engineering_rule_provider',None)
+        if self._diameter_result and callable(provider) and velocity is not None:
+            projected=provider(velocity)
+            if projected is not None:findings=projected
         self._engineering_findings = findings
         if hasattr(self, "_warning_panel"):
             self._warning_panel.set_findings(findings)

@@ -170,6 +170,11 @@ def render_pdf(report: EngineeringReport) -> bytes:
                for w in report.warning_items], [WIDTH*.20,WIDTH*.25,WIDTH*.55])
     if not any(item.severity != 'INFO' for item in report.warning_items):
         story.append(p(tr('report.no_warnings'),small))
+    if report.engineering_basis_json:
+        import json
+        from engineering.basis import basis_rows
+        story.append(p(tr('engineering.basis'),heading))
+        table([[tr('report.parameter'),tr('report.value')]]+list(basis_rows(json.loads(report.engineering_basis_json),tr)),[WIDTH*.38,WIDTH*.62])
     section(7,'provenance')
     field_table(report.inputs, True)
     if report.selections:

@@ -48,7 +48,7 @@ class LibraryController:
             if ownership and self.service.ownership(self.category,row) != ownership:
                 continue
             source = getattr(row,"reference",row)
-            if verification and getattr(source,"verification_status",None) != verification:
+            if verification and getattr(source,"verification",getattr(source,"verification_status",None)) != verification:
                 continue
             if search.casefold() not in str(row).casefold():
                 continue
@@ -81,6 +81,12 @@ class LibraryController:
             self.draft['unit']=UNITS[FIRE_CATEGORIES[self.category]]
             self.draft['source_status']=FireSourceStatus.SOURCE_REQUIRED
             self.draft['service']='water' if self.category=='fire_hw' else 'foam'
+        if create and self.category in ('fluid_specifications','material_surfaces','engineering_rules'):
+            from dataclasses import fields,MISSING
+            allowed={field.name for field in definition.fields}
+            for field in fields(definition.model):
+                if field.name in allowed and field.default is not MISSING:
+                    self.draft[field.name]=field.default
         self.error_key = None
 
     def cancel(self) -> None:

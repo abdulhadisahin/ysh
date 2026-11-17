@@ -10,6 +10,8 @@ class WarningStatus(StrEnum):
     STALE = 'STALE'
     ERROR = 'ERROR'
     BLOCKED = 'BLOCKED'
+    OUT_OF_RANGE = 'OUT_OF_RANGE'
+    CRITICAL = 'CRITICAL'
 
 
 FAMILY_MODULES = {
@@ -53,7 +55,7 @@ class EngineeringWarningSummary:
     def source_required_count(self): return self.count(WarningStatus.SOURCE_REQUIRED)
     @property
     def error_count(self):
-        return self.count(WarningStatus.ERROR) + self.count(WarningStatus.BLOCKED)
+        return sum(self.count(status) for status in (WarningStatus.ERROR,WarningStatus.BLOCKED,WarningStatus.OUT_OF_RANGE,WarningStatus.CRITICAL))
 
 
 def aggregate_warnings(family, states):

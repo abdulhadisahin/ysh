@@ -73,6 +73,8 @@ def library(library_database):
         rows[category]=service.save(category,dict(value=.01 if category=='fire_foam_concentration' else 1,
             unit=UNITS[parameter],context='TEST_ONLY',service='water' if category=='fire_hw' else 'foam',
             applicability='Synthetic fixture only',source_id=source.id,source_status='SOURCE_REQUIRED',notes='TEST_ONLY',is_active=True))
+    for category in ("fluid_specifications","material_surfaces","engineering_rules"):
+        rows[category]=service._repos[category].get_all()[0]
     return service,rows
 
 
@@ -90,13 +92,15 @@ def test_constructor_and_repeated_browsing_never_seed_or_write(library_database,
     with library_database.connection() as conn:
         before=conn.total_changes
     service=EngineeringLibraryService(library_database)
+    expected_fluids=service._repos['fluids'].get_all()
+    assert len(expected_fluids)==14
     for repo in service._repos.values():
         for name in ('create','update','create_standard'):
             if hasattr(repo,name): monkeypatch.setattr(repo,name,lambda *a,**k:pytest.fail('browse wrote data'))
     for _ in range(3):
         for category in CATEGORIES: service.list_records(category.code)
     assert service._repos['systems'].get_all()==()
-    assert service._repos['fluids'].get_all()==()
+    assert service._repos['fluids'].get_all()==expected_fluids
     assert service._repos['sources'].get_all()==()
     assert len(service.list_records('systems'))==3
     assert not hasattr(service,'delete') and not hasattr(service,'remove')

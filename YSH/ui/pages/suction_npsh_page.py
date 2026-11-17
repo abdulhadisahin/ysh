@@ -461,6 +461,10 @@ class SuctionNPSHPage(ttk.Frame):
         fluid = self._selected_warning_fluid()
         if loss is not None and fluid is not None:
             findings.extend(evaluate_velocity(fluid, "SUCTION", loss.flow_velocity_m_s))
+        provider=getattr(self,'_engineering_rule_provider',None)
+        if loss is not None and callable(provider):
+            projected=provider(loss.flow_velocity_m_s)
+            if projected is not None:findings=list(projected)
         enpy = getattr(self, "_last_enpy", None)
         if enpy is not None and enpy.npsh_margin_m is not None:
             required = enpy.enpym_available_m - enpy.npsh_margin_m

@@ -28,7 +28,8 @@ def collect_warning_summary(window):
                 items.append(EngineeringWarning(key, severity, code, message_key, detail, source))
             panel = getattr(page, '_warning_panel', None)
             for finding in getattr(panel, 'findings', ()):
-                severity = S.ERROR if finding.severity.value == 'ERROR' else S.WARNING
+                visual=getattr(finding,'visual_status',None)
+                severity = S(visual) if visual in ('OUT_OF_RANGE','CRITICAL','SOURCE_REQUIRED','WARNING') else S.ERROR if finding.severity.value == 'ERROR' else S.WARNING
                 # The existing presenter retains source/range/context wording.
                 add(severity, finding.code, detail=panel._message(finding))
             if key == 'pipe_design':
@@ -74,6 +75,12 @@ def collect_warning_summary(window):
                     add(S.STALE, 'pipe:' + pipe.status.value, 'discharge.pipe.status.' + pipe.status.value)
             if not any(results) and getattr(page, '_pdf_snapshot', None) is not None:
                 add(S.STALE, 'superseded_result', 'center.superseded')
+            controller=getattr(window,'_engineering_context_controller',None)
+            if controller is not None:
+                for name,link in controller.links.get(key,{}).items():
+                    if link.stale:add(S.STALE,'engineering:'+name,'source.state.stale',source=tr('engineering.property.'+name))
+                    elif link.status=='SOURCE_REQUIRED':add(S.SOURCE_REQUIRED,'engineering:'+name,'report.source_required',source=tr('engineering.property.'+name))
+                if getattr(page,'_engineering_context_stale',False):add(S.STALE,'engineering_context','engineering.context_stale')
             states.append(ModuleWarningState(key, tuple(items), sum(bool(r) for r in results)))
     elif family == 'fire':
         workspace = getattr(window, '_fire_workspace', None)
@@ -94,6 +101,10 @@ def collect_warning_summary(window):
                 items.append(EngineeringWarning(key, severity, code, message_key, detail, source))
             result = model.results[key]
             view = workspace.views.created.get(key)
+            if result:
+                for finding in getattr(workspace,'_engineering_findings',{}).get(key,()):
+                    from engineering.rule_presentation import finding_text
+                    add(S(finding.visual_status or 'WARNING'),finding.code,detail=finding_text(finding,tr))
             for message in getattr(result, 'warnings', ()):
                 category = message.category.value
                 severity = {'INFO': S.INFO, 'WARNING': S.WARNING,

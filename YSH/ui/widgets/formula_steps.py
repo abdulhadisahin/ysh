@@ -54,6 +54,10 @@ def step_sections(step: FormulaStep, translate: Callable[[str], str]) -> tuple[S
         rows = tuple((v.context or "", v.symbol, tr(v.terminology_key), number(v.value), v.unit)
                      for v in step.reference_variables)
         sections.append(StepSection("reference_data", rows=rows, details=True))
+    if step.engineering_basis_json:
+        import json
+        from engineering.basis import basis_rows
+        sections.append(StepSection('engineering_basis',rows=basis_rows(json.loads(step.engineering_basis_json),tr),details=True))
     if step.used_values:
         rows = [(tr("formula2.symbol"), tr("formula2.used"), tr("formula2.unit"), tr("formula2.source_type"), tr("formula2.override"))]
         rows.extend((v.symbol or tr(v.terminology_key or "formula2.value"), number(v.used_value), v.unit,

@@ -37,9 +37,9 @@ def test_actual_pipe_warning_reaches_center_and_correction_clears_it(shell, velo
     matches = [i for i in summary.items if i.code == 'd243.pipe.velocity_max']
     assert bool(matches) == (float(velocity) > 7)
     if matches:
-        assert matches[0].severity == WarningStatus.WARNING
+        assert matches[0].severity == (WarningStatus.CRITICAL if float(velocity)==99 else WarningStatus.WARNING)
         assert matches[0].module_id == 'pipe_design'
-        assert summary.warning_count >= 1
+        assert summary.warning_count + summary.error_count >= 1
         assert 'D243' in matches[0].detail and '7' in matches[0].detail
         assert 'Türk Loydu' not in matches[0].detail
         w._open_warning_center()

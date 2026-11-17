@@ -34,6 +34,19 @@ def record_label(record: object, translate: Callable[[str], str] | None = None) 
         return ' · '.join(str(v) for v in (kind,source.source_organization,source.document,source.revision) if v)
     if hasattr(record,'outside_diameter_mm'):
         return f'{record.standard} · {record.nominal_diameter} · OD {record.outside_diameter_mm} / s {record.wall_thickness_mm} / ID {record.inside_diameter_mm} mm'
+    if hasattr(record,'catalog_summary'):
+        if translate is None:return record.catalog_summary
+        source=translate('engineering.verification.'+record.verification)
+        if hasattr(record,'property_name'):
+            value=str(record.default_value)+' '+record.unit if record.default_value is not None else translate('engineering.status.SOURCE_REQUIRED')
+            temperature=' @ '+str(record.reference_temperature_c)+' °C' if record.reference_temperature_c is not None else ''
+            return record.name+' / '+translate('engineering.property.'+record.property_name)+': '+value+temperature+' · '+source
+        if hasattr(record,'roughness_mm'):
+            value=str(record.roughness_mm)+' mm' if record.roughness_mm is not None else translate('engineering.status.SOURCE_REQUIRED')
+            return record.name+': ε = '+value+' · '+source
+        low,high=(record.hard_min,record.hard_max) if record.rule_nature=='HARD_LIMIT' else (record.recommended_min,record.recommended_max)
+        limits=('≥ '+str(low) if low is not None else '')+(' … ' if low is not None and high is not None else '')+('≤ '+str(high) if high is not None else '')
+        return record.name+': '+(limits+' '+record.unit if limits else source)+' · '+record.source_authority
     if hasattr(record,'property_name'):
         label=f'{record.property_name} · {record.value} {record.unit}'
         if record.reference_temperature_c is not None: label+=f' · {record.reference_temperature_c} °C'
@@ -193,6 +206,9 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         self._filters=[{tr('library2.all'):None,tr('library2.active'):True,tr('library2.inactive'):False},
                        {tr('library2.all'):None,**{tr(f'library2.ownership.{v}'):v for v in ('factory','user','reference','application')}},
                        {tr('library2.all'):None,**{tr(f'formula2.verification_status.{v.value}'):v.value for v in VerificationStatus}}]
+        if current.code in ('fluid_specifications','material_surfaces','engineering_rules'):
+            from engineering.catalog import VERIFICATIONS
+            self._filters[2]={tr('library2.all'):None,**{tr('engineering.verification.'+v):v for v in VERIFICATIONS}}
         for box,var,choices in zip(self._filter_boxes,(self._active,self._ownership,self._verification),self._filters):
             box.configure(values=tuple(choices));var.set(next(iter(choices)))
         for key,button in self._buttons.items(): button.configure(text=tr(f'library2.{key}'))
@@ -216,7 +232,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
             owner=c.service.ownership(c.category,row)
             active=getattr(row,'is_active',None)
             self._tree.insert('', 'end',iid=key,tags=('even' if index%2==0 else 'odd',),values=(record_label(row,self._translate) or self._translate(f'library2.category.{c.category}'),display,self._translate(f'library2.ownership.{owner}'),
-                self._translate('fire.ui.source.'+row.source_status.value) if c.category in FIRE_CATEGORIES else self._translate(f'formula2.verification_status.{record_verification(row).value}') if record_verification(row) else '',
+                self._translate('engineering.verification.'+row.verification) if hasattr(row,'verification') else self._translate('fire.ui.source.'+row.source_status.value) if c.category in FIRE_CATEGORIES else self._translate(f'formula2.verification_status.{record_verification(row).value}') if record_verification(row) else '',
                 self._translate('library2.active' if active else 'library2.inactive') if active is not None else ''))
         self._record_count.set(f"{len(rows)} {self._translate('library2.record_count')}")
         if rows: self._table_empty.place_forget()
@@ -269,6 +285,9 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
                 value_style='Library.'+verification_role(value)+'.TLabel' if isinstance(value,VerificationStatus) else 'Library.Value.TLabel'
                 if isinstance(value,bool):
                     value=tr(('library2.active' if value else 'library2.inactive') if key=='is_active' else ('library2.yes' if value else 'library2.no'))
+                elif key in ('verification','default_method','rule_nature') and hasattr(c.selected,'verification'):
+                    prefix={'verification':'verification','default_method':'method','rule_nature':'nature'}[key]
+                    value=tr('engineering.'+prefix+'.'+value)
                 elif isinstance(value,VerificationStatus): value=tr(f'formula2.verification_status.{value.value}')
                 elif isinstance(value,FireSourceStatus):
                     value_style='Library.'+fire_source_role(value)+'.TLabel'
@@ -369,6 +388,11 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
                     enum=VerificationStatus if field.kind=='verification' else SourceType
                     prefix='verification_status' if field.kind=='verification' else 'source_type'
                     choices={'':None,**{tr(f'formula2.{prefix}.{v.value}'):v for v in enum}}
+                elif field.kind.startswith('engineering_'):
+                    from engineering.catalog import METHODS,VERIFICATIONS,NATURES
+                    values={'engineering_method':METHODS,'engineering_verification':VERIFICATIONS,'engineering_nature':NATURES}[field.kind]
+                    prefix={'engineering_method':'method','engineering_verification':'verification','engineering_nature':'nature'}[field.kind]
+                    choices={tr('engineering.'+prefix+'.'+v):v for v in values}
                 elif field.kind=='property': choices={v:v for v in PROPERTY_CODES[c.category]}
                 elif field.kind=='fire_status': choices={tr('fire.ui.source.'+v.value):v for v in FireSourceStatus}
                 elif field.kind=='fire_service': choices={tr('fire.library.service.'+v):v for v in ('foam','water','seawater','fuel','unknown')}

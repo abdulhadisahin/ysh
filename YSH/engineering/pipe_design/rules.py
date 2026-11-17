@@ -173,8 +173,10 @@ class MinimumWallRule:
 
 def fuel_velocity_criterion() -> EngineeringValue:
     """Return the user-approved D243 maximum; it is not a TL requirement."""
+    from engineering.catalog_seeds import d243_rule
+    rule=d243_rule()
     return EngineeringValue(
-        used_value=7.0, recommended_value=7.0, unit="m/s",
+        used_value=rule.recommended_max, recommended_value=rule.recommended_max, unit="m/s",
         source=SourceReference(source_type=SourceType.D243_CRITERION, verification_status=VerificationStatus.USER_SUPPLIED,
                                notes="D243 V2 project fuel design maximum; not a TL rule."),
         override_policy=OverridePolicy.LOCKED, symbol="V", terminology_key="engineering.V",
@@ -182,13 +184,7 @@ def fuel_velocity_criterion() -> EngineeringValue:
 
 
 def evaluate_fuel_velocity_criterion(velocity_m_s: float):
-    """Present the existing D243 maximum as advisory, independent of MAN/TL."""
-    from engineering.warning_rules import EngineeringFinding, WarningSeverity
-    criterion = fuel_velocity_criterion()
-    if velocity_m_s <= criterion.used_value:
-        return ()
-    return (EngineeringFinding(
-        code='d243.pipe.velocity_max', severity=WarningSeverity.ENGINEERING_WARNING,
-        message_key='pipe.warning.d243_velocity_max', actual_value=velocity_m_s,
-        lower_bound=None, upper_bound=criterion.used_value, unit=criterion.unit,
-        source_id=None, context={'criterion': 'D243'}),)
+    """Use the sole D243 catalog record, never a second numerical threshold."""
+    from engineering.catalog_seeds import d243_rule
+    from engineering.rule_evaluation import evaluate_rule
+    return evaluate_rule(d243_rule(),velocity_m_s)

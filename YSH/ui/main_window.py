@@ -730,6 +730,8 @@ class MainWindow:
         if hasattr(self, '_navigation'):
             MainWindow._remember_module(self, dirty=False)
             state['navigation'] = self._navigation.to_payload()
+        controller=getattr(self,'_engineering_context_controller',None)
+        if controller is not None:state['engineering_links']=controller.payload()
         return state
 
     def _load_all_page_states(self, state: dict[str, object]) -> None:
@@ -763,9 +765,13 @@ class MainWindow:
         if hasattr(self, '_navigation'):
             self._navigation = navigation
             MainWindow._show_family(self, navigation.active_system_family, dirty=False, remember=False)
+        controller=getattr(self,'_engineering_context_controller',None)
+        if controller is not None:controller.load(state.get('engineering_links',{}))
 
     def _clear_all_pages(self) -> None:
         """Restore clean/default state on every primary calculation page."""
+        controller=getattr(self,'_engineering_context_controller',None)
+        if controller is not None:controller.clear()
         for page in getattr(self, "_pages", {}).values():
             page.clear_state()
         self._fire_pending_state={}
@@ -1401,6 +1407,7 @@ class MainWindow:
     @staticmethod
     def _pdf_is_current(page) -> bool:
         """Inspect frozen/current presentation data without resolving or calculating."""
+        if getattr(page,'_engineering_context_stale',False):return False
         snapshot=getattr(page,'_pdf_snapshot',None)
         steps=page._formula_steps() if snapshot else ()
         return bool(snapshot and snapshot.formula_steps and steps and all(step in steps for step in snapshot.formula_steps))
@@ -1450,8 +1457,10 @@ class MainWindow:
         from reporting.context import freeze_report_context
         project = getattr(self, '_active_project', None)
         family = MainWindow._locked_project_family(self) if project else None
-        return freeze_report_context(snapshot, project_name=project.name if project else None,
+        snapshot=freeze_report_context(snapshot, project_name=project.name if project else None,
                                      system_family=family)
+        controller=getattr(self,'_engineering_context_controller',None)
+        return controller.freeze(snapshot) if controller is not None else snapshot
 
     def _capture_calculation(self, module: object, stage: str, result: object,
                              selection: object, findings: tuple) -> None:
@@ -1551,6 +1560,8 @@ class MainWindow:
                 indicator.grid()
             else:
                 indicator.grid_remove()
+        controller=getattr(self,'_engineering_context_controller',None)
+        if controller is not None:controller.refresh_labels()
         MainWindow._refresh_warning_center(self)
         MainWindow._refresh_family_notice(self)
 
@@ -1687,6 +1698,14 @@ class MainWindow:
 
     def _open_system_context(self) -> None:
         """Keep critical optional context editable away from the main workspace."""
+        if getattr(self,'_engineering_context_controller',None) is not None:
+            if getattr(self,'_active_project',None) is None:
+                messagebox.showinfo(self._translate('engineering.context_title'),self._translate('validation.project_selection_required'),parent=self._root)
+                return
+            from ui.dialogs.project_engineering_context import ProjectEngineeringContextDialog
+            ProjectEngineeringContextDialog(self)
+            return
+
         dialog=getattr(self,'_context_dialog',None)
         if dialog is not None and dialog.winfo_exists():dialog.lift();return
         dialog=self._context_dialog=tk.Toplevel(self._root)
@@ -1701,6 +1720,10 @@ class MainWindow:
         def close():
             self.unregister_localizable(panel);dialog.destroy();self._context_editor=None
         dialog.protocol('WM_DELETE_WINDOW',close)
+
+    def set_engineering_catalog_service(self, service):
+        from ui.engineering_context_controller import EngineeringContextController
+        self._engineering_context_controller=EngineeringContextController(self,service)
 
     def set_system_context_service(self, service: SystemContextService) -> None:
         """Attach the composed Phase 4 catalogs after initial window construction."""

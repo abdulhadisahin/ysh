@@ -72,8 +72,8 @@ class ProjectPersistenceService:
                 raise ValidationError(ValidationIssue('project_family_locked'))
         # Existing pages export only their own keys. Preserve the opt-in namespace
         # when those pages save, including future namespace versions kept opaque.
-        if any(namespace not in state for namespace in ('pipe_transfer','system_context','fire_workspace','navigation')):
-            for namespace in ("pipe_transfer", "system_context", "fire_workspace", "navigation"):
+        if any(namespace not in state for namespace in ('pipe_transfer','system_context','fire_workspace','navigation','engineering_links')):
+            for namespace in ("pipe_transfer", "system_context", "fire_workspace", "navigation", "engineering_links"):
                 if namespace not in state and namespace in previous:
                     state = {**state, namespace: previous[namespace]}
         if 'navigation' not in state:

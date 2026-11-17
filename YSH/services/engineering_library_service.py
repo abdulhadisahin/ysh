@@ -81,6 +81,9 @@ class EngineeringLibraryService:
             ("constant_metadata",EngineeringConstantMetadataRepository),("corrosion",CorrosionAllowanceCircuitRepository),
             ("corrosion_sources",CorrosionSourceRepository),("pump_references",PumpReferenceRepository),
             ("sources",SourceRepository),("rule_sets",RuleSetRepository))}
+        from repositories.engineering_catalog_repository import FluidSpecificationRepository,MaterialSurfaceRepository,EngineeringRuleRepository
+        self._repos.update(fluid_specifications=FluidSpecificationRepository(database),
+            material_surfaces=MaterialSurfaceRepository(database),engineering_rules=EngineeringRuleRepository(database))
         self.fire_records = FireLibraryRepository(database)
         self._source_cache: dict[UUID, SourceReference | None] = {}
         self._application_ids: set[UUID] = set()
@@ -150,6 +153,8 @@ class EngineeringLibraryService:
             return "application"
         if getattr(record,"is_factory",False) or getattr(record,"is_system",False):
             return "factory"
+        if getattr(record,'verification',None) in ('VERIFIED','LIMITED_APPLICABILITY'):
+            return 'reference'
         if CATEGORY_BY_CODE[category].model is None:
             return "reference"
         status = getattr(getattr(record,"reference",record),"verification_status",None)
@@ -299,7 +304,7 @@ class EngineeringLibraryService:
             if result['value'] < 0 or result['value'] == 0 and result['property_name'] != 'vapor_pressure': raise ValueError("Invalid property")
         for name in ('yield_strength_mpa','fuel_capacity_m3','pump_capacity_m3h'):
             if result.get(name) is not None and result[name] <= 0: raise ValueError("Positive value required")
-        if result.get('roughness_mm',0) < 0: raise ValueError("Negative roughness")
+        if result.get('roughness_mm') is not None and result['roughness_mm'] < 0: raise ValueError("Negative roughness")
         if category == 'constants':
             key, value = result['key'], result['value']
             if key.upper().startswith(FIRE_RECORD_PREFIX):raise ValueError('Reserved Fire namespace')

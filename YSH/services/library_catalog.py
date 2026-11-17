@@ -91,6 +91,27 @@ CATEGORIES += tuple(LibraryCategory(code, "fire", FireEngineeringDataRecord,
      field("applicability",optional=True),field("source_id","uuid",True,"sources"),
      field("source_status","fire_status"),field("notes",optional=True),field("is_active","bool")))
     for code in FIRE_CATEGORIES)
+from engineering.catalog import FluidSpecification,MaterialSurface,EngineeringRule
+from dataclasses import fields as model_fields
+
+def catalog_fields(model):
+    floats={'source_min','source_max','source_nominal','default_value','reference_temperature_c','roughness_mm',
+            'recommended_min','recommended_max','hard_min','hard_max','yellow_fraction','critical_multiplier'}
+    required={'code','name','fluid_id','fluid_group','property_name','unit','material_name','surface_condition',
+              'profile_id','parameter','default_method','verification','rule_nature','yellow_fraction','critical_multiplier'}
+    result=[]
+    for definition in model_fields(model):
+        name=definition.name
+        if name in ('id','created_at','modified_at','is_factory'):continue
+        target={'fluid_id':'fluids','material_id':'materials','profile_id':'rule_sets'}.get(name)
+        kind='uuid' if target else 'float' if name in floats else 'bool' if name=='is_active' else {
+            'verification':'engineering_verification','default_method':'engineering_method','rule_nature':'engineering_nature'}.get(name,'text')
+        result.append(field(name,kind,name not in required and name!='is_active',target))
+    return tuple(result)
+
+CATEGORIES += (LibraryCategory('fluid_specifications','fluids',FluidSpecification,catalog_fields(FluidSpecification)),
+               LibraryCategory('material_surfaces','materials',MaterialSurface,catalog_fields(MaterialSurface)),
+               LibraryCategory('engineering_rules','sources',EngineeringRule,catalog_fields(EngineeringRule)))
 CATEGORY_BY_CODE = {category.code: category for category in CATEGORIES}
 PROPERTY_CODES = {
     "fluid_properties": ("density", "kinematic_viscosity", "vapor_pressure"),

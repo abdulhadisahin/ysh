@@ -35,7 +35,7 @@ class EngineeringWarningCenter:
             self.tree.column(column, width=width, minwidth=100, stretch=column=='message')
         for status, color in (('INFO', colors.TEXT_PRIMARY), ('WARNING', colors.GOLD_DARK),
                               ('SOURCE_REQUIRED', colors.GOLD_DARK), ('STALE', colors.WARNING),
-                              ('ERROR', colors.ERROR), ('BLOCKED', colors.ERROR)):
+                              ('ERROR', colors.ERROR), ('BLOCKED', colors.ERROR), ('OUT_OF_RANGE',colors.ERROR), ('CRITICAL',colors.BLACK if hasattr(colors,'BLACK') else '#111111')):
             self.tree.tag_configure(status, foreground=color)
         self.tree.grid(row=0, column=0, sticky='nsew')
         vertical = ttk.Scrollbar(frame, orient='vertical', command=self.tree.yview)
