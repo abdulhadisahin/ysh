@@ -79,7 +79,10 @@ class EngineeringWarningPanel(ttk.Frame):
         )
 
     def _message(self, finding: EngineeringFinding) -> str:
-        if finding.code.startswith("velocity."):
+        if finding.code == 'd243.pipe.velocity_max':
+            details = [self._translate(finding.message_key,
+                limit=format_user_number(finding.upper_bound))]
+        elif finding.code.startswith("velocity."):
             actual = finding.actual_value
             relation = "warning.relation.below" if finding.lower_bound is not None and actual is not None and actual < finding.lower_bound else "warning.relation.above"
             details = [

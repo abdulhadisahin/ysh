@@ -207,6 +207,9 @@ def apply_theme(root: tk.Misc) -> None:
     style.configure("DialogTitle.TLabel", background=colors.BACKGROUND, foreground=colors.TEXT_PRIMARY, font=typography.SECTION_TITLE)
     style.configure("DialogHint.TLabel", background=colors.BACKGROUND, foreground=colors.TEXT_SECONDARY, font=typography.MUTED)
     style.configure("Info.TLabel", background=colors.BACKGROUND, foreground=colors.TEXT_SECONDARY, font=typography.MUTED)
+    style.configure('WarningCenterAlert.TButton', foreground=colors.ERROR,
+                    background=colors.BACKGROUND, font=('Segoe UI Symbol', 12, 'bold'), padding=(4, 2))
+    style.map('WarningCenterAlert.TButton', foreground=[('active', colors.ERROR), ('pressed', colors.ERROR)])
     style.configure("EngineeringDetails.TFrame", background=colors.RESULT_SURFACE, bordercolor=colors.DIVIDER, relief="solid", borderwidth=1)
     style.configure("EngineeringDetailsTitle.TLabel", background=colors.RESULT_SURFACE, foreground=colors.TEXT_SECONDARY, font=typography.SUBSECTION_TITLE)
     style.configure("EngineeringDetailsLabel.TLabel", background=colors.RESULT_SURFACE, foreground=colors.TEXT_SECONDARY, font=typography.MUTED)

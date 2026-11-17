@@ -19,6 +19,7 @@ from core.bend_radius import (
 )
 from core.engineering_context import LINE_ROLES, warning_fluid_for_circuit
 from engineering.warning_rules import evaluate_velocity, MAN_EVERLLENCE_SOURCE_ID
+from engineering.pipe_design.rules import evaluate_fuel_velocity_criterion
 from ui.formatting import format_user_number
 from i18n.translator import Translator
 from i18n.validation import render_validation_issue
@@ -1192,10 +1193,12 @@ class PipeDesignPage(ttk.Frame):
                     velocity = parse_engineering_float(self._fields["v"].get(), field_name="Design Velocity", field_key="field.design_velocity")
             except ValidationError:
                 velocity = None
+            if velocity is not None:
+                findings = evaluate_fuel_velocity_criterion(velocity)
             if system and role and velocity is not None:
                 # Pipe does not adopt MAN project-guide velocity advice.
                 # Preserve non-MAN findings and shared rules for other modules.
-                findings = tuple(finding for finding in evaluate_velocity(system, role, velocity)
+                findings += tuple(finding for finding in evaluate_velocity(system, role, velocity)
                                  if finding.source_id != MAN_EVERLLENCE_SOURCE_ID)
         self._engineering_findings = findings
         if hasattr(self, "_warning_panel"):

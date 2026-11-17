@@ -179,3 +179,16 @@ def fuel_velocity_criterion() -> EngineeringValue:
                                notes="D243 V2 project fuel design maximum; not a TL rule."),
         override_policy=OverridePolicy.LOCKED, symbol="V", terminology_key="engineering.V",
     )
+
+
+def evaluate_fuel_velocity_criterion(velocity_m_s: float):
+    """Present the existing D243 maximum as advisory, independent of MAN/TL."""
+    from engineering.warning_rules import EngineeringFinding, WarningSeverity
+    criterion = fuel_velocity_criterion()
+    if velocity_m_s <= criterion.used_value:
+        return ()
+    return (EngineeringFinding(
+        code='d243.pipe.velocity_max', severity=WarningSeverity.ENGINEERING_WARNING,
+        message_key='pipe.warning.d243_velocity_max', actual_value=velocity_m_s,
+        lower_bound=None, upper_bound=criterion.used_value, unit=criterion.unit,
+        source_id=None, context={'criterion': 'D243'}),)
