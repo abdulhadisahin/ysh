@@ -152,8 +152,8 @@ def test_real_foam_widgets_empty_calculate_results_actions_stale_reset(live,monk
     assert '945,00' in view.result_labels[0]['text']
     assert len(view.steps())==4
     view.formula.toggle();root.update_idletasks();assert view.formula.expanded
-    import ui.dialogs.pdf_report as pdf
-    seen=[];monkeypatch.setattr(pdf,'save_snapshot_pdf',lambda parent,snapshot:seen.append(snapshot))
+    import ui.dialogs.word_report as word
+    seen=[];monkeypatch.setattr(word,'save_snapshot_word',lambda parent,snapshot:seen.append(snapshot))
     view.pdf();assert seen==saved
     view.variables['foam_fraction'].set('6')
     assert str(view.pdf_button['state'])=='disabled' and not view.steps()

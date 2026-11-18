@@ -49,9 +49,11 @@ analysis = Analysis(
         "tkinter.ttk",
         "_tkinter",
         "matplotlib.backends.backend_tkagg",
+        "matplotlib.backends.backend_agg",
+        "docx",
         *legacy_module_imports,
     ],
-    hooksconfig={"matplotlib": {"backends": ["TkAgg"]}},
+    hooksconfig={"matplotlib": {"backends": ["TkAgg", "Agg"]}},
     hookspath=[str(repository_root / "build" / "hooks")],
     runtime_hooks=[
         str(repository_root / "build" / "hooks" / "rthooks" / "pyi_rth_ysh_legacy_packages.py")

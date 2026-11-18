@@ -1,7 +1,7 @@
 """Immutable presentation model and snapshot-only adapter for engineering reports."""
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, fields
+from dataclasses import asdict, dataclass, fields, replace
 from datetime import datetime
 import json
 from typing import TypeAlias
@@ -10,6 +10,7 @@ from engineering.formula.models import FormulaStep, ordered_steps
 from engineering.provenance import SourceReference
 from engineering.snapshots.models import CalculationSnapshot
 from engineering.snapshots.serialization import decode
+from reporting.transfer_graph import TransferGraph, frozen_transfer_graph
 from engineering.validation import ValidationIssue
 from i18n.validation import render_validation_issue
 from i18n.translator import Translator
@@ -69,6 +70,8 @@ class EngineeringReport:
     primary_result: ReportField | None = None
     warning_items: tuple[ReportWarning, ...] = ()
     engineering_basis_json: str | None = None
+    transfer_graph: TransferGraph | None = None
+    transfer_details: tuple[ReportField, ...] = ()
 
     def to_json(self) -> str:
         """Serialize without display rounding or mutable references."""
@@ -76,7 +79,7 @@ class EngineeringReport:
 
 
 def source_rows(source: SourceReference, language: str = 'tr') -> tuple[tuple[str, str], ...]:
-    """Translate source labels; keep actual stored status codes visible for audits."""
+    """Translate source labels while retaining its established PDF audit detail."""
     tr = Translator(language).translate
     return tuple((tr('formula2.source.' + f.name),
                   (str(value.value) + ' · ' + tr('formula2.' + f.name + '.' + value.value))
@@ -207,7 +210,23 @@ def adapt_snapshot(snapshot: CalculationSnapshot, language: str = 'tr') -> Engin
         from reporting.fire import enrich_fire_report
         report = enrich_fire_report(snapshot, report, language)
     from reporting.presentation import finalize_report
-    return finalize_report(snapshot, report, language)
+    final=finalize_report(snapshot, report, language)
+    return replace(final,transfer_graph=frozen_transfer_graph(snapshot),transfer_details=frozen_transfer_details(snapshot,language))
+
+
+def frozen_transfer_details(snapshot: CalculationSnapshot, language: str) -> tuple[ReportField,...]:
+    """Expose only transfer inputs and outputs already frozen in snapshot facts."""
+    if snapshot.module_code.value!='transfer_pump':return ()
+    facts=snapshot.evidence['facts'].get('calculation') or {}
+    source=facts.get('input') or {};resolution=facts.get('resolution') or {}
+    tr=Translator(language).translate;rows=[]
+    if source.get('source_capacity') is not None:
+        unit='t' if source.get('capacity_input_mode')=='MASS' else 'm³'
+        rows.append(ReportField(tr('word.transfer.source_capacity'),'',source['source_capacity'],unit))
+    for key,label,unit in (('volume_m3','word.transfer.resolved_volume','m³'),):
+        value=resolution.get(key)
+        if value is not None:rows.append(ReportField(tr(label),'',value,unit))
+    return tuple(rows)
 
 
 def format_number(value: Scalar) -> str:

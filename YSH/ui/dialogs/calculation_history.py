@@ -197,8 +197,8 @@ class CalculationHistoryWindow(tk.Toplevel):
             step_provider=lambda:snapshot.formula_steps,
             module_key=snapshot.module_code.value, historical=True, separate_window=True)
         panel.grid(row=0,column=0,sticky='w')
-        from ui.dialogs.pdf_report import save_snapshot_pdf
-        self._pdf_button=ttk.Button(self._actions,text=tr('history.visual.pdf'),style='History.Secondary.TButton',command=lambda:save_snapshot_pdf(self,snapshot))
+        from ui.dialogs.word_report import save_snapshot_word
+        self._pdf_button=ttk.Button(self._actions,text=tr('history.visual.word'),style='History.Secondary.TButton',command=lambda:save_snapshot_word(self,snapshot))
         self._pdf_button.grid(row=0,column=1,sticky='w',padx=SM)
 
     def _raw(self,data:dict,row:int)->None:

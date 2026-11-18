@@ -676,7 +676,7 @@ class MainWindow:
                 text=self._translate(group._ribbon_title_key)  # type: ignore[attr-defined]
             )
         for page in getattr(self,'_pages',{}).values():
-            if hasattr(page,'_pdf_button'):page._pdf_button.configure(text=self._translate('action.pdf_current_result'))
+            if hasattr(page,'_pdf_button'):page._pdf_button.configure(text=self._translate('action.word_current_result'))
         self._sidebar_title.configure(text=self._translate("project.projects"))
         self._project_search_label.configure(text=self._translate("project.search"))
         self._projects_tree.heading("name", text=self._translate("project.name"))
@@ -1431,7 +1431,7 @@ class MainWindow:
         button=getattr(page,'_pdf_button',None)
         if button is None:return
         ready=MainWindow._pdf_is_current(page)
-        button.configure(text=self._translate('action.pdf_current_result'),state='normal' if ready else 'disabled')
+        button.configure(text=self._translate('action.word_current_result'),state='normal' if ready else 'disabled')
 
     def _clear_pdf_snapshots(self) -> None:
         """A project switch never offers another workspace's last report."""
@@ -1449,12 +1449,12 @@ class MainWindow:
                 MainWindow._capture_calculation(self,module,stage,result,selection,findings)
             page._snapshot_listener = listener
             if hasattr(page, '_formula_panel'):
-                from ui.dialogs.pdf_report import save_snapshot_pdf
+                from ui.dialogs.word_report import save_snapshot_word
                 page._pdf_snapshot = None
                 page._formula_panel.configure_post_tools(
                     on_history=self._open_calculation_history,
                     history_available=lambda:getattr(self,'_snapshot_history',None) is not None,
-                    on_pdf=lambda target=page:save_snapshot_pdf(self._root,target._pdf_snapshot,translate=self._translate) if MainWindow._pdf_is_current(target) else None,
+                    on_pdf=lambda target=page:save_snapshot_word(self._root,target._pdf_snapshot,translate=self._translate) if MainWindow._pdf_is_current(target) else None,
                     pdf_available=lambda target=page:MainWindow._pdf_is_current(target))
                 page._pdf_button=page._formula_panel._pdf_button
             if code == 'transfer_pump' and hasattr(page,'_design_panel'):

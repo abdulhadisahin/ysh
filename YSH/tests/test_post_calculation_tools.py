@@ -33,11 +33,11 @@ def test_all_six_tools_group_and_history_without_current_result(shell,language):
                 assert panel._history_button.instate(['!disabled'])
                 assert panel._toggle.cget('text').strip()==tr('common.show_formula')
                 assert panel._history_button._logical_text==tr('post.history')
-                assert panel._pdf_button._logical_text==tr('action.pdf_current_result')
+                assert panel._pdf_button._logical_text==tr('action.word_current_result')
                 for left,right in zip(buttons,buttons[1:]):
                     assert 0<=right.winfo_rootx()-left.winfo_rootx()-left.winfo_width()<=10
                 pdfs=[widget for widget in descendants(page)
-                      if getattr(widget,'_logical_text',None)==tr('action.pdf_current_result')]
+                      if getattr(widget,'_logical_text',None)==tr('action.word_current_result')]
                 assert pdfs==[panel._pdf_button]
                 primaries=[widget for widget in descendants(page)
                            if getattr(widget,'calculation_action_role',None)=='primary']

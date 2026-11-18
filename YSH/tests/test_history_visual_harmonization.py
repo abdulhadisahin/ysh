@@ -60,14 +60,14 @@ class Widget:
 
 def selected_window(monkeypatch,snapshot):
     import ui.dialogs.calculation_history as view
-    import ui.dialogs.pdf_report as pdf
+    import ui.dialogs.word_report as word
     for name in ('Label','LabelFrame','Frame','Button'):monkeypatch.setattr(view.ttk,name,Widget)
     class Disclosure(Widget):
         def __init__(self,parent,*args,**kwargs):super().__init__(parent,**kwargs);self.body=Widget(self)
     class Formula(Widget):
         def __init__(self,parent,*args,**kwargs):super().__init__(parent,**kwargs)
     monkeypatch.setattr(view,'DetailDisclosure',Disclosure);monkeypatch.setattr(view,'FormulaReferencePanel',Formula)
-    calls=[];monkeypatch.setattr(pdf,'save_snapshot_pdf',lambda parent,value:calls.append(value))
+    calls=[];monkeypatch.setattr(word,'save_snapshot_word',lambda parent,value:calls.append(value))
     window=CalculationHistoryWindow.__new__(CalculationHistoryWindow)
     window._body=Widget();window._actions=Widget();window._translate=Translator('tr').translate
     window._rows={str(snapshot.snapshot_id):snapshot};window._selected_id=str(snapshot.snapshot_id)

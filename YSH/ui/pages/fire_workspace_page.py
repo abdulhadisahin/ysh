@@ -175,7 +175,7 @@ class FireCalculatorPage(ttk.Frame):
             toggle_button_factory=lambda parent,text,command:calculation_button(parent,text,command,style='Fire.Formula.TButton',icon_name='formula'))
         self.formula.grid(row=8,column=0,sticky='ew',pady=6)
         self.formula.configure_post_tools(on_history=workspace.on_history,history_available=workspace.history_available,
-            on_pdf=self.pdf,pdf_available=lambda:bool(self.model.results[self.kind] and self.model.snapshots[self.kind]),
+            on_pdf=self.word,pdf_available=lambda:bool(self.model.results[self.kind] and self.model.snapshots[self.kind]),
             formula_available=lambda:bool(self.model.results[self.kind]))
         self.secondary_actions=self.formula
         self.pdf_button=self.formula._pdf_button
@@ -284,11 +284,13 @@ class FireCalculatorPage(ttk.Frame):
         result=self.model.results[self.kind]
         return result.formula_steps if result else ()
 
-    def pdf(self):
+    def word(self):
         snapshot=self.model.snapshots[self.kind]
-        if snapshot is not None:
-            from ui.dialogs.pdf_report import save_snapshot_pdf
-            save_snapshot_pdf(self,snapshot)
+        if snapshot is not None and self.model.results[self.kind] is not None:
+            from ui.dialogs.word_report import save_snapshot_word
+            save_snapshot_word(self,snapshot)
+
+    pdf=word  # Backward-compatible callback name; the user action exports DOCX.
 
     def clear(self):
         fresh=FireWorkspace()

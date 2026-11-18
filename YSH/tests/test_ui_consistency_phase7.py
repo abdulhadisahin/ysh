@@ -151,7 +151,7 @@ def test_shared_typography_control_padding_and_warning_semantics(shell):
     assert style.lookup('Fire.Info.TLabel','background')==colors.INFO_SURFACE
 
 
-def test_pdf_action_follows_exact_current_result_and_language(shell):
+def test_word_action_follows_exact_current_result_and_language(shell):
     w=shell; page=w._pages['transfer_pump']; panel=page._design_panel; root=w._root
     page._show_calculation_mode()  # accepted default design workflow
     panel._fields['volume'].set('120'); panel._fields['target_time'].set('3')
@@ -166,7 +166,7 @@ def test_pdf_action_follows_exact_current_result_and_language(shell):
     assert snapshot.to_json()==before and page._pdf_snapshot is snapshot
     for language in ('tr','en'):
         review_language(w,language); root.update()
-        assert page._pdf_button.cget('text')==Translator(language).translate('action.pdf_current_result')
+        assert page._pdf_button._logical_text==Translator(language).translate('action.word_current_result')
     panel.calculate(); root.update()
     assert page._pdf_button.instate(['!disabled']) and MainWindow._pdf_is_current(page)
     panel.clear(); root.update(); assert page._pdf_button.instate(['disabled'])
@@ -246,4 +246,4 @@ def test_pdf_partial_stage_cannot_export_another_stale_stage():
 @pytest.mark.parametrize('language',['tr','en'])
 def test_pdf_action_uses_one_caption_across_fuel_fire_and_history(language):
     tr=Translator(language).translate
-    assert tr('action.pdf_current_result')==tr('fire.ui.pdf')==tr('history.visual.pdf')
+    assert tr('action.word_current_result')==tr('history.visual.word')

@@ -62,7 +62,7 @@ def test_source_aware_foam_formula_pdf_snapshot_history_and_stale(shell,library,
         assert view.formula._dialog.winfo_exists() and view.formula._steps==snapshot.formula_steps
         view.formula._close_dialog()
         exported=[]
-        monkeypatch.setattr('ui.dialogs.pdf_report.save_snapshot_pdf',lambda parent,value:exported.append(value))
+        monkeypatch.setattr('ui.dialogs.word_report.save_snapshot_word',lambda parent,value:exported.append(value))
         view.pdf_button.invoke();assert exported==[snapshot]
         pdf=render_pdf(adapt_snapshot(snapshot));assert len(PdfReader(BytesIO(pdf)).pages)>0
         w._open_calculation_history();history=w._history_window

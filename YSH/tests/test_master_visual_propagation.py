@@ -46,7 +46,7 @@ def test_pages_opt_in_without_inline_formula_or_watermark(key):
     main = (ROOT / 'ui/main_window.py').read_text(encoding='utf-8')
     assert 'page._formula_panel.configure_post_tools(' in main
     assert 'page._pdf_button=page._formula_panel._pdf_button' in main
-    assert 'save_snapshot_pdf(self._root,target._pdf_snapshot)' in main.replace(' ', '')
+    assert 'save_snapshot_word(self._root,target._pdf_snapshot)' in main.replace(' ', '')
     assert 'if MainWindow._pdf_is_current(target) else None' in main
 
 

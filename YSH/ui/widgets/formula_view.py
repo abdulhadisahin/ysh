@@ -160,7 +160,7 @@ class FormulaReferencePanel(ttk.Frame):
         self._history_button.configure(text=self._translate('post.history'),
             state='normal' if self._post_history_available() else 'disabled')
         self._post_history_hint.set_text(self._translate('post.history.help'))
-        self._pdf_button.configure(text=self._translate('action.pdf_current_result'),
+        self._pdf_button.configure(text=self._translate('action.word_current_result'),
             state='normal' if self._post_pdf_available() else 'disabled')
 
     def _create_content(self, parent: tk.Misc) -> ttk.LabelFrame:
