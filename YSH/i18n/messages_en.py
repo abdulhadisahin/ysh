@@ -1000,3 +1000,5 @@ MESSAGES["engineering.mechanical_material"] = 'Mechanical Material (if available
 MESSAGES.update({'engineering.record': 'Reference Record', 'engineering.nominal': 'Source Nominal', 'engineering.verification.label': 'Verification / Applicability', 'engineering.value_issue': '{property}: {status}'})
 
 MESSAGES.update({'engineering.scope.TL_FFS': 'Fire Fighting Ships (explicit scope)', 'engineering.scope.TL_LT500': 'Ships below 500 GT (explicit scope)', 'engineering.line.SUCTION': 'Suction', 'engineering.line.DELIVERY': 'Delivery', 'engineering.note': 'Source / Applicability Note'})
+
+MESSAGES.update({'library2.group.fluids': 'Fluids / Fuels', 'library2.category.fluids': 'Fluids / Fuels', 'library2.group.engineering_rules': 'Engineering Rules', 'library2.catalog.no_properties': 'No property references are recorded for this fluid.'})

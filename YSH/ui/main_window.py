@@ -833,6 +833,9 @@ class MainWindow:
             label=self._translate("menu.library.corrosion_allowance_circuits"),
             command=self._open_corrosion_allowance_circuit_library,
         )
+        for category in ('fluids','engineering_rules','material_surfaces'):
+            library_menu.add_command(label=self._translate('library2.category.'+category),
+                command=lambda category=category:self._open_engineering_library(category))
         self._library_menu = library_menu
         menu_bar.add_cascade(label=self._translate("menu.library"), menu=library_menu)
 
@@ -869,6 +872,8 @@ class MainWindow:
         self._library_menu.entryconfigure(1, label=self._translate("menu.library.pipe_sizes"))
         self._library_menu.entryconfigure(2, label=self._translate("menu.library.engineering_constants"))
         self._library_menu.entryconfigure(3, label=self._translate("menu.library.corrosion_allowance_circuits"))
+        for index,category in enumerate(('fluids','engineering_rules','material_surfaces'),4):
+            self._library_menu.entryconfigure(index,label=self._translate('library2.category.'+category))
         self._project_menu.entryconfigure(0, label=self._translate("menu.project.refresh"))
         self._project_menu.entryconfigure(1, label=self._translate("history.title"))
         self._project_menu.entryconfigure(2, label=self._translate("context.open_editor"))

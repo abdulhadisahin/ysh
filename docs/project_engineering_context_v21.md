@@ -56,3 +56,17 @@ Final focused validation (overlapping groups, not a full-suite run):
 - Basma/Emme numerical compatibility, Fire live flows and existing PDF V2 checks passed in the integration group; its only initial failure was a new fixture missing required timestamps, corrected and covered by the subsequent passing migration/context group.
 
 The English engineering-basis sample was rasterized for visual inspection. Final application visual acceptance remains **USER REVIEW REQUIRED**, especially context selection/Update/Keep actions and yellow/red/black warning presentation.
+
+## Library v6 visibility corrective
+
+The v6 records already existed; no migration, seed values or runtime DB rows were changed. The previous shell offered only the four legacy Library menu commands, Engineering Rules was nested under Sources, and selecting a Fluid identity did not display its authoritative v6 specifications.
+
+Library now provides direct **Fluids / Fuels**, **Engineering Rules** and **Material / Surface Roughness** commands alongside the existing entries. The six principal engineering groups are placed first in Library navigation. Selecting a group opens its primary category; all previous categories remain available. Selecting a fluid shows its existing specification records, including limits, nominal/default, method, unit, temperature, authority/document and verification. Rule and surface tables use category-specific headings and values.
+
+`fluid_properties`, `material_properties`, `sources` and `systems` are optional existing normalization/user-record tables, not evidence of missing v6 seeds. Current fluid specifications, surface profiles and rule records carry their own reference metadata; system defaults are also provided by the existing context service without persisting artificial seed rows. These empty tables remain untouched.
+
+The Project menu's existing **Project Engineering Context** entry was verified through its real Tk callback. Its selections populate compatible page fields through the existing context controller; calculation-only overrides remain protected. No competing project model or new inheritance mechanism was introduced.
+
+Manual acceptance: **USER REVIEW REQUIRED** for category discoverability, F-76/F-44 and marine-fuel browsing, roughness, rule/source details and project-linked field changes in the updated application.
+
+Corrective focused validation: **96 passed** across three disjoint groups: v6 Library visibility/menu/native browsing (3, 29.03 s), Library/context service and protection contracts (84, 33.81 s), native context/inheritance/persistence/geometry (9, 41.31 s). Full pytest was not run. Runtime v6 counts were checked read-only; the approved untracked Excel reference and release tag remain unchanged.

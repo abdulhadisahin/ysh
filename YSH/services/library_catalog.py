@@ -111,7 +111,7 @@ def catalog_fields(model):
 
 CATEGORIES += (LibraryCategory('fluid_specifications','fluids',FluidSpecification,catalog_fields(FluidSpecification)),
                LibraryCategory('material_surfaces','materials',MaterialSurface,catalog_fields(MaterialSurface)),
-               LibraryCategory('engineering_rules','sources',EngineeringRule,catalog_fields(EngineeringRule)))
+               LibraryCategory('engineering_rules','engineering_rules',EngineeringRule,catalog_fields(EngineeringRule)))
 CATEGORY_BY_CODE = {category.code: category for category in CATEGORIES}
 PROPERTY_CODES = {
     "fluid_properties": ("density", "kinematic_viscosity", "vapor_pressure"),

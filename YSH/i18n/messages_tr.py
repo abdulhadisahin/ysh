@@ -1014,3 +1014,5 @@ MESSAGES["engineering.mechanical_material"] = 'Mekanik Malzeme (varsa)'
 MESSAGES.update({'engineering.record': 'Referans Kaydı', 'engineering.nominal': 'Kaynak Nominali', 'engineering.verification.label': 'Doğrulama / Kapsam', 'engineering.value_issue': '{property}: {status}'})
 
 MESSAGES.update({'engineering.scope.TL_FFS': 'Yangın Söndürme Gemileri (seçili kapsam)', 'engineering.scope.TL_LT500': '500 GT altındaki gemiler (seçili kapsam)', 'engineering.line.SUCTION': 'Emme', 'engineering.line.DELIVERY': 'Basma', 'engineering.note': 'Kaynak / Uygulanabilirlik Notu'})
+
+MESSAGES.update({'library2.group.fluids': 'Akışkanlar / Yakıtlar', 'library2.category.fluids': 'Akışkanlar / Yakıtlar', 'library2.group.engineering_rules': 'Mühendislik Kuralları', 'library2.catalog.no_properties': 'Bu akışkan için özellik referansı kaydedilmemiştir.'})

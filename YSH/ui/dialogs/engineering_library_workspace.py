@@ -213,8 +213,54 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
             box.configure(values=tuple(choices));var.set(next(iter(choices)))
         for key,button in self._buttons.items(): button.configure(text=tr(f'library2.{key}'))
         for key in ('name','value','ownership','verification','active'): self._tree.heading(key,text=tr(f'library2.{key}'))
+        self._fluid_specs={}
+        if current.code=='fluids':
+            for record in self._controller.service.list_records('fluid_specifications'):
+                self._fluid_specs.setdefault(record.fluid_id,[]).append(record)
+        self._configure_catalog_columns()
         self._render_rows()
         self._render_editor() if self._controller.mode is not EditMode.BROWSE else self._render_details()
+
+    def _configure_catalog_columns(self):
+        tr=self._translate
+        headings=('library2.name','library2.value','library2.ownership','library2.verification','library2.active')
+        if self._controller.category=='engineering_rules':
+            headings=('library2.name','engineering.reference','library2.field.rule_nature','engineering.source','library2.verification')
+        elif self._controller.category=='material_surfaces':
+            headings=('library2.name','engineering.property.absolute_roughness','library2.field.material_name','library2.field.surface_condition','library2.verification')
+        for column,key in zip(('name','value','ownership','verification','active'),headings):self._tree.heading(column,text=tr(key))
+
+    def _catalog_row(self,record):
+        tr=self._translate;verification=tr('engineering.verification.'+record.verification)
+        if self._controller.category=='material_surfaces':
+            roughness=number(record.roughness_mm)+' mm' if record.roughness_mm is not None else tr('engineering.status.SOURCE_REQUIRED')
+            return (record.name,roughness,record.material_name,record.surface_condition,verification)
+        low,high=(record.hard_min,record.hard_max) if record.rule_nature=='HARD_LIMIT' else (record.recommended_min,record.recommended_max)
+        bounds=('≥ '+number(low) if low is not None else '')+(' … ' if low is not None and high is not None else '')+('≤ '+number(high) if high is not None else '')
+        return (record.name,bounds+' '+record.unit if bounds else tr('engineering.status.SOURCE_REQUIRED'),
+                tr('engineering.nature.'+record.rule_nature),record.source_authority,verification)
+
+    def _render_fluid_specs(self,row):
+        tr=self._translate;fluid=self._controller.selected
+        records=self._fluid_specs.get(fluid.id,())
+        if not records:
+            ttk.Label(self._body,text=tr('library2.catalog.no_properties'),wraplength=260,style='Library.Muted.TLabel').grid(row=row,column=0,columnspan=2,sticky='w')
+            return row+1
+        names=('source_min','source_max','source_nominal','default_value','default_method','unit',
+               'reference_temperature_c','source_authority','source_document','verification')
+        for record in records:
+            region=ttk.LabelFrame(self._body,text=tr('engineering.property.'+record.property_name),padding=SM,style='Library.Section.TLabelframe')
+            region.grid(row=row,column=0,columnspan=2,sticky='ew',pady=(0,8));region.columnconfigure(1,weight=1)
+            for index,name in enumerate(names):
+                value=getattr(record,name)
+                if name=='default_method':value=tr('engineering.method.'+value)
+                elif name=='verification':value=tr('engineering.verification.'+value)
+                elif value is None or value=='':value=tr('report.not_recorded')
+                elif isinstance(value,(float,int)):value=number(value)
+                ttk.Label(region,text=tr('library2.field.'+name),style='Library.Field.TLabel',wraplength=115).grid(row=index*2,column=0,columnspan=2,sticky='nw',pady=(4,1))
+                ttk.Label(region,text=str(value),style='Library.Value.TLabel',wraplength=150).grid(row=index*2+1,column=0,columnspan=2,sticky='nw',pady=(0,3))
+            row+=1
+        return row
 
     def _render_rows(self) -> None:
         if not hasattr(self,'_filters'): return
@@ -231,7 +277,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
                 display=number(value*100 if row.parameter_type is FireParameter.CONCENTRATION else value)+' '+('%' if row.parameter_type is FireParameter.CONCENTRATION else row.unit)
             owner=c.service.ownership(c.category,row)
             active=getattr(row,'is_active',None)
-            self._tree.insert('', 'end',iid=key,tags=('even' if index%2==0 else 'odd',),values=(record_label(row,self._translate) or self._translate(f'library2.category.{c.category}'),display,self._translate(f'library2.ownership.{owner}'),
+            self._tree.insert('', 'end',iid=key,tags=('even' if index%2==0 else 'odd',),values=self._catalog_row(row) if c.category in ('engineering_rules','material_surfaces') else (record_label(row,self._translate) or self._translate(f'library2.category.{c.category}'),display,self._translate(f'library2.ownership.{owner}'),
                 self._translate('engineering.verification.'+row.verification) if hasattr(row,'verification') else self._translate('fire.ui.source.'+row.source_status.value) if c.category in FIRE_CATEGORIES else self._translate(f'formula2.verification_status.{record_verification(row).value}') if record_verification(row) else '',
                 self._translate('library2.active' if active else 'library2.inactive') if active is not None else ''))
         self._record_count.set(f"{len(rows)} {self._translate('library2.record_count')}")
@@ -271,7 +317,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         for key,value in detail.values:
             if self._controller.category in FIRE_CATEGORIES and key=='source_id':continue
             if visible_detail(value): groups.setdefault(detail_group(key),[]).append((key,value))
-        row=2
+        row=self._render_fluid_specs(2) if c.category=='fluids' else 2
         for group,items in groups.items():
             if group in ('technical','relationships','source'):
                 region=DetailDisclosure(self._body,tr(f'library2.section.{group}'),style='Library.Body.TFrame',body_style='Library.Body.TFrame')
@@ -315,10 +361,11 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
 
     def _refresh_navigation(self) -> None:
         for item in self._navigation.get_children(): self._navigation.delete(item)
-        groups=tuple(dict.fromkeys(c.group for c in CATEGORIES))
+        priority=('materials','fluids','pipes','engineering_rules','constants','corrosion')
+        groups=tuple(g for g in priority if any(c.group==g for c in CATEGORIES))+tuple(g for g in dict.fromkeys(c.group for c in CATEGORIES) if g not in priority)
         for group in groups:
             parent='group:'+group
-            self._navigation.insert('', 'end',iid=parent,text=self._translate(f'library2.group.{group}'),open=True,tags=('group',))
+            self._navigation.insert('', 'end',iid=parent,text=self._translate(f'library2.group.{group}'),open=group==CATEGORY_BY_CODE[self._controller.category].group,tags=('group',))
             if group=='fire':
                 for subgroup in ('foam','hw'):
                     self._navigation.insert(parent,'end',iid='group:fire:'+subgroup,
@@ -333,9 +380,13 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
 
     def _choose_navigation(self, _event: object = None) -> None:
         selected=self._navigation.selection()
-        if not selected or selected[0] not in CATEGORY_BY_CODE or selected[0]==self._controller.category:
-            return
-        self.show_category(selected[0])
+        if not selected:return
+        target=selected[0]
+        if target.startswith('group:'):
+            group=target.split(':',1)[1]
+            target=next((c.code for c in CATEGORIES if c.group==group),target)
+        if target not in CATEGORY_BY_CODE or target==self._controller.category:return
+        self.show_category(target)
         if self._controller.category!=selected[0]: self._navigation.selection_set(self._controller.category)
 
     def _reference_choices(self, target: str, field_name: str) -> dict[str, object]:
