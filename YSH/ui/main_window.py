@@ -920,11 +920,12 @@ class MainWindow:
         if not self._resolve_unsaved_changes():
             return
         try:
-            metadata = NewProjectDialog(
+            dialog = NewProjectDialog(
                 self._root,
                 translate=self._translate,
                 localization_owner=self,
-            ).show()
+            )
+            metadata=dialog.show()
         except Exception:
             LOGGER.exception("Unable to display the New Project dialog.")
             messagebox.showerror(
@@ -934,7 +935,12 @@ class MainWindow:
             )
             return
         if metadata is not None:
-            self._create_project(*metadata)
+            created=self._create_project(*metadata)
+            context=getattr(dialog,'engineering_context',None)
+            controller=getattr(self,'_engineering_context_controller',None)
+            if created and context is not None and controller is not None:
+                controller.apply(context)
+                self._save_project()
 
     def _open_project(self) -> None:
         if not self._resolve_unsaved_changes():
@@ -1473,7 +1479,9 @@ class MainWindow:
         from engineering.snapshots.builders import build_snapshot
         try:
             project = getattr(self,'_active_project',None)
-            snapshot = build_snapshot(module,stage,result,context=self._system_context,
+            controller=getattr(self,'_engineering_context_controller',None)
+            context=controller.context_for(module.value) if controller is not None else self._system_context
+            snapshot = build_snapshot(module,stage,result,context=context,
                                       project_id=project.id if project else None,
                                       selection=selection,findings=findings)
             snapshot = MainWindow._freeze_report_identity(self, snapshot)

@@ -23,6 +23,7 @@ class NewProjectDialog:
         """Create and display a modal dialog for a new project."""
         self._translate = translate or Translator().translate
         self._localization_owner = localization_owner
+        self.engineering_context=None
         self.result: tuple[str, str, str, str] | None = None
         self._dialog = tk.Toplevel(parent)
         self._dialog.title(self._translate("menu.file.new_project"))
@@ -95,8 +96,16 @@ class NewProjectDialog:
 
         self._family_choice = ProjectFamilyChoice(content, self._translate)
         self._family_choice.grid(row=3, column=0, columnspan=2, sticky='ew', pady=(MD, 0))
+        controller=getattr(self._localization_owner,'_engineering_context_controller',None)
+        self._engineering_selection=None
+        if controller is not None:
+            from ui.widgets.engineering_selection import EngineeringSelectionForm
+            self._engineering_selection=EngineeringSelectionForm(content,controller.catalog,self._translate)
+            self._engineering_selection.grid(row=4,column=0,columnspan=2,sticky='ew',pady=(SM,0))
+            self._engineering_selection.grid_remove()
+            self._family_choice.choice.bind('<<ComboboxSelected>>',self._show_engineering_selection,add='+')
         actions = ttk.Frame(content)
-        actions.grid(row=4, column=1, sticky="e", pady=(LG, 0))
+        actions.grid(row=5, column=1, sticky="e", pady=(LG, 0))
         self._cancel_button = ttk.Button(actions, command=self._cancel, style="Neutral.TButton")
         self._cancel_button.pack(
             side="left"
@@ -108,6 +117,10 @@ class NewProjectDialog:
         )
         self.refresh_texts()
 
+    def _show_engineering_selection(self,event=None):
+        if self._engineering_selection is not None:
+            (self._engineering_selection.grid if self._family_choice.choice.current()==0 else self._engineering_selection.grid_remove)()
+
     def refresh_texts(self) -> None:
         """Refresh this open dialog without altering entered project metadata."""
         self._dialog.title(self._translate("menu.file.new_project"))
@@ -115,6 +128,7 @@ class NewProjectDialog:
         self._description_label.configure(text=f"{self._translate('project.description')}:")
         self._notes_label.configure(text=f"{self._translate('project.notes')}:")
         self._family_choice.refresh_texts()
+        if self._engineering_selection is not None:self._engineering_selection.load(self._engineering_selection.value())
         self._cancel_button.configure(text=self._translate("common.cancel"))
         self._submit_button.configure(text=self._translate("common.save"))
 
@@ -134,6 +148,7 @@ class NewProjectDialog:
         family = self._family_choice.selected()
         if family is None:
             return "break"
+        if family=='fuel' and self._engineering_selection is not None:self.engineering_context=self._engineering_selection.value()
         self.result = (name, description, notes, family)
         self._dialog.grab_release()
         self._destroy()

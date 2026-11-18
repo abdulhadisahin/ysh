@@ -70,3 +70,21 @@ The Project menu's existing **Project Engineering Context** entry was verified t
 Manual acceptance: **USER REVIEW REQUIRED** for category discoverability, F-76/F-44 and marine-fuel browsing, roughness, rule/source details and project-linked field changes in the updated application.
 
 Corrective focused validation: **96 passed** across three disjoint groups: v6 Library visibility/menu/native browsing (3, 29.03 s), Library/context service and protection contracts (84, 33.81 s), native context/inheritance/persistence/geometry (9, 41.31 s). Full pytest was not run. Runtime v6 counts were checked read-only; the approved untracked Excel reference and release tag remain unchanged.
+
+## Project start and calculation-page selection corrective
+
+The former page-local “System/Fluid” selector represented velocity-service categories, not fluid identities. The four legacy material entries supplied mechanical strength or legacy roughness; they were not the expanded v6 surface catalog. These are no longer the visible physical-material/fluid selection path in the composed application.
+
+New Fuel Project now exposes a shared catalog form after the mandatory System Family choice: Fluid/Fuel, Pipe Material, Surface Condition, Service/System, Line Type and Rule Profile. Options come from the existing Engineering Catalog Service. The same form is used by Project → Project Engineering Context. Initial selections and linked page values are saved with the new project, including before an ordinary subsequent Save.
+
+Pipe, Basma and Emme display a compact project-linked identity panel. Project editing is directly accessible there. The old velocity-service and legacy roughness pickers are hidden in the composed pages; their compatibility state remains available for old project payloads. The standalone legacy page API is preserved. Pipe's existing validated strength-material/Rp0.2 selector remains separately labelled: selecting a surface never manufactures a yield-strength value or an unsupported alloy grade.
+
+Basma uses linked viscosity and roughness. Density is displayed explicitly as a reference, not as a new input to discharge arithmetic. Emme uses linked fluid identity, viscosity, density and roughness. Surface roughness remains absolute epsilon, not Darcy friction factor. A missing source/default is never replaced with an invented value.
+
+**Override for this calculation** opens an explicit per-module catalog form. It uses the same SystemContext contract inside the existing engineering-links namespace, without adding another project/family model or DB schema. An alternate fluid/material remains local; manual numeric overrides are retained. **Use project context** restores project references while retaining manual numeric overrides. Update/Keep/reference actions remain available in the project context inspector. A default from a different module-only fluid/surface cannot be silently promoted into the project's selected reference.
+
+On successful capture the existing snapshot builder receives the actual module context. The frozen engineering basis records actual fluid/material/surface, context override scope, original project fluid, reference/default/used values and applicable cached rules. Formula/PDF rendering still reads frozen evidence only; old snapshots are not rebuilt from today's Library.
+
+Manual acceptance remains **USER REVIEW REQUIRED** for the new-project selectors, compact page identity panels, alternate-fluid action, separate validated strength source and context-update/Keep workflows. No formulas, catalog seed values, D243 criterion, warning severity policy, family lock, Nozzle/seawater blockers, release tag or approved Excel reference are changed.
+
+Selection-corrective validation: **67 passed in 144.51 s** across new-project/native selection, context service/UI and family-lock groups. Final identity/default-override guard and input-mode checks: **9 passed in 65.25 s** (8 overlap, 68 distinct focused tests overall). Geometry covers 1100×700 and 1440×900; panel captions are checked in TR/EN. Full pytest was not run.

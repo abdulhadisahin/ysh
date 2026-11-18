@@ -3,6 +3,9 @@ import json
 
 def basis_rows(payload,translate):
     tr=translate;rows=[]
+    if payload.get('project_fluid'):rows.append((tr('engineering.project_fluid'),payload['project_fluid']))
+    if payload.get('context_scope'):rows.append((tr('engineering.context_title'),tr('engineering.status.'+payload['context_scope'])))
+    if payload.get('surface_condition'):rows.append((tr('engineering.select.surface'),payload['surface_condition'].replace('_',' ').title()))
     for name in ('fluid','material','service','line_type'):
         if payload.get(name):
             value=str(payload[name])

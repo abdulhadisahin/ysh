@@ -978,7 +978,7 @@ class PipeDesignPage(ttk.Frame):
         ):
             label.configure(text=self._translate(key))
         self._source_label.configure(text=self._translate("field.rp_source"))
-        self._material_label.configure(text=self._translate("field.material"))
+        self._material_label.configure(text=self._translate("engineering.strength_material" if hasattr(self,"_engineering_panel") else "field.material"))
         self._circuit_label.configure(text=self._translate("field.circuit"))
         self._line_role_label.configure(text=self._translate("field.line_role"))
         self._circuit_default_label.configure(text=self._translate("result.default_corrosion_allowance"))

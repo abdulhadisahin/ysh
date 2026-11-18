@@ -1,0 +1,56 @@
+"""Shared catalog selectors. Material identity and surface condition are separate."""
+import tkinter as tk
+from tkinter import ttk
+from engineering.system_context import SystemContext,ContextReference
+
+SERVICES=('', 'DIESEL_FUEL_DELIVERY','DIESEL_FUEL_SUCTION','SEA_WATER_COOLING','FRESH_WATER_COOLING','LUBE_OIL','BALLAST','BILGE')
+
+class EngineeringSelectionForm(ttk.Frame):
+    def __init__(self,parent,catalog,translate,context=None):
+        super().__init__(parent)
+        self.catalog=catalog;self.tr=translate;self.variables={};self.boxes={};self.labels={};self.choices={}
+        self.columnconfigure(1,weight=1)
+        for row,name in enumerate(('fluid','material','surface','service','line_type','profile')):
+            self.labels[name]=ttk.Label(self);self.labels[name].grid(row=row,column=0,sticky='w',padx=(0,10),pady=2)
+            self.variables[name]=tk.StringVar()
+            box=ttk.Combobox(self,textvariable=self.variables[name],state='readonly',width=36)
+            box.grid(row=row,column=1,sticky='ew',pady=2);self.boxes[name]=box
+        self.boxes['material'].bind('<<ComboboxSelected>>',self._material_changed)
+        self.load(context or SystemContext())
+    def _set(self,name,choices,selected):
+        self.choices[name]=choices;self.boxes[name].configure(values=tuple(choices))
+        self.variables[name].set(next((label for label,value in choices.items() if value==selected),next(iter(choices))))
+    def load(self,context):
+        self.context=context;none=self.tr('engineering.none')
+        fluid_choices={none:None}
+        for fluid in self.catalog.fluid_records:
+            label=fluid.name_tr
+            if label in fluid_choices:label+=' · '+fluid.code
+            fluid_choices[label]=fluid.id
+        self._set('fluid',fluid_choices,context.fluid_id)
+        surface=next((r for r in self.catalog.surface_records if r.id==context.surface_profile_id),None)
+        material=surface.material_name if surface else None
+        self._set('material',{none:None,**{r.material_name:r.material_name for r in self.catalog.surface_records}},material)
+        self._surfaces(context.surface_profile_id)
+        services={none:None,**{self.tr('engineering.service.'+code):code for code in SERVICES if code}}
+        if context.service and context.service not in SERVICES:services[context.service]=context.service
+        self._set('service',services,context.service or None)
+        self._set('line_type',{none:None,**{self.tr('engineering.line.'+code):code for code in ('SUCTION','DELIVERY')}},context.line_type or None)
+        self._set('profile',{none:None,**{r.name:r.id for r in self.catalog.profile_records}},context.rule_set_id)
+        for name,label in self.labels.items():label.configure(text=self.tr('engineering.select.'+name))
+    def _surfaces(self,selected=None):
+        material=self.choices['material'].get(self.variables['material'].get())
+        choices={self.tr('engineering.none'):None}
+        for record in self.catalog.surface_records:
+            if record.material_name==material:choices[record.surface_condition.replace('_',' ').title()]=record.id
+        self._set('surface',choices,selected)
+    def _material_changed(self,event=None):
+        self._surfaces()
+        # A sole profile is unambiguous, never synthesize a roughness value.
+        if len(self.choices['surface'])==2:self.variables['surface'].set(tuple(self.choices['surface'])[1])
+    def value(self):
+        chosen=lambda name:self.choices[name].get(self.variables[name].get())
+        fluid=next((r for r in self.catalog.fluid_records if r.id==chosen('fluid')),None)
+        surface=next((r for r in self.catalog.surface_records if r.id==chosen('surface')),None)
+        return self.context.changed(fluid=ContextReference(id=fluid.id,code=fluid.code,name_tr=fluid.name_tr,name_en=fluid.name_en) if fluid else None,
+            surface_profile_id=surface.id if surface else None,service=chosen('service') or '',line_type=chosen('line_type') or '',rule_set_id=chosen('profile'))

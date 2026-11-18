@@ -11,7 +11,7 @@ FIELD_MAP={'discharge_head_loss':{'kinematic_viscosity':'nu','absolute_roughness
 
 class EngineeringContextController:
     def __init__(self,window,catalog):
-        self.window=window;self.catalog=catalog;self.links={};self.step_cache={};self.suppress=False
+        self.window=window;self.catalog=catalog;self.links={};self.step_cache={};self.suppress=False;self.module_contexts={};self._module_dialogs={}
         for module,page in window._pages.items():
             original=page._formula_steps
             page._formula_steps=lambda original=original,module=module:self.explain(module,original())
@@ -26,14 +26,24 @@ class EngineeringContextController:
                 label=ttk.Label(page._header,style='Info.TLabel',wraplength=740)
                 label.grid(row=2,column=0,sticky='ew');label.grid_remove()
                 page._engineering_context_label=label
+                if module in ('pipe_design','discharge_head_loss','suction_npsh'):
+                    from ui.widgets.engineering_page_context import EngineeringPageContext
+                    page._engineering_panel=EngineeringPageContext(page._header,self,module)
+                    page._engineering_panel.grid(row=3,column=0,sticky='ew',pady=(4,0))
+            if module in FIELD_MAP:self.write(module,'absolute_roughness',None)
     def family(self):return self.window._locked_project_family()
     def clear(self):
-        self.links={};self.step_cache={}
+        self.links={};self.step_cache={};self.module_contexts={}
+        for dialog in self._module_dialogs.values():
+            if dialog.winfo_exists():dialog.destroy()
+        self._module_dialogs={}
         for page in self.window._pages.values():page._engineering_context_stale=False
         self.refresh_labels()
-    def payload(self):return {'version':1,'stale_modules':[m for m,p in self.window._pages.items() if getattr(p,'_engineering_context_stale',False)],'links':{m:{n:v.payload() for n,v in links.items()} for m,links in self.links.items()}}
+    def payload(self):return {'version':1,'module_contexts':{m:c.to_payload() for m,c in self.module_contexts.items()},'stale_modules':[m for m,p in self.window._pages.items() if getattr(p,'_engineering_context_stale',False)],'links':{m:{n:v.payload() for n,v in links.items()} for m,links in self.links.items()}}
     def load(self,payload):
         if payload and payload.get('version')!=1:raise ValueError('Unsupported engineering links')
+        from engineering.system_context import SystemContext
+        self.module_contexts={m:SystemContext.from_workspace({'system_context':c}) for m,c in (payload or {}).get('module_contexts',{}).items() if m in self.window._pages}
         self.links={m:{n:EngineeringValueLink.from_payload(v) for n,v in values.items()}
                     for m,values in (payload or {}).get('links',{}).items() if m in FIELD_MAP}
         self.step_cache={}
@@ -48,14 +58,14 @@ class EngineeringContextController:
         if name=='kinematic_viscosity' and page._viscosity_unit.get()!='cSt':value*=1e6
         return value
     def write(self,module,name,value):
-        if value is None:return
+        if value is None and name!='absolute_roughness':return
         page=self.window._pages[module];self.suppress=True
         try:
             if name=='kinematic_viscosity':page._viscosity_unit.set('cSt')
             if name=='absolute_roughness':
                 if module=='discharge_head_loss':page._source_mode='manual';page._source.set(self.window._translate('message.manual_source'));page._set_source_mode()
                 else:page._roughness_source_mode='manual';page._roughness_source.set(self.window._translate('message.manual_source'));page._set_roughness_source(reset_value=False)
-            page._fields[FIELD_MAP[module][name]].set(str(value))
+            if value is not None:page._fields[FIELD_MAP[module][name]].set(str(value))
         finally:self.suppress=False
     def edited(self,module,name):
         if self.suppress or name not in self.links.get(module,{}):return
@@ -72,6 +82,10 @@ class EngineeringContextController:
         references=self.catalog.references(context)
         if self.family()=='fuel':
             for module,mapping in FIELD_MAP.items():
+                references=self.catalog.references(self.context_for(module))
+                page=self.window._pages[module]
+                mode=getattr(page,'_source_mode',None) if module=='discharge_head_loss' else getattr(page,'_roughness_source_mode',None)
+                if mode!='manual':self.write(module,'absolute_roughness',None)
                 links=self.links.setdefault(module,{})
                 for name in mapping:
                     if name not in references:continue
@@ -93,8 +107,8 @@ class EngineeringContextController:
                 for view in workspace.views.created.values():view.refresh_texts()
         self.observe();self.window._mark_workspace_dirty()
     def observe(self):
-        references=self.catalog.references(self.window._system_context)
         for module,links in self.links.items():
+            references=self.catalog.references(self.context_for(module))
             for name,link in tuple(links.items()):
                 links[name]=link.observe(references.get(name))
                 if links[name].stale and self.window._pages[module]._formula_steps():self.window._pages[module]._engineering_context_stale=True
@@ -116,11 +130,13 @@ class EngineeringContextController:
         if not annotation:return False
         frozen=json.loads(annotation).get('rules',[])
         captured=[{k:v for k,v in row.items() if k not in ('observed_value','status')} for row in frozen]
-        current=[record_payload(r) for r in self.catalog.matching_rules(self.window._system_context,self.family(),module) if r.parameter=='flow_velocity']
+        current=[record_payload(r) for r in self.catalog.matching_rules(self.context_for(module),self.family(),module) if r.parameter=='flow_velocity']
         return captured!=current
     def action(self,module,name,action):
         link=self.links[module][name]
         if action=='project':
+            project_ids={r['id'] for r in self.catalog.references(self.window._system_context).values()}
+            if link.reference['id'] not in project_ids:raise ValueError('Select this reference in project context before promoting its default')
             if link.stale:raise ValueError('Update the reference before promoting an override')
             if link.used_value is None or link.used_value<0 or (name!='absolute_roughness' and link.used_value==0):raise ValueError('No valid used value')
             context=self.window._system_context
@@ -132,29 +148,87 @@ class EngineeringContextController:
         self.links[module][name]=result
         if action!='keep':self.write(module,name,result.used_value)
         self.window._mark_workspace_dirty();self.refresh_labels()
+    def context_for(self,module):return self.module_contexts.get(module,self.window._system_context)
+    def set_module_context(self,module,context):
+        if module not in ('pipe_design','discharge_head_loss','suction_npsh'):raise ValueError('Unsupported module override')
+        fields=('fluid_id','material_id','surface_profile_id','service','line_type','rule_set_id','applicability_scope')
+        project=self.window._system_context
+        if all(getattr(context,name)==getattr(project,name) for name in fields):self.module_contexts.pop(module,None)
+        else:self.module_contexts[module]=context
+        self._apply_module_context(module)
+    def use_project_context(self,module):
+        self.module_contexts.pop(module,None)
+        self._apply_module_context(module)
+    def _apply_module_context(self,module):
+        references=self.catalog.references(self.context_for(module));links=self.links.setdefault(module,{})
+        if module in FIELD_MAP:self.write(module,'absolute_roughness',None)
+        for name in FIELD_MAP.get(module,{}):
+            if name not in references:
+                if name in links:links[name]=links[name].observe(None)
+                continue
+            current=links.get(name)
+            if current is None:
+                try:value=self.read(module,name)
+                except ValueError:continue
+                links[name]=bind(references[name],value)
+            else:links[name]=current.observe(references[name]).update()
+            self.write(module,name,links[name].used_value)
+        self.window._pages[module]._engineering_context_stale=True
+        self.window._mark_workspace_dirty();self.observe()
+    def open_module_context(self,module):
+        import tkinter as tk
+        from tkinter import ttk
+        from ui.widgets.engineering_selection import EngineeringSelectionForm
+        old=self._module_dialogs.get(module)
+        if old is not None and old.winfo_exists():old.lift();return
+        tr=self.window._translate;dialog=tk.Toplevel(self.window._root);dialog.transient(self.window._root)
+        dialog.title(tr('engineering.edit_module'));dialog.columnconfigure(0,weight=1)
+        form=EngineeringSelectionForm(dialog,self.catalog,tr,self.context_for(module));form.grid(row=0,column=0,sticky='ew',padx=12,pady=12)
+        ttk.Label(dialog,text=tr('engineering.module_notice'),wraplength=530).grid(row=1,column=0,padx=12,sticky='w')
+        actions=ttk.Frame(dialog);actions.grid(row=2,column=0,padx=12,pady=12,sticky='e')
+        def apply():self.set_module_context(module,form.value());dialog.destroy()
+        def project():self.use_project_context(module);dialog.destroy()
+        ttk.Button(actions,text=tr('engineering.use_project'),command=project).pack(side='left',padx=4)
+        ttk.Button(actions,text=tr('engineering.apply'),command=apply).pack(side='left',padx=4)
+        self._module_dialogs[module]=dialog
+        dialog.selection=form
     def refresh_labels(self):
         tr=self.window._translate
         for module,page in self.window._pages.items():
             label=getattr(page,'_engineering_context_label',None)
             if label is None:continue
-            values=self.links.get(module,{}) if self.family()=='fuel' else {}
-            text=' · '.join(tr('engineering.property.'+name)+': '+str(v.used_value)+' '+v.reference.get('unit','')+
-                ' ['+tr('engineering.status.'+v.status)+']' for name,v in values.items())
-            context=self.window._system_context
-            if self.family()=='fuel':
-                identity=[]
-                if context.fluid:identity.append(context.fluid.name_en if self.window._localization.language=='en' and context.fluid.name_en else context.fluid.name_tr)
-                surface=next((r for r in self.catalog.surface_records if r.id==context.surface_profile_id),None)
-                profile=next((r for r in self.catalog.profile_records if r.id==context.rule_set_id),None)
-                if surface:identity.append(surface.name)
-                if profile:identity.append(tr('engineering.profile')+': '+profile.name)
-                text=' · '.join(identity)+ ('\n'+text if text else '')
-            label.configure(text=text)
-            (label.grid if text else label.grid_remove)()
+            context=self.context_for(module)
+            values=self.links.get(module,{}) if self.family()=='fuel' or module in self.module_contexts else {}
+            parts=[]
+            for name,link in values.items():
+                value=str(link.used_value) if link.used_value is not None else tr('engineering.none')
+                temperature=link.reference.get('reference_temperature_c')
+                parts.append(tr('engineering.property.'+name)+': '+value+' '+link.reference.get('unit','')+
+                    (' @ '+str(temperature)+' °C' if temperature is not None else '')+' ['+tr('engineering.status.'+link.status)+']')
+            text=' · '.join(parts)
+            profile=next((r for r in self.catalog.profile_records if r.id==context.rule_set_id),None)
+            if context.service:text+='\n'+tr('engineering.select.service')+': '+self.service_label(context.service)
+            if profile:text+=' · '+tr('engineering.select.profile')+': '+profile.name
+            label.configure(text=text.strip())
+            panel=getattr(page,'_engineering_panel',None)
+            if panel is not None:
+                label.grid_remove();panel.refresh(text.strip())
+                for name in ('_warning_fluid_box','_warning_fluid_label'):
+                    widget=getattr(page,name,None)
+                    if widget is not None:widget.grid_remove()
+                if module in FIELD_MAP:
+                    for name in ('_source_label','_source_box','_roughness_source_label','_roughness_source_box','_material_label','_material_box'):
+                        widget=getattr(page,name,None)
+                        if widget is not None:widget.grid_remove()
+                elif module=='pipe_design':page._material_label.configure(text=tr('engineering.strength_material'))
+            else:(label.grid if text else label.grid_remove)()
+    def service_label(self,code):
+        key='engineering.service.'+code;text=self.window._translate(key)
+        return code if text==key else text
     def findings(self,module,velocity):
         family=self.family()
         if family is None:return None
-        rules=self.catalog.matching_rules(self.window._system_context,family,module)
+        rules=self.catalog.matching_rules(self.context_for(module),family,module)
         return tuple(f for rule in rules if rule.parameter=='flow_velocity' for f in evaluate_rule(rule,velocity))
     def explain(self,module,steps):
         cache=self.step_cache.get(module,{})
@@ -163,13 +237,19 @@ class EngineeringContextController:
         module=snapshot.module_code.value
         if module in self.window._pages:self.window._pages[module]._engineering_context_stale=False
         kind='hw' if module=='fire_hazen_williams' else 'foam'
-        context=self.window._system_context
+        context=self.context_for(module)
         family=self.family()
         if family is None:return snapshot
         fluid=context.fluid.name_tr if context.fluid else ''
         surface=next((s for s in self.catalog.surface_records if s.id==context.surface_profile_id),None)
-        payload={'fluid':fluid,'material':surface.name if surface else '', 'service':context.service,
+        payload={'fluid':fluid,'fluid_id':str(context.fluid_id) if context.fluid_id else None,
+                 'material':surface.name if surface else '', 'surface_condition':surface.surface_condition if surface else '',
+                 'surface_profile_id':str(context.surface_profile_id) if context.surface_profile_id else None,
+                 'context_scope':'OVERRIDE' if module in self.module_contexts else 'LINKED','service':context.service,
                  'line_type':{'discharge_head_loss':'DELIVERY','suction_npsh':'SUCTION'}.get(module,context.line_type),'values':[], 'rules':[]}
+        if module in self.module_contexts:
+            project_fluid=self.window._system_context.fluid
+            payload['project_fluid']=project_fluid.name_tr if project_fluid else ''
         for name,link in self.links.get(module,{}).items():
             # Already applied inputs, never substitute defaults while capturing.
             item=link.payload();item['status']=link.status
