@@ -276,7 +276,8 @@ def test_project_persistence_uses_existing_json_and_preserves_namespace(project_
     original={'schema_version':1,'discharge_head_loss':{'fields':{'d':'101','q':'20'}},'future':{'x':1}}
     service.save(original)
     _,payload,manual=service.open_with_pipe_transfer(project.id)
-    assert manual.discharge.mode is PipeInputMode.MANUAL and payload==original
+    assert manual.discharge.mode is PipeInputMode.MANUAL
+    assert payload=={**original,'navigation':{'version':1,'active_system_family':'fuel'}}
     old=selection();new=changed(old)
     transfer=PipeTransferProjectState(selections=(new,),discharge=linked(old).keep_current(new),suction=linked(old))
     service.save_with_pipe_transfer(original,transfer)
@@ -376,7 +377,7 @@ def test_transfer_domain_has_no_ui_or_repository_imports():
 
 
 def test_persistence_keeps_existing_schema_versions(project_database,library_database):
-    for db,version in ((project_database,1),(library_database,5)):
+    for db,version in ((project_database,1),(library_database,6)):
         with db.connection() as connection:
             assert connection.execute('SELECT version FROM schema_version').fetchone()[0]==version
 

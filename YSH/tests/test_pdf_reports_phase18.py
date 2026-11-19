@@ -145,7 +145,8 @@ assert 'tkinter' not in sys.modules
 """
     import os
     env = dict(os.environ, PYTHONPATH=str(Path(__file__).parents[1]))
-    subprocess.run([sys.executable, '-c', code, str(payload)], check=True, env=env, capture_output=True)
+    subprocess.run([sys.executable, '-c', code, str(payload)], check=True, env=env, capture_output=True,
+                   cwd=Path(__file__).resolve().parents[2])
 
 
 def test_multi_page_tables_repeat_headers_without_empty_pages(snapshots):

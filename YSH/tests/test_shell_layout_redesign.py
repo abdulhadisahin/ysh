@@ -15,7 +15,7 @@ def test_shell_geometry_and_composited_pages(shell,size,language):
     try:
         review_language(w,language);root.deiconify();root.geometry(f'{size[0]}x{size[1]}');root.update()
         assert not w._context_panel.winfo_ismapped()
-        assert w._workspace_row==0 and w._page_host.grid_info()['row']==0
+        assert w._workspace_row==1 and w._page_host.grid_info()['row']==1
         assert w._sidebar.grid_info()['rowspan']==3
         buttons=(w._sidebar_new,w._sidebar_open,w._sidebar_save,w._sidebar_delete,w._sidebar_refresh)
         widths={button.winfo_width() for button in buttons}
@@ -57,16 +57,21 @@ def test_shell_geometry_and_composited_pages(shell,size,language):
     finally:w._localization.set_language(old)
 
 
-def test_context_state_preserved_and_optional_editor_available(shell):
+def test_context_state_preserved_and_project_editor_available(shell,monkeypatch):
     w=shell;before=w._system_context.to_dict() if hasattr(w._system_context,'to_dict') else w._system_context
+    from ui.dialogs import project_engineering_context
+    opened=[];original=project_engineering_context.ProjectEngineeringContextDialog
+    def tracked(owner):
+        dialog=original(owner);opened.append(dialog);return dialog
+    monkeypatch.setattr(project_engineering_context,'ProjectEngineeringContextDialog',tracked)
+    assert w._create_project('Context integration test','','','fuel')
     w._root.deiconify();w._open_system_context();w._root.update()
     try:
-        assert w._context_editor.winfo_ismapped()
+        assert len(opened)==1 and opened[0].window.winfo_ismapped()
         assert not w._context_panel.winfo_ismapped()
-        assert w._context_editor._context==w._system_context
         assert (w._system_context.to_dict() if hasattr(w._system_context,'to_dict') else w._system_context)==before
     finally:
-        w.unregister_localizable(w._context_editor);w._context_dialog.destroy();w._context_editor=None
+        if opened:opened[0].window.destroy()
 
 
 def test_compositing_is_backdrop_relative_and_preserves_source_pixels():

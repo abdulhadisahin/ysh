@@ -102,15 +102,20 @@ def test_source_full_reference_dates_search_and_update(library_database):
 
 def test_rule_codes_have_multiple_revisions_and_active_filtering(library_database):
     repo = RuleSetRepository(library_database)
+    existing = repo.get_all()
     a = repo.create(RuleSet(code="CODE", name="Synthetic", revision="A", created_at=STAMP, modified_at=STAMP,
                            effective_date=date(2025, 1, 1), verification_status=VerificationStatus.UNVERIFIED))
     b = repo.create(RuleSet(code="CODE", name="Synthetic", revision="B", is_active=False))
     assert repo.get(a.id) == a
     assert set(repo.get_by_code("code")) == {a, b}
-    assert repo.get_all(active_only=True) == (a,)
+    assert set(repo.get_all(active_only=True)) == {
+        item for item in existing if item.is_active
+    } | {a}
     assert repo.get_by_code("code", active_only=True) == (a,)
     b = repo.update(replace(b, is_active=True, verification_status=VerificationStatus.USER_SUPPLIED))
-    assert set(repo.get_all(active_only=True)) == {a, b}
+    assert set(repo.get_all(active_only=True)) == {
+        item for item in existing if item.is_active
+    } | {a, b}
     with pytest.raises(RepositoryConflictError):
         repo.create(RuleSet(code="code", name="Duplicate", revision="A"))
     # Unknown revision is not unique in the Phase 3 schema: never pick one silently.
@@ -122,16 +127,20 @@ def test_rule_codes_have_multiple_revisions_and_active_filtering(library_databas
 @pytest.mark.parametrize("repository,model", [(SystemRepository, System), (FluidRepository, Fluid)])
 def test_master_records_empty_crud_active_flags_and_duplicate_codes(library_database, repository, model):
     repo = repository(library_database)
-    assert repo.get_all() == ()
+    existing = repo.get_all()
     first = repo.create(model(code="ONE", name_tr="First", name_en=None, is_factory=True))
     second = repo.create(model(code="TWO", name_tr="Second", name_en="Second", is_active=False))
     assert repo.get_by_code("one") == first
     assert repo.get(first.id) == first
-    assert set(repo.get_all()) == {first, second}
-    assert repo.get_all(active_only=True) == (first,)
+    assert set(repo.get_all()) == set(existing) | {first, second}
+    assert set(repo.get_all(active_only=True)) == {
+        record for record in existing if record.is_active
+    } | {first}
     first = repo.update(replace(first, name_en="First", is_active=False))
     assert first.is_factory and repo.get(first.id) == first
-    assert repo.get_all(active_only=True) == ()
+    assert set(repo.get_all(active_only=True)) == {
+        record for record in existing if record.is_active
+    }
     assert repo.get(uuid4()) is None
     assert repo.get_by_code("missing") is None
     with pytest.raises(RepositoryConflictError):
@@ -312,7 +321,7 @@ def test_schema_versions_and_sql_definitions_remain_frozen(library_database, par
     SystemRepository(library_database).get_all()
     with library_database.connection() as c:
         assert [tuple(row) for row in c.execute("SELECT name,sql FROM sqlite_master ORDER BY name")] == [tuple(row) for row in before]
-        assert c.execute("SELECT version FROM schema_version").fetchone()[0] == 5
+        assert c.execute("SELECT version FROM schema_version").fetchone()[0] == 6
 
 
 def test_new_repositories_have_no_ui_or_calculator_dependencies():

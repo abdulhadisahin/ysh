@@ -1,9 +1,13 @@
 """Contracts for runtime visible-content icon scaling without source edits."""
 
+from pathlib import Path
+
 from PIL import Image, ImageDraw
 
 from ui.assets import action_icon_fit_mode, status_icon_fit_mode
 from ui.widgets.asset_loader import AssetImageLoader
+
+APP_ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_visible_content_crop_ignores_large_transparent_canvas_padding() -> None:
@@ -29,9 +33,9 @@ def test_empty_or_non_alpha_like_content_falls_back_without_failure() -> None:
 
 
 def test_shared_consumers_follow_the_central_asset_class_policy() -> None:
-    rounded = ("YSH/ui/widgets/rounded_button.py")
-    components = "YSH/ui/widgets/engineering_components.py"
-    formula = "YSH/ui/widgets/formula_view.py"
+    rounded = APP_ROOT / "ui/widgets/rounded_button.py"
+    components = APP_ROOT / "ui/widgets/engineering_components.py"
+    formula = APP_ROOT / "ui/widgets/formula_view.py"
     assert "fit_mode=action_icon_fit_mode(self._icon_name)" in open(rounded, encoding="utf-8").read()
     assert "fit_mode=status_icon_fit_mode(state)" in open(components, encoding="utf-8").read()
     assert "fit_mode=status_icon_fit_mode(self._marker_state(section.role))" in open(formula, encoding="utf-8").read()
@@ -96,7 +100,7 @@ def test_optional_empty_contexts_fall_back_to_native_text_not_wrong_artwork() ->
 
 
 def test_loader_source_declares_separate_safe_fit_mode_and_cache_key() -> None:
-    source = open("YSH/ui/widgets/asset_loader.py", encoding="utf-8").read()
+    source = (APP_ROOT / "ui/widgets/asset_loader.py").read_text(encoding="utf-8")
     assert '"glyph_content"' in source
     assert '"full_asset_safe"' in source
     assert '"silhouette_safe"' in source

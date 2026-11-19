@@ -3,6 +3,7 @@ import pytest
 from ui.widgets.workspace_backdrop import input_surface, input_bounds, OUTSIDE_INPUT_OPACITY_FACTOR
 from .test_fire_phase5cd_navigation import application, shell
 from .test_ui_consistency_phase7 import descendants, assert_horizontal_bounds
+from ._tk_geometry import settle_geometry
 
 @pytest.mark.parametrize('size',[(1100,700),(1440,900)])
 def test_ship_and_selective_surfaces(shell,size):
@@ -32,11 +33,38 @@ def test_ship_and_selective_surfaces(shell,size):
             inputs=[item for item in descendants(viewport.content) if getattr(item,'workspace_surface_role',None)=='input']
             assert inputs
             assert all(input_surface(item) and input_bounds(item) for item in inputs if item.winfo_viewable())
-            surfaces=[(item,s) for item,s in backdrop.surfaces.items() if s.signature and s.signature[4]==(255,255,255)]
-            solid=[s.signature[5] for item,s in surfaces if input_surface(item)]
-            outside=[s.signature[5] for item,s in surfaces if not input_surface(item)]
-            assert solid and outside
-            assert max(outside)<max(solid)
-            assert max(solid)==pytest.approx(.76)
+            assert backdrop.image is not None
+            # A mapped input may be below the viewport at 1100x700. Paint each
+            # occupied card in view before inspecting its composed background.
+            for card in inputs:
+                if not card.winfo_viewable():
+                    continue
+                canvas=viewport.canvas
+                top=canvas.canvasy(0)+card.winfo_rooty()-canvas.winfo_rooty()
+                canvas.yview_moveto(top/max(1,viewport.content.winfo_height()))
+                settle_geometry(root,viewport,card)
+                backdrop.paint();root.update_idletasks()
+                assert card in backdrop.surfaces, (family,str(card))
+                surface=backdrop.surfaces[card]
+                assert surface.signature[4]==(255,255,255)
+                assert surface.signature[5]==pytest.approx(.76)
+                assert surface.input_bounds==input_bounds(card)
+                assert surface.input_bounds
+                # The unoccupied part of this same input card uses the lower
+                # outside opacity; labels/controls retain their native painters.
+                from ui.widgets.workspace_backdrop import composite_surface
+                x,y,width,height,rgb,opacity,_=surface.signature
+                expected=composite_surface(backdrop.image,(x,y,width,height),rgb,
+                                           opacity*OUTSIDE_INPUT_OPACITY_FACTOR)
+                for left,top,bw,bh in surface.input_bounds:
+                    expected.paste(composite_surface(backdrop.image,(x+left,y+top,bw,bh),rgb,opacity),(left,top))
+                from io import BytesIO
+                from PIL import Image
+                # Pillow's reverse PhotoImage bridge is unsafe with Tk 9;
+                # read the native photo through Tk's public PNG serializer.
+                data=surface.photo.tk.call(str(surface.photo),'data','-format','png')
+                with Image.open(BytesIO(data)) as actual:
+                    assert actual.convert('RGB').tobytes()==expected.tobytes()
+            viewport.canvas.yview_moveto(0);root.update()
             assert OUTSIDE_INPUT_OPACITY_FACTOR<1
             assert_horizontal_bounds(descendants(viewport.content),viewport.canvas)

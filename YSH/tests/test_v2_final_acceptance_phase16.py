@@ -137,7 +137,7 @@ def test_temporary_runtime_paths_schema_idempotence_and_data_preservation(tmp_pa
         counts = {row[0]: connection.execute(f'SELECT count(*) FROM "{row[0]}"').fetchone()[0]
                   for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
     for database, version in ((ProjectDatabase(paths.projects_database_path), 1),
-                              (LibraryDatabase(paths.libraries_database_path), 5)):
+                              (LibraryDatabase(paths.libraries_database_path), 6)):
         database.initialize()
         database.initialize()
         with database.connection() as connection:

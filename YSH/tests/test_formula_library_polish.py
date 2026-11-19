@@ -64,8 +64,8 @@ def test_navigation_builds_all_categories_and_groups_without_service_reads():
     window=SimpleNamespace(_navigation=navigation,_controller=SimpleNamespace(category='systems'),
                            _translate=Translator('tr').translate)
     EngineeringLibraryWorkspace._refresh_navigation(window)
-    assert len(CATEGORIES)==21
-    assert len({c.group for c in CATEGORIES})==9
+    assert len(CATEGORIES)==24
+    assert len({c.group for c in CATEGORIES})==10
     assert {kw['iid'] for parent,kw in records if parent and not kw['iid'].startswith('group:')}=={c.code for c in CATEGORIES}
     branches={kw['iid']:parent for parent,kw in records if parent and kw['iid'].startswith('group:')}
     assert branches=={'group:fire:foam':'group:fire','group:fire:hw':'group:fire'}
@@ -73,7 +73,7 @@ def test_navigation_builds_all_categories_and_groups_without_service_reads():
     for category in CATEGORIES:
         expected='group:fire:'+('hw' if category.code=='fire_hw' else 'foam') if category.group=='fire' else 'group:'+category.group
         assert category_parents[category.code]==expected
-    assert len([1 for parent,kw in records if not parent])==9
+    assert len([1 for parent,kw in records if not parent])==10
 
 
 def test_navigation_ignores_group_headers_and_current_category():
