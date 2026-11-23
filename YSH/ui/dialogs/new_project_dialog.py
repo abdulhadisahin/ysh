@@ -62,50 +62,22 @@ class NewProjectDialog:
         self._name_entry = ttk.Entry(content, width=54)
         self._name_entry.grid(row=0, column=1, sticky="ew", padx=(MD, 0))
 
-        self._description_label = ttk.Label(content, text="")
-        self._description_label.grid(
-            row=1,
-            column=0,
-            sticky="nw",
-            pady=(MD, 0),
-        )
-        self._description_text = tk.Text(content, width=54, height=4, wrap="word")
-        self._description_text.grid(
-            row=1,
-            column=1,
-            sticky="ew",
-            padx=(MD, 0),
-            pady=(MD, 0),
-        )
-
-        self._notes_label = ttk.Label(content, text="")
-        self._notes_label.grid(
-            row=2,
-            column=0,
-            sticky="nw",
-            pady=(MD, 0),
-        )
-        self._notes_text = tk.Text(content, width=54, height=5, wrap="word")
-        self._notes_text.grid(
-            row=2,
-            column=1,
-            sticky="ew",
-            padx=(MD, 0),
-            pady=(MD, 0),
-        )
-
         self._family_choice = ProjectFamilyChoice(content, self._translate,label_key='project.system')
-        self._family_choice.grid(row=3, column=0, columnspan=2, sticky='ew', pady=(MD, 0))
+        self._family_choice.grid(row=1, column=0, columnspan=2, sticky='ew', pady=(MD, 0))
         controller=getattr(self._localization_owner,'_engineering_context_controller',None)
         self._catalog=controller.catalog if controller is not None else None
         self._fluid_records={}
         self._fluid_label=ttk.Label(content,text='')
-        self._fluid_label.grid(row=4,column=0,sticky='w',pady=(SM,0))
+        self._fluid_label.grid(row=2,column=0,sticky='w',pady=(SM,0))
         self._fluid_choice=ttk.Combobox(content,state='disabled',width=36)
-        self._fluid_choice.grid(row=4,column=1,sticky='ew',padx=(MD,0),pady=(SM,0))
+        self._fluid_choice.grid(row=2,column=1,sticky='ew',padx=(MD,0),pady=(SM,0))
         self._family_choice.choice.bind('<<ComboboxSelected>>',self._refresh_fluids,add='+')
+        self._description_label = ttk.Label(content, text="")
+        self._description_label.grid(row=3,column=0,sticky='nw',pady=(MD,0))
+        self._description_text = tk.Text(content,width=54,height=4,wrap='word')
+        self._description_text.grid(row=3,column=1,sticky='ew',padx=(MD,0),pady=(MD,0))
         actions = ttk.Frame(content)
-        actions.grid(row=5, column=1, sticky="e", pady=(LG, 0))
+        actions.grid(row=4, column=1, sticky="e", pady=(LG, 0))
         self._cancel_button = ttk.Button(actions, command=self._cancel, style="Neutral.TButton")
         self._cancel_button.pack(
             side="left"
@@ -136,8 +108,7 @@ class NewProjectDialog:
         """Refresh this open dialog without altering entered project metadata."""
         self._dialog.title(self._translate("menu.file.new_project"))
         self._name_label.configure(text=f"{self._translate('project.name')}:")
-        self._description_label.configure(text=f"{self._translate('project.description')}:")
-        self._notes_label.configure(text=f"{self._translate('project.notes')}:")
+        self._description_label.configure(text=self._translate('project.description_optional'))
         self._family_choice.refresh_texts()
         self._fluid_label.configure(text=self._translate('engineering.fluid'))
         self._refresh_fluids()
@@ -156,7 +127,9 @@ class NewProjectDialog:
             self._name_entry.focus_set()
             return "break"
         description = self._description_text.get("1.0", "end-1c").strip()
-        notes = self._notes_text.get("1.0", "end-1c").strip()
+        # New projects have one optional description; historical notes are
+        # untouched by this creation-only dialog and the four-value API stays.
+        notes = ''
         family = self._family_choice.selected()
         if family is None:
             return "break"

@@ -1,4 +1,4 @@
-"""Five-field project creation uses classified catalog identities, not values."""
+"""Four-field project creation uses classified catalog identities, not values."""
 from dataclasses import replace
 from uuid import uuid4
 
@@ -65,7 +65,7 @@ def descendants(widget):
 
 @pytest.mark.parametrize('language',['tr','en'])
 @pytest.mark.parametrize('size',[(1100,700),(1440,900)])
-def test_new_dialog_has_only_five_fields_one_system_and_filtered_fluids(shell,language,size):
+def test_new_dialog_has_only_four_fields_one_system_and_filtered_fluids(shell,language,size):
     from ui.dialogs.new_project_dialog import NewProjectDialog
     window=shell;root=window._root;root.deiconify();root.geometry(f'{size[0]}x{size[1]}');root.update()
     tr=Translator(language).translate
@@ -73,8 +73,10 @@ def test_new_dialog_has_only_five_fields_one_system_and_filtered_fluids(shell,la
     try:
         widgets=tuple(descendants(dialog._dialog))
         labels=[str(w.cget('text')) for w in widgets if w.winfo_class()=='TLabel']
-        assert labels==[tr('project.name')+':',tr('project.description')+':',tr('project.notes')+':',
-                        'Sistem' if language=='tr' else 'System',tr('engineering.fluid')]
+        assert labels==[tr('project.name')+':','Sistem' if language=='tr' else 'System',
+                        tr('engineering.fluid'),tr('project.description_optional')]
+        assert len([w for w in widgets if w.winfo_class()=='Text'])==1
+        assert not hasattr(dialog,'_notes_text') and not hasattr(dialog,'_notes_label')
         assert len([w for w in widgets if w.winfo_class()=='TCombobox'])==2
         assert not hasattr(dialog,'_engineering_selection')
         assert tuple(dialog._family_choice.choice['values'])==(tr('project.family.fuel'),tr('project.family.fire'))
@@ -103,7 +105,6 @@ def test_fire_new_project_save_reopen_preserves_only_selected_fluid(shell,monkey
         dialog=NewProjectDialog(*args,**kwargs)
         dialog._name_entry.insert(0,'Simple Fire '+str(uuid4()))
         dialog._description_text.insert('1.0','Description')
-        dialog._notes_text.insert('1.0','Notes')
         dialog._family_choice.choice.current(1);dialog._refresh_fluids()
         if code:
             dialog._fluid_choice.set(next(label for label,r in dialog._fluid_records.items() if r and r.code==code))
@@ -121,7 +122,7 @@ def test_fire_new_project_save_reopen_preserves_only_selected_fluid(shell,monkey
     assert context.material_id is None and context.surface_profile_id is None and context.rule_set_id is None
     assert context.service=='' and context.line_type=='' and context.engineering_defaults_json=='{}'
     project=window._active_project
-    assert project.description=='Description' and project.notes=='Notes'
+    assert project.description=='Description' and project.notes==''
     window._project_persistence_service.close();window._active_project=None
     window._activate_project(project);root.update()
     assert window._system_context==context

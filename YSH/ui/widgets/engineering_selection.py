@@ -6,11 +6,13 @@ from engineering.system_context import SystemContext,ContextReference
 SERVICES=('', 'DIESEL_FUEL_DELIVERY','DIESEL_FUEL_SUCTION','SEA_WATER_COOLING','FRESH_WATER_COOLING','LUBE_OIL','BALLAST','BILGE')
 
 class EngineeringSelectionForm(ttk.Frame):
-    def __init__(self,parent,catalog,translate,context=None):
+    def __init__(self,parent,catalog,translate,context=None,*,module=None):
         super().__init__(parent)
         self.catalog=catalog;self.tr=translate;self.variables={};self.boxes={};self.labels={};self.choices={}
         self.columnconfigure(1,weight=1)
-        for row,name in enumerate(('fluid','material','surface','service','line_type','profile')):
+        fixed_line=module in ('discharge_head_loss','suction_npsh')
+        fields=('fluid','material','surface','profile') if fixed_line else ('fluid','material','surface','service','line_type','profile')
+        for row,name in enumerate(fields):
             self.labels[name]=ttk.Label(self);self.labels[name].grid(row=row,column=0,sticky='w',padx=(0,10),pady=2)
             self.variables[name]=tk.StringVar()
             box=ttk.Combobox(self,textvariable=self.variables[name],state='readonly',width=36)
@@ -32,10 +34,11 @@ class EngineeringSelectionForm(ttk.Frame):
         material=surface.material_name if surface else None
         self._set('material',{none:None,**{r.material_name:r.material_name for r in self.catalog.surface_records}},material)
         self._surfaces(context.surface_profile_id)
-        services={none:None,**{self.tr('engineering.service.'+code):code for code in SERVICES if code}}
-        if context.service and context.service not in SERVICES:services[context.service]=context.service
-        self._set('service',services,context.service or None)
-        self._set('line_type',{none:None,**{self.tr('engineering.line.'+code):code for code in ('SUCTION','DELIVERY')}},context.line_type or None)
+        if 'service' in self.boxes:
+            services={none:None,**{self.tr('engineering.service.'+code):code for code in SERVICES if code}}
+            if context.service and context.service not in SERVICES:services[context.service]=context.service
+            self._set('service',services,context.service or None)
+            self._set('line_type',{none:None,**{self.tr('engineering.line.'+code):code for code in ('SUCTION','DELIVERY')}},context.line_type or None)
         self._set('profile',{none:None,**{r.name:r.id for r in self.catalog.profile_records}},context.rule_set_id)
         for name,label in self.labels.items():label.configure(text=self.tr('engineering.select.'+name))
     def _surfaces(self,selected=None):
@@ -52,5 +55,6 @@ class EngineeringSelectionForm(ttk.Frame):
         chosen=lambda name:self.choices[name].get(self.variables[name].get())
         fluid=next((r for r in self.catalog.fluid_records if r.id==chosen('fluid')),None)
         surface=next((r for r in self.catalog.surface_records if r.id==chosen('surface')),None)
+        optional={name:chosen(name) or '' for name in ('service','line_type') if name in self.variables}
         return self.context.changed(fluid=ContextReference(id=fluid.id,code=fluid.code,name_tr=fluid.name_tr,name_en=fluid.name_en) if fluid else None,
-            surface_profile_id=surface.id if surface else None,service=chosen('service') or '',line_type=chosen('line_type') or '',rule_set_id=chosen('profile'))
+            surface_profile_id=surface.id if surface else None,rule_set_id=chosen('profile'),**optional)

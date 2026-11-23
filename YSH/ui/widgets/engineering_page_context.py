@@ -1,6 +1,17 @@
 """Compact project-linked engineering identity; overrides require an explicit action."""
 from tkinter import ttk
 
+def rule_summary(rule,tr):
+    """Present recorded limits and sources without inferring missing metadata."""
+    lo,hi=(rule.hard_min,rule.hard_max) if rule.rule_nature=='HARD_LIMIT' else (rule.recommended_min,rule.recommended_max)
+    bounds=('≥ '+str(lo) if lo is not None else '')+(' · ' if lo is not None and hi is not None else '')+('≤ '+str(hi) if hi is not None else '')
+    source=' · '.join(value for value in (rule.source_authority,rule.source_document,rule.source_edition,rule.source_clause) if value)
+    scope=tr('engineering.scope.'+rule.applicability) if rule.applicability else tr('engineering.scope_unrecorded')
+    if rule.applicability and scope=='engineering.scope.'+rule.applicability:scope=rule.applicability
+    return (rule.name+': '+bounds+' '+rule.unit+' · '+tr('engineering.nature.'+rule.rule_nature)+'\n'+
+            tr('engineering.source')+': '+(source or tr('engineering.status.SOURCE_REQUIRED'))+' · '+scope+' · '+
+            tr('engineering.verification.'+rule.verification))
+
 class EngineeringPageContext(ttk.Frame):
     def __init__(self,parent,controller,module):
         super().__init__(parent)
@@ -15,9 +26,11 @@ class EngineeringPageContext(ttk.Frame):
         self.override_button.grid(row=1,column=2,sticky='e',padx=(8,0))
         self.surface=ttk.Label(self,style='Info.TLabel',wraplength=650);self.surface.grid(row=2,column=0,columnspan=3,sticky='w')
         self.summary=ttk.Label(self,style='Info.TLabel',wraplength=650);self.summary.grid(row=3,column=0,columnspan=3,sticky='ew')
+        self.rules=ttk.Label(self,style='Info.TLabel',wraplength=650)
+        self.rules.grid(row=4,column=0,columnspan=3,sticky='ew')
         self.bind('<Configure>',self._fit)
     def _fit(self,event):
-        for widget in (self.surface,self.summary):widget.configure(wraplength=max(240,event.width-10))
+        for widget in (self.surface,self.summary,self.rules):widget.configure(wraplength=max(240,event.width-10))
     def refresh(self,text):
         c=self.controller;tr=c.window._translate;context=c.context_for(self.module)
         surface=next((r for r in c.catalog.surface_records if r.id==context.surface_profile_id),None)
@@ -42,5 +55,15 @@ class EngineeringPageContext(ttk.Frame):
                 if temperature is not None:shown+=' @ '+str(temperature)+' °C'
                 text=tr('engineering.density_reference')+': '+shown+'\n'+text
         self.summary.configure(text=text)
+        line={'discharge_head_loss':'DELIVERY','suction_npsh':'SUCTION'}.get(self.module)
+        if line:
+            details=[tr('engineering.module_line',line=tr('engineering.line.'+line))]
+            if c.family():
+                for rule in c.catalog.matching_rules(context,c.family(),self.module):
+                    if rule.verification!='SOURCE_REQUIRED' and any(v is not None for v in (
+                        rule.hard_min,rule.hard_max,rule.recommended_min,rule.recommended_max)):
+                        details.append(rule_summary(rule,tr))
+            self.rules.configure(text='\n'.join(details));self.rules.grid()
+        else:self.rules.grid_remove()
         self.project_button.configure(text=tr('engineering.edit_project'),state='normal' if c.family() else 'disabled')
         self.override_button.configure(text=tr('engineering.edit_module'))

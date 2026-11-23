@@ -183,7 +183,7 @@ class EngineeringContextController:
         if old is not None and old.winfo_exists():old.lift();return
         tr=self.window._translate;dialog=tk.Toplevel(self.window._root);dialog.transient(self.window._root)
         dialog.title(tr('engineering.edit_module'));dialog.columnconfigure(0,weight=1)
-        form=EngineeringSelectionForm(dialog,self.catalog,tr,self.context_for(module));form.grid(row=0,column=0,sticky='ew',padx=12,pady=12)
+        form=EngineeringSelectionForm(dialog,self.catalog,tr,self.context_for(module),module=module);form.grid(row=0,column=0,sticky='ew',padx=12,pady=12)
         ttk.Label(dialog,text=tr('engineering.module_notice'),wraplength=530).grid(row=1,column=0,padx=12,sticky='w')
         actions=ttk.Frame(dialog);actions.grid(row=2,column=0,padx=12,pady=12,sticky='e')
         def apply():self.set_module_context(module,form.value());dialog.destroy()
@@ -207,7 +207,9 @@ class EngineeringContextController:
                     (' @ '+str(temperature)+' °C' if temperature is not None else '')+' ['+tr('engineering.status.'+link.status)+']')
             text=' · '.join(parts)
             profile=next((r for r in self.catalog.profile_records if r.id==context.rule_set_id),None)
-            if context.service:text+='\n'+tr('engineering.select.service')+': '+self.service_label(context.service)
+            directional=context.service in ('DIESEL_FUEL_SUCTION','DIESEL_FUEL_DELIVERY')
+            if context.service and not (directional and module in ('discharge_head_loss','suction_npsh')):
+                text+='\n'+tr('engineering.select.service')+': '+self.service_label(context.service)
             if profile:text+=' · '+tr('engineering.select.profile')+': '+profile.name
             label.configure(text=text.strip())
             panel=getattr(page,'_engineering_panel',None)
