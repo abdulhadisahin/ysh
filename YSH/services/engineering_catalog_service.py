@@ -20,6 +20,20 @@ class EngineeringCatalogService:
         profile_ids={rule.profile_id for rule in self.rule_records}
         self.profile_records=tuple(r for r in self.profile_repository.get_all() if r.is_active and r.id in profile_ids)
         self.material_records=tuple(self.material_repository.get_all())
+    def project_fluids(self,family):
+        """Filter V6 fluid identities by classification, never by display names.
+
+        Temperature/specification variants stay properties of the same fluid.
+        Missing or conflicting classifications are not offered at creation.
+        Seawater is outside supported Hazen-Williams project applicability.
+        """
+        allowed={'fuel':{'DIESEL_FUEL','AVIATION_FUEL','HEAVY_FUEL'},
+                 'fire':{'FRESH_WATER'}}.get(family,set())
+        groups={}
+        for record in self.property_records:
+            groups.setdefault(record.fluid_id,set()).add(record.fluid_group)
+        return tuple(fluid for fluid in self.fluid_records
+                     if groups.get(fluid.id) and groups[fluid.id]<=allowed)
     def references(self,context):
         active_fluids={row.id for row in self.fluid_records}
         values={row.property_name:record_payload(row) for row in self.property_records if row.fluid_id==context.fluid_id and row.fluid_id in active_fluids}

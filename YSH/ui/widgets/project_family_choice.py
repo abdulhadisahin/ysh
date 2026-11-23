@@ -5,10 +5,11 @@ from ui.theme.spacing import MD
 
 
 class ProjectFamilyChoice(ttk.Frame):
-    def __init__(self, parent, translate, *, locked_family=None):
+    def __init__(self, parent, translate, *, locked_family=None, label_key='project.family'):
         super().__init__(parent)
         self.tr = translate
         self.locked_family = locked_family
+        self.label_key = label_key
         self.columnconfigure(1, weight=1)
         self.label = ttk.Label(self)
         self.label.grid(row=0, column=0, sticky='w', padx=(0, MD))
@@ -21,7 +22,7 @@ class ProjectFamilyChoice(ttk.Frame):
 
     def refresh_texts(self):
         index = self.choice.current()
-        self.label.configure(text=self.tr('project.family'))
+        self.label.configure(text=self.tr(self.label_key))
         self.choice.configure(values=tuple(self.tr(k) for k in FAMILY_KEYS.values()))
         if index >= 0:
             self.choice.current(index)

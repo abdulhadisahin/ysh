@@ -94,16 +94,16 @@ class NewProjectDialog:
             pady=(MD, 0),
         )
 
-        self._family_choice = ProjectFamilyChoice(content, self._translate)
+        self._family_choice = ProjectFamilyChoice(content, self._translate,label_key='project.system')
         self._family_choice.grid(row=3, column=0, columnspan=2, sticky='ew', pady=(MD, 0))
         controller=getattr(self._localization_owner,'_engineering_context_controller',None)
-        self._engineering_selection=None
-        if controller is not None:
-            from ui.widgets.engineering_selection import EngineeringSelectionForm
-            self._engineering_selection=EngineeringSelectionForm(content,controller.catalog,self._translate)
-            self._engineering_selection.grid(row=4,column=0,columnspan=2,sticky='ew',pady=(SM,0))
-            self._engineering_selection.grid_remove()
-            self._family_choice.choice.bind('<<ComboboxSelected>>',self._show_engineering_selection,add='+')
+        self._catalog=controller.catalog if controller is not None else None
+        self._fluid_records={}
+        self._fluid_label=ttk.Label(content,text='')
+        self._fluid_label.grid(row=4,column=0,sticky='w',pady=(SM,0))
+        self._fluid_choice=ttk.Combobox(content,state='disabled',width=36)
+        self._fluid_choice.grid(row=4,column=1,sticky='ew',padx=(MD,0),pady=(SM,0))
+        self._family_choice.choice.bind('<<ComboboxSelected>>',self._refresh_fluids,add='+')
         actions = ttk.Frame(content)
         actions.grid(row=5, column=1, sticky="e", pady=(LG, 0))
         self._cancel_button = ttk.Button(actions, command=self._cancel, style="Neutral.TButton")
@@ -117,9 +117,20 @@ class NewProjectDialog:
         )
         self.refresh_texts()
 
-    def _show_engineering_selection(self,event=None):
-        if self._engineering_selection is not None:
-            (self._engineering_selection.grid if self._family_choice.choice.current()==0 else self._engineering_selection.grid_remove)()
+    def _refresh_fluids(self,event=None):
+        selected=self._fluid_records.get(self._fluid_choice.get())
+        index=self._family_choice.choice.current()
+        family=('fuel','fire')[index] if index in (0,1) else None
+        records=self._catalog.project_fluids(family) if self._catalog is not None else ()
+        self._fluid_records={self._translate('engineering.none'):None}
+        for fluid in records:
+            label=fluid.name_tr
+            if label in self._fluid_records:label+=' · '+fluid.code
+            self._fluid_records[label]=fluid
+        self._fluid_choice.configure(values=tuple(self._fluid_records),state='readonly' if records else 'disabled')
+        self._fluid_choice.set(next((label for label,fluid in self._fluid_records.items()
+                                    if selected is not None and fluid is not None and fluid.id==selected.id),
+                                   self._translate('engineering.none')))
 
     def refresh_texts(self) -> None:
         """Refresh this open dialog without altering entered project metadata."""
@@ -128,7 +139,8 @@ class NewProjectDialog:
         self._description_label.configure(text=f"{self._translate('project.description')}:")
         self._notes_label.configure(text=f"{self._translate('project.notes')}:")
         self._family_choice.refresh_texts()
-        if self._engineering_selection is not None:self._engineering_selection.load(self._engineering_selection.value())
+        self._fluid_label.configure(text=self._translate('engineering.fluid'))
+        self._refresh_fluids()
         self._cancel_button.configure(text=self._translate("common.cancel"))
         self._submit_button.configure(text=self._translate("common.save"))
 
@@ -148,7 +160,13 @@ class NewProjectDialog:
         family = self._family_choice.selected()
         if family is None:
             return "break"
-        if family=='fuel' and self._engineering_selection is not None:self.engineering_context=self._engineering_selection.value()
+        # Never retain an old cross-family selection after a system change.
+        self._refresh_fluids()
+        fluid=self._fluid_records.get(self._fluid_choice.get())
+        if fluid is not None:
+            from engineering.system_context import SystemContext,ContextReference
+            self.engineering_context=SystemContext().changed(fluid=ContextReference(
+                id=fluid.id,code=fluid.code,name_tr=fluid.name_tr,name_en=fluid.name_en))
         self.result = (name, description, notes, family)
         self._dialog.grab_release()
         self._destroy()

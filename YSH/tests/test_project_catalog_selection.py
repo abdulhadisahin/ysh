@@ -30,12 +30,9 @@ def test_real_new_fuel_project_collects_and_persists_catalog_choices(shell,monke
     def factory(*args,**kwargs):
         dialog=NewProjectDialog(*args,**kwargs)
         dialog._name_entry.insert(0,'Initial context '+str(uuid4()))
-        dialog._family_choice.choice.current(0);dialog._show_engineering_selection()
-        form=dialog._engineering_selection
-        assert set(form.choices['fluid'].values())=={None,*(r.id for r in catalog.fluid_records)}
-        assert set(form.choices['material'].values())=={None,*(r.material_name for r in catalog.surface_records)}
-        choose(form,'fluid',f76.id);choose(form,'material','Carbon Steel');choose(form,'surface',identity('surface:CARBON_NEW'))
-        choose(form,'service','DIESEL_FUEL_DELIVERY')
+        dialog._family_choice.choice.current(0);dialog._refresh_fluids()
+        assert {r.id for r in dialog._fluid_records.values() if r}=={r.id for r in catalog.project_fluids('fuel')}
+        dialog._fluid_choice.set(next(label for label,r in dialog._fluid_records.items() if r and r.id==f76.id))
         root.update_idletasks()
         assert dialog._dialog.winfo_reqheight()<=size[1]
         def submit():
@@ -49,20 +46,22 @@ def test_real_new_fuel_project_collects_and_persists_catalog_choices(shell,monke
     w._open_new_project()
     assert not callback_errors,callback_errors
     assert w._active_project and w._system_context.fluid.id==f76.id
-    assert w._system_context.surface_profile_id==identity('surface:CARBON_NEW')
-    assert w._system_context.service=='DIESEL_FUEL_DELIVERY'
+    assert w._system_context.surface_profile_id is None
+    assert w._system_context.material_id is None and w._system_context.rule_set_id is None
+    assert w._system_context.service=='' and w._system_context.line_type==''
     c=w._engineering_context_controller
     for module in ('discharge_head_loss','suction_npsh'):
-        assert c.read(module,'kinematic_viscosity')==3 and c.read(module,'absolute_roughness')==.045
+        assert c.read(module,'kinematic_viscosity')==3
+        assert 'absolute_roughness' not in c.links[module]
         panel=w._pages[module]._engineering_panel
         assert panel.fluid_box.get()==f76.name_tr
-        assert panel.material_box.get()=='Carbon Steel'
         assert str(panel.fluid_box['state'])=='disabled'
     assert c.read('suction_npsh','density')==838
     assert '838' in w._pages['discharge_head_loss']._engineering_panel.summary['text']
     project=w._active_project;w._project_persistence_service.close();w._active_project=None
     w._activate_project(project);root.update()
-    assert w._system_context.fluid.id==f76.id and w._system_context.service=='DIESEL_FUEL_DELIVERY'
+    assert w._system_context.fluid.id==f76.id and w._system_context.service==''
+    assert w._system_context.surface_profile_id is None and w._system_context.rule_set_id is None
     assert w._locked_project_family()=='fuel'
 
 
