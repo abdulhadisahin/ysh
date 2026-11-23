@@ -4,7 +4,7 @@ import pytest
 from .test_fire_phase5cd_navigation import application,shell
 from .test_project_engineering_context import chosen
 from ._tk_geometry import settle_geometry
-from services.library_catalog import CATEGORIES
+from services.library_catalog import VISIBLE_CATEGORIES as CATEGORIES
 
 
 def labels(widget):

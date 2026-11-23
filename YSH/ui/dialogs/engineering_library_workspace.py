@@ -12,7 +12,7 @@ from engineering.provenance import SourceType, VerificationStatus
 from engineering.fire.library import FireParameter, FIRE_CATEGORIES
 from engineering.fire.enums import FireSourceStatus
 from services.engineering_library_service import EngineeringLibraryService, LibraryError
-from services.library_catalog import CATEGORIES, CATEGORY_BY_CODE, PROPERTY_CODES
+from services.library_catalog import VISIBLE_CATEGORIES as CATEGORIES, CATEGORY_BY_CODE, PROPERTY_CODES, HIDDEN_LIBRARY_CATEGORIES
 from ui.library_controller import LibraryController, EditMode
 from ui.widgets.scrollable_frame import ScrollableFrame
 from ui.widgets.formula_steps import number, source_rows
@@ -21,6 +21,21 @@ from ui.library_presentation import detail_group, ordered_editor_fields
 from ui.theme import colors, typography
 from ui.theme.library_visuals import configure_library_visuals, verification_role, fire_source_role, PANE_WEIGHTS, pane_positions
 from ui.theme.spacing import SM, MD
+
+
+def localized_library_value(key: str, value: object, translate: Callable[[str], str]) -> object:
+    """Translate known display terms while leaving stored identifiers and source facts intact."""
+    constant_names = {'Corrosion Allowance': 'corrosion_allowance', 'Design Pressure': 'design_pressure',
+        'Safety Factor': 'safety_factor', 'Weld Factor': 'weld_factor',
+        'Display Decimal Places': 'display_decimal_places'}
+    if key == 'display_name' and value in constant_names:
+        return translate('constant.'+constant_names[value])
+    if key == 'source' and value in ('User', 'USER_INPUT'):
+        return translate('library2.manual_user')
+    if key == 'property_name':
+        label = translate('engineering.property.'+str(value))
+        return value if label == 'engineering.property.'+str(value) else label
+    return value
 
 
 def record_label(record: object, translate: Callable[[str], str] | None = None) -> str:
@@ -48,10 +63,11 @@ def record_label(record: object, translate: Callable[[str], str] | None = None) 
         limits=('≥ '+str(low) if low is not None else '')+(' … ' if low is not None and high is not None else '')+('≤ '+str(high) if high is not None else '')
         return record.name+': '+(limits+' '+record.unit if limits else source)+' · '+record.source_authority
     if hasattr(record,'property_name'):
-        label=f'{record.property_name} · {record.value} {record.unit}'
-        if record.reference_temperature_c is not None: label+=f' · {record.reference_temperature_c} °C'
+        name=localized_library_value('property_name',record.property_name,translate) if translate else record.property_name
+        label=' · '.join(str(v) for v in (getattr(record,'name_tr',None),name,f'{record.value} {record.unit}') if v)
+        if getattr(record,'reference_temperature_c',None) is not None: label+=f' · {record.reference_temperature_c} °C'
         return label
-    return ' · '.join(str(getattr(record,key)) for key in
+    return ' · '.join(str(localized_library_value(key,getattr(record,key),translate) if translate else getattr(record,key)) for key in
         ('code','designation','nominal_diameter','name_tr','display_name','ship_name','property_name')
         if getattr(record,key,None) is not None) or str(getattr(record,'id',''))
 
@@ -157,6 +173,8 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         self.protocol('WM_DELETE_WINDOW',self._close)
         owner.register_localizable(self)
         try:
+            if category in HIDDEN_LIBRARY_CATEGORIES:
+                category = CATEGORY_BY_CODE[category].parent
             self._controller.browse(category)
             self.refresh_texts()
         except LibraryError:
@@ -165,6 +183,8 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
 
     def show_category(self, category: str) -> None:
         """Reuse the existing window, retaining an unfinished draft until canceled."""
+        if category in HIDDEN_LIBRARY_CATEGORIES:
+            category = CATEGORY_BY_CODE[category].parent
         try:
             self._controller.browse(category)
             self._choice_cache.clear()
@@ -316,6 +336,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         groups={}
         for key,value in detail.values:
             if self._controller.category in FIRE_CATEGORIES and key=='source_id':continue
+            value=localized_library_value(key,value,tr)
             if visible_detail(value): groups.setdefault(detail_group(key),[]).append((key,value))
         row=self._render_fluid_specs(2) if c.category=='fluids' else 2
         for group,items in groups.items():
@@ -444,7 +465,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
                     values={'engineering_method':METHODS,'engineering_verification':VERIFICATIONS,'engineering_nature':NATURES}[field.kind]
                     prefix={'engineering_method':'method','engineering_verification':'verification','engineering_nature':'nature'}[field.kind]
                     choices={tr('engineering.'+prefix+'.'+v):v for v in values}
-                elif field.kind=='property': choices={v:v for v in PROPERTY_CODES[c.category]}
+                elif field.kind=='property': choices={localized_library_value('property_name',v,tr):v for v in PROPERTY_CODES[c.category]}
                 elif field.kind=='fire_status': choices={tr('fire.ui.source.'+v.value):v for v in FireSourceStatus}
                 elif field.kind=='fire_service': choices={tr('fire.library.service.'+v):v for v in ('foam','water','seawater','fuel','unknown')}
                 if choices is not None:

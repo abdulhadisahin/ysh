@@ -3,6 +3,18 @@
 from i18n.terminology import terminology_messages
 
 MESSAGES = {
+    'library2.group.settings': 'Display Settings',
+    'library2.category.presentation_settings': 'Number Display',
+    'library2.manual_user': 'User',
+    'engineering.property.yield_strength_mpa': 'Yield Strength',
+    'constant.corrosion_allowance': 'Corrosion Allowance',
+    'constant.weld_factor': 'Weld Joint Factor',
+    'engineering.property.ReH': 'Yield Strength ReH',
+    'engineering.property.Rm': 'Tensile Strength Rm',
+    'engineering.property.Rp0.2': 'Proof Strength Rp0.2',
+    'engineering.property.roughness': 'Absolute Roughness',
+    'engineering.property.allowable_stress': 'Allowable Stress',
+    'engineering.property.vapor_pressure': 'Vapor Pressure',
     'fire.ui.percent_help': 'Enter foam concentration as percent.',
     'fire.ui.recommended_percent': 'Recommended (%)',
     'fire.ui.percent_low': 'This field expects percent. Enter 3 for 3%.',

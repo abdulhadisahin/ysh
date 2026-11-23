@@ -3,6 +3,18 @@
 from i18n.terminology import terminology_messages
 
 MESSAGES = {
+    'library2.group.settings': 'Görünüm Ayarları',
+    'library2.category.presentation_settings': 'Sayı Gösterimi',
+    'library2.manual_user': 'Kullanıcı',
+    'engineering.property.yield_strength_mpa': 'Akma Dayanımı',
+    'constant.corrosion_allowance': 'Korozyon Artımı',
+    'constant.weld_factor': 'Kaynak Birleşim Katsayısı',
+    'engineering.property.ReH': 'Akma Dayanımı ReH',
+    'engineering.property.Rm': 'Çekme Dayanımı Rm',
+    'engineering.property.Rp0.2': 'Akma Dayanımı Rp0,2',
+    'engineering.property.roughness': 'Mutlak Pürüzlülük',
+    'engineering.property.allowable_stress': 'İzin Verilen Gerilme',
+    'engineering.property.vapor_pressure': 'Buhar Basıncı',
     'fire.ui.percent_help': 'Köpük konsantrasyonunu yüzde olarak giriniz.',
     'fire.ui.recommended_percent': 'Önerilen (%)',
     'fire.ui.percent_low': "Bu alan yüzde bekler. %3 için 3 giriniz.",
@@ -313,7 +325,7 @@ MESSAGES = {
     "library.description.pipe_sizes": "Anma çapı seçimi için kullanılan yerel standart boru ölçüleri.",
     "library.description.materials": "Hesaplamalarda kullanılan yerel malzeme özellikleri.",
     "library.description.constants": "Hesaplama motorunda kullanılan onaylı sabitler.",
-    "constant.design_pressure": "Dizayn Basıncı",
+    "constant.design_pressure": "Tasarım Basıncı",
     "constant.display_decimal_places": "Ondalık Basamak Sayısı",
     "constant.safety_factor": "Emniyet Katsayısı",
     "field.dn": "DN",

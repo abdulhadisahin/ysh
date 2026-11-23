@@ -113,6 +113,12 @@ CATEGORIES += (LibraryCategory('fluid_specifications','fluids',FluidSpecificatio
                LibraryCategory('material_surfaces','materials',MaterialSurface,catalog_fields(MaterialSurface)),
                LibraryCategory('engineering_rules','engineering_rules',EngineeringRule,catalog_fields(EngineeringRule)))
 CATEGORY_BY_CODE = {category.code: category for category in CATEGORIES}
+# Internal categories remain available to repositories, editors and legacy relationships.
+HIDDEN_LIBRARY_CATEGORIES = frozenset({'circuits', 'corrosion_sources', 'constant_metadata',
+    'pipe_standard_metadata', 'pipe_size_metadata'})
+PRESENTATION_SETTINGS = LibraryCategory('presentation_settings', 'settings', None)
+CATEGORY_BY_CODE[PRESENTATION_SETTINGS.code] = PRESENTATION_SETTINGS
+VISIBLE_CATEGORIES = tuple(c for c in CATEGORIES if c.code not in HIDDEN_LIBRARY_CATEGORIES) + (PRESENTATION_SETTINGS,)
 PROPERTY_CODES = {
     "fluid_properties": ("density", "kinematic_viscosity", "vapor_pressure"),
     "material_properties": ("Rm", "ReH", "Rp0.2", "allowable_stress", "roughness"),

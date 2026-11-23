@@ -36,6 +36,7 @@ from engineering.fire.library import FireEngineeringDataRecord, FIRE_CATEGORIES
 from engineering.fire.enums import FireSourceStatus
 from repositories.fire_library_repository import FireLibraryRepository, FIRE_RECORD_PREFIX
 from services.system_context_service import DEFAULT_SYSTEMS
+from services.library_views import PropertyView, SourceView, material_properties, catalog_sources
 
 
 class LibraryError(ValueError):
@@ -134,6 +135,30 @@ class EngineeringLibraryService:
                 str(getattr(row,"id",getattr(row,"pipe_size_id",""))))
 
     @readable_errors
+    def list_display_records(self, category: str, parent_id: UUID | None = None) -> tuple:
+        """Browse existing catalogs without inserting projections or offering them as FK choices."""
+        if category == 'presentation_settings':
+            return tuple(r for r in self.list_records('constants') if r.key == 'display_decimal_places')
+        if category in ('fluid_properties', 'material_properties'):
+            parents = self.list_records('fluids' if category == 'fluid_properties' else 'materials')
+            rows = self.list_records(category, parent_id) if parent_id else tuple(
+                r for parent in parents for r in self.list_records(category, parent.id))
+            if category == 'fluid_properties':
+                rows += tuple(r for r in self.list_records('fluid_specifications')
+                    if parent_id is None or r.fluid_id == parent_id)
+            else:
+                rows += material_properties(parents, rows, parent_id)
+        else:
+            rows = self.list_records(category, parent_id)
+            if category == 'sources':
+                records = tuple(r for code in ('fluid_specifications', 'material_surfaces', 'engineering_rules')
+                                for r in self.list_records(code))
+                rows += catalog_sources(records, rows)
+            elif category == 'constants':
+                rows = tuple(r for r in rows if r.key != 'display_decimal_places')
+        return tuple(sorted(rows, key=self._sort_key))
+
+    @readable_errors
     def get_record(self, category: str, identity: UUID) -> object | None:
         """Read persisted truth before an edit; application defaults never become DB rows."""
         if category in FIRE_CATEGORIES:
@@ -147,6 +172,8 @@ class EngineeringLibraryService:
 
     def ownership(self, category: str, record: object) -> str:
         """Ambiguous reference ownership is conservative, not assumed to be user data."""
+        if isinstance(record, (PropertyView, SourceView)):
+            return 'reference'
         if category in FIRE_CATEGORIES:
             return 'user'
         if category == "systems" and getattr(record,"id",None) in self._application_ids:
@@ -166,6 +193,10 @@ class EngineeringLibraryService:
 
     def can_edit(self, category: str, record: object) -> bool:
         """Protect core reference truth and metadata attached to protected constants."""
+        from engineering.catalog import FluidSpecification
+        if category == 'presentation_settings' or isinstance(record, (PropertyView, SourceView)) or (
+            category == 'fluid_properties' and isinstance(record, FluidSpecification)):
+            return False
         if self.ownership(category, record) != "user":
             return False
         if category == "constant_metadata":

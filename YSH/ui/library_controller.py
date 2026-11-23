@@ -34,7 +34,7 @@ class LibraryController:
         """Load one category; unsaved edits must first be saved or canceled."""
         if self.mode is not EditMode.BROWSE:
             raise LibraryError("library2.error.finish_edit")
-        records = self.service.list_records(category,parent_id)
+        records = self.service.list_display_records(category,parent_id)
         self.category, self.parent_id = category, parent_id
         self.records, self.selected, self.error_key = records, None, None
 

@@ -6,7 +6,7 @@ import pytest
 from engineering.formula.common import step
 from engineering.provenance import SourceReference, SourceType
 from i18n.translator import Translator
-from services.library_catalog import CATEGORIES
+from services.library_catalog import CATEGORIES, VISIBLE_CATEGORIES
 from ui.dialogs.engineering_library_workspace import EngineeringLibraryWorkspace
 from ui.library_presentation import detail_group
 from ui.widgets.detail_disclosure import DetailDisclosure
@@ -66,14 +66,14 @@ def test_navigation_builds_all_categories_and_groups_without_service_reads():
     EngineeringLibraryWorkspace._refresh_navigation(window)
     assert len(CATEGORIES)==24
     assert len({c.group for c in CATEGORIES})==10
-    assert {kw['iid'] for parent,kw in records if parent and not kw['iid'].startswith('group:')}=={c.code for c in CATEGORIES}
+    assert {kw['iid'] for parent,kw in records if parent and not kw['iid'].startswith('group:')}=={c.code for c in VISIBLE_CATEGORIES}
     branches={kw['iid']:parent for parent,kw in records if parent and kw['iid'].startswith('group:')}
     assert branches=={'group:fire:foam':'group:fire','group:fire:hw':'group:fire'}
     category_parents={kw['iid']:parent for parent,kw in records if not kw['iid'].startswith('group:')}
-    for category in CATEGORIES:
+    for category in VISIBLE_CATEGORIES:
         expected='group:fire:'+('hw' if category.code=='fire_hw' else 'foam') if category.group=='fire' else 'group:'+category.group
         assert category_parents[category.code]==expected
-    assert len([1 for parent,kw in records if not parent])==10
+    assert len([1 for parent,kw in records if not parent])==11
 
 
 def test_navigation_ignores_group_headers_and_current_category():
