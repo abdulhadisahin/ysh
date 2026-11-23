@@ -33,8 +33,8 @@ def test_header_uses_distinct_library_keys_and_larger_fixed_command_surface() ->
     ):
         assert f'icon_name="{name}"' in source
     factory = source.split("def _create_header_button", 1)[1].split("def _add_header_logo", 1)[0]
-    assert "icon_size=79" in factory
-    assert "square_size=86" in factory
+    assert "icon_size=round(79 * 1.15) if library_icon else 79" in factory
+    assert "square_size=98 if library_icon else 86" in factory
 
 
 def test_loader_cache_identity_keeps_path_and_fit_mode_separate() -> None:

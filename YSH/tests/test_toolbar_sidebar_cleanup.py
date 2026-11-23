@@ -49,7 +49,9 @@ def test_sidebar_reflows_and_two_toolbar_groups_fit(shell,size,language):
             assert group.winfo_rootx()>=w._sidebar.winfo_rootx()+w._sidebar.winfo_width()
             assert group.winfo_rootx()+group.winfo_width()<=w._shell_header.winfo_rootx()+w._shell_header.winfo_width()
             for button in commands.winfo_children():
-                assert button._square_size==86 and button._icon_size==79
+                is_library=commands is w._ribbon_library
+                assert button._square_size==(98 if is_library else 86)
+                assert button._icon_size==(91 if is_library else 79)
                 assert button._icon_only and ttk.Button.cget(button,'text')==''
                 assert button.winfo_viewable() and button.cget('command')
         for button in (w._toolbar_materials,w._toolbar_fluids,w._toolbar_constants,w._toolbar_standards):
@@ -60,6 +62,14 @@ def test_sidebar_reflows_and_two_toolbar_groups_fit(shell,size,language):
             with Image.open(path) as source:
                 rendered=button._icon_image.rendered
                 assert rendered.width()/rendered.height()==pytest.approx(source.width/source.height,rel=.02)
+                ratio=min(91/source.width,91/source.height,1)
+                assert (rendered.width(),rendered.height())==(
+                    max(1,round(source.width*ratio)),max(1,round(source.height*ratio)))
+                assert rendered.width()<=button.winfo_width()
+                assert rendered.height()<=button.winfo_height()
+        buttons=list(w._ribbon_library.winfo_children())
+        assert len({(b.winfo_width(),b.winfo_height(),b.winfo_rooty()) for b in buttons})==1
+        assert all(a.winfo_rootx()+a.winfo_width()<=b.winfo_rootx() for a,b in zip(buttons,buttons[1:]))
         assert w._help_menu.entrycget(0,'command')
         assert w._help_menu.entrycget(0,'label')==w._translate('menu.help.about')
     finally:w._localization.set_language(old)

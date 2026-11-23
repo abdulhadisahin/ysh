@@ -354,6 +354,10 @@ class MainWindow:
         icon_name: str,
     ) -> tk.Widget:
         """Create one restrained command inside the unified D243 shell."""
+        library_icon = icon_name in {
+            'library_materials', 'library_fluids',
+            'library_engineering_constants', 'library_standards',
+        }
         return create_rounded_button(
             parent,
             text,
@@ -364,9 +368,9 @@ class MainWindow:
             icon_name=icon_name,
             icon_only=True,
             tooltip_text=text,
-            # Grow the artwork ~10%, retaining the existing clickable surface.
-            icon_size=79,
-            square_size=86,
+            # Fit the complete approved Library artwork at 115% (nearest pixel).
+            icon_size=round(79 * 1.15) if library_icon else 79,
+            square_size=98 if library_icon else 86,
         )
 
     def _add_sidebar_logo(self, parent: ttk.Frame) -> None:
