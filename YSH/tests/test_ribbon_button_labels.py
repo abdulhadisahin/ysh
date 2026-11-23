@@ -18,9 +18,10 @@ def test_ribbon_buttons_receive_translated_text_when_created() -> None:
         "text=self._translate(\"action.save\")",
         "text=self._translate(\"action.save_as\")",
         "text=self._translate(\"menu.library.materials\")",
-        "text=self._translate(\"menu.library.pipe_sizes\")",
+        "text=self._translate(\"library2.category.pipe_standards\")",
+        "text=self._translate(\"library2.category.fluids\")",
         "text=self._translate(\"menu.library.engineering_constants\")",
-        "text=self._translate(\"menu.help.about\")",
+        "text=self._translate(\"action.delete\")",
     )
 
     for text_key in expected_text_keys:
@@ -30,7 +31,7 @@ def test_ribbon_buttons_receive_translated_text_when_created() -> None:
 def test_ribbon_button_text_is_independent_of_icon_configuration() -> None:
     """The ribbon does not rely on an image or compound setting for its text."""
     source = (ROOT / "ui" / "main_window.py").read_text(encoding="utf-8")
-    ribbon_section = source[source.index("self._ribbon_project"):source.index("self._ribbon_help")]
+    ribbon_section = source[source.index("self._ribbon_project"):source.index("self._command_strip")]
 
     assert "image=" not in ribbon_section
     assert "compound=" not in ribbon_section
@@ -57,7 +58,8 @@ def test_ribbon_callbacks_and_live_text_refresh_are_preserved() -> None:
         in source
     )
     assert "command=self._show_about" in source
-    assert "self._toolbar_about.configure(text=self._translate(\"menu.help.about\"))" in source
+    assert "self._toolbar_delete.configure(text=self._translate(\"action.delete\"))" in source
+    assert "self._toolbar_about =" not in source
 
 
 def test_ribbon_language_selector_is_not_created_for_turkish_only_ui() -> None:

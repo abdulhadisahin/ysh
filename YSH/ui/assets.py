@@ -90,11 +90,10 @@ ACTION_ICON_FILENAMES = {
 
 # Distinct approved action masters used by the four library categories.
 LIBRARY_CATEGORY_ICON_FILENAMES = {
-    "library_materials": "malzemeler.png",
-    "library_pipe_sizes": "boru_olculeri.png",
+    "library_materials": "boru_malzemeleri.png",
+    "library_fluids": "akiskanlar.png",
     "library_engineering_constants": "muhendislik_sabitleri.png",
-    "library_corrosion_circuits": "devre_korozyon_artimi.png",
-    "library_corrosion_circuit": "devre_korozyon_artimi.png",
+    "library_standards": "standartlar.png",
 }
 
 STATUS_ICON_FILENAMES = {
@@ -128,7 +127,7 @@ FORMULA_ASSET_FILENAMES = {
 # standalone transparent symbols, so they use a dedicated fit that preserves
 # the full silhouette and adds an in-memory transparent safety border.
 ACTION_ICON_FIT_MODE = "full_asset_safe"
-LIBRARY_CATEGORY_ICON_FIT_MODE = "full_asset_safe"
+LIBRARY_CATEGORY_ICON_FIT_MODE = "canvas"
 STATUS_ICON_FIT_MODE = "silhouette_safe"
 
 

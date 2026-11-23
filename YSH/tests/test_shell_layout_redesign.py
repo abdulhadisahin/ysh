@@ -17,15 +17,12 @@ def test_shell_geometry_and_composited_pages(shell,size,language):
         assert not w._context_panel.winfo_ismapped()
         assert w._workspace_row==1 and w._page_host.grid_info()['row']==1
         assert w._sidebar.grid_info()['rowspan']==3
-        buttons=(w._sidebar_new,w._sidebar_open,w._sidebar_save,w._sidebar_delete,w._sidebar_refresh)
+        buttons=(w._toolbar_new,w._toolbar_open,w._toolbar_save,w._toolbar_save_as,w._toolbar_delete)
         widths={button.winfo_width() for button in buttons}
         assert max(widths)-min(widths)<=1
         assert len({button.winfo_height() for button in buttons})==1
-        for index,button in enumerate(buttons):
-            assert int(button.grid_info()['row'])==index//2
-            assert int(button.grid_info()['column'])==index%2
-        assert buttons[0].winfo_x()==buttons[2].winfo_x()==buttons[4].winfo_x()
-        assert buttons[1].winfo_x()==buttons[3].winfo_x()
+        assert [button.winfo_x() for button in buttons]==sorted(button.winfo_x() for button in buttons)
+        assert not hasattr(w,'_sidebar_actions') and not hasattr(w,'_family_selector')
         assert max(w._sidebar_logo_image.width(),w._sidebar_logo_image.height())==176
         assert str(w._sidebar_logo.cget('anchor'))=='center'
         assert abs(w._sidebar_logo.winfo_rootx()+w._sidebar_logo.winfo_width()/2-

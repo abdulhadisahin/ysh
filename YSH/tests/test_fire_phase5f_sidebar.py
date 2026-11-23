@@ -32,7 +32,7 @@ def test_continuous_sidebar_and_right_workspace_do_not_overlap(shell,language,si
         header=w._shell_header
         assert header.winfo_rootx()>=right
         assert header.winfo_height()<root.winfo_height()/2
-        for commands in (w._ribbon_project,w._ribbon_library,w._ribbon_help):
+        for commands in (w._ribbon_project,w._ribbon_library):
             group=commands._ribbon_group
             assert group.winfo_rootx()>=right
             assert group.winfo_rootx()+group.winfo_width()<=header.winfo_rootx()+header.winfo_width()
@@ -45,16 +45,8 @@ def test_continuous_sidebar_and_right_workspace_do_not_overlap(shell,language,si
             assert canvas.winfo_rootx()>=right
             assert canvas.winfo_width()>root.winfo_width()/2
             assert canvas.winfo_height()>150
-            assert w._family_selector.winfo_viewable()
-            assert w._family_selector.winfo_rootx()+w._family_selector.winfo_width()<=right
-        footer=w._project_footer
-        for button in (w._sidebar_new,w._sidebar_open,w._sidebar_save,w._sidebar_delete,w._sidebar_refresh):
-            offset=button.winfo_rooty()-footer.content.winfo_rooty()
-            footer.canvas.yview_moveto(offset/max(1,footer.content.winfo_height()));root.update()
-            assert button.winfo_rootx()+button.winfo_width()<=right
-            assert button.winfo_rooty()<footer.canvas.winfo_rooty()+footer.canvas.winfo_height()
-            assert button.winfo_rooty()+button.winfo_height()>footer.canvas.winfo_rooty()
-        footer.canvas.yview_moveto(0)
+        from .test_toolbar_sidebar_cleanup import assert_compact_sidebar
+        assert_compact_sidebar(w)
     finally:
         w._localization.set_language(old)
 
@@ -62,11 +54,11 @@ def test_continuous_sidebar_and_right_workspace_do_not_overlap(shell,language,si
 def test_large_logo_preserves_asset_aspect_and_cached_identity(shell):
     w=shell;image=w._sidebar_logo_image;source=w._sidebar_logo_source_image
     assert image.width()/image.height()==pytest.approx(source.width()/source.height(),rel=.02)
-    buttons=tuple(id(button) for button in (w._toolbar_new,w._toolbar_open,w._toolbar_save,w._toolbar_about))
+    buttons=tuple(id(button) for button in (w._toolbar_new,w._toolbar_open,w._toolbar_save,w._toolbar_delete))
     for size in ('1100x700','1700x1000','1280x800'):
         w._root.geometry(size);w._root.update()
         assert w._sidebar_logo_image is image
-        assert tuple(id(button) for button in (w._toolbar_new,w._toolbar_open,w._toolbar_save,w._toolbar_about))==buttons
+        assert tuple(id(button) for button in (w._toolbar_new,w._toolbar_open,w._toolbar_save,w._toolbar_delete))==buttons
     assert colors.SHELL_CYAN=='#27C4D4'
     assert (colors.FIRE_SELECTOR_INACTIVE,colors.FIRE_SELECTOR_ACTIVE)==('#C94454','#B51F32')
     assert colors.WARNING=='#E98600'

@@ -16,28 +16,19 @@ def test_sidebar_fixed_columns_preserve_geometry(shell,size,language):
     w=shell;root=w._root;old=w._localization.language
     try:
         review_language(w,language);root.deiconify();root.geometry(f'{size[0]}x{size[1]}');root.update()
-        buttons=(w._sidebar_new,w._sidebar_open,w._sidebar_save,w._sidebar_delete,w._sidebar_refresh)
+        from .test_toolbar_sidebar_cleanup import assert_compact_sidebar
+        assert_compact_sidebar(w)
+        buttons=(w._toolbar_new,w._toolbar_open,w._toolbar_save,w._toolbar_save_as,w._toolbar_delete)
         assert w._sidebar.winfo_width()==300
         widths=[button.winfo_width() for button in buttons]
         assert max(widths)-min(widths)<=1
-        starts=[];centers={0:[],1:[]}
+        heights={button.winfo_height() for button in buttons}
+        assert len(heights)==1
         for index,button in enumerate(buttons):
-            assert button.winfo_height()==44
-            assert (button._icon_size,button._fixed_icon_column,button._horizontal_padding)==(32,32,8)
-            style=ttk.Style(root)
-            assert str(style.lookup(button.cget('style'),'anchor'))=='w'
-            assert str(style.lookup(button.cget('style'),'justify'))=='left'
+            assert button._square_size==86 and button._icon_size==79
+            assert button._icon_only and button.cget('text')==''
             assert button.cget('command')
-            text_font=font.Font(root,font=style.lookup(button.cget('style'),'font'))
-            text=button._icon_text(button._logical_text)
-            prefix=text[:len(text)-len(text.lstrip())]
-            starts.append(button._horizontal_padding+text_font.measure(prefix))
-            column=index%2
-            centers[column].append(button.winfo_rootx()+6+32/2)
-            assert int(button.grid_info()['row'])==index//2
-            assert int(button.grid_info()['column'])==column
-        assert len(set(starts))==1
-        assert all(max(values)-min(values)<=1 for values in centers.values())
+            if index:assert button.winfo_rootx()>buttons[index-1].winfo_rootx()
     finally:w._localization.set_language(old)
 
 

@@ -77,18 +77,17 @@ def select(host,key,root):
     host.select(host._page_keys[key]);root.update()
 
 
-def test_single_sidebar_selector_and_contextual_visibility(shell):
+def test_cached_family_hosts_need_no_redundant_sidebar_selector(shell):
     w=shell;root=w._root;root.deiconify();root.update()
     assert w._family=='fuel' and w._page_host.winfo_ismapped()
     assert tuple(w._page_host._page_keys)==('pipe_design','transfer_pump','discharge_head_loss','suction_npsh')
     assert not hasattr(w,'_family_bar') and not hasattr(w,'_existing_family_button')
-    assert w._family_selector.master is w._family_frame
-    assert str(w._family_selector['state'])=='readonly'
-    w._family_selector.current(1);w._select_family();root.update()
+    assert not hasattr(w,'_family_selector') and not hasattr(w,'_family_frame')
+    w._show_family('fire');root.update()
     assert w._family=='fire' and not w._page_host.winfo_ismapped()
     assert w._fire_workspace.winfo_ismapped()
     assert tuple(w._fire_workspace.host._page_keys)==('foam','hw')
-    w._family_selector.current(0);w._select_family();root.update()
+    w._show_family('fuel');root.update()
     assert w._page_host.winfo_ismapped() and not w._fire_workspace.winfo_ismapped()
 
 
@@ -159,9 +158,9 @@ def test_family_change_keeps_engineering_context_and_reports_conflict(shell):
     w._apply_system_context(context)
     w._show_family('fire');w._root.update()
     assert w._system_context is context
-    assert w._family_notice.grid_info() and w._family_notice['text']==w._translate('navigation.incompatible')
+    assert not hasattr(w,'_family_notice')
     w._show_family('fuel')
-    assert w._system_context is context and not w._family_notice.grid_info()
+    assert w._system_context is context
 
 
 @pytest.mark.parametrize('language,labels',[('tr',('Yakıt Sistemi','Yangın Söndürme')),('en',('Fuel System','Fire Fighting'))])
@@ -172,13 +171,9 @@ def test_real_shell_localization_and_geometry(shell,language,labels,size):
     try:
         w._refresh_family_selector();w._context_panel._translate=w._translate;w._context_panel.refresh_texts()
         root.deiconify();root.geometry(f'{size[0]}x{size[1]}');root.update()
-        assert tuple(w._family_selector['values'])==labels
-        assert w._family_label['text']==('Sistem' if language=='tr' else 'System')
+        assert not hasattr(w,'_family_selector')
         assert w._context_panel._labels['system']['text']==w._translate('context.profile')
-        selector=w._family_selector
-        import tkinter.font as font
-        assert max(font.nametofont('TkTextFont').measure(label) for label in labels)+28<=selector.winfo_width()
-        assert selector.winfo_rootx()+selector.winfo_width()<=w._project_footer.winfo_rootx()+w._project_footer.winfo_width()
+        assert w._toolbar_delete.winfo_viewable()
         assert w._project_tree_container.master.grid_bbox(0,3)[3]>=120
         for family in ('fuel','fire'):
             w._show_family(family);root.update()
@@ -204,16 +199,12 @@ def test_partial_project_save_preserves_navigation(shell):
     assert service.open(project.id)[1]['navigation']==state.to_payload()
 
 
-def test_system_selector_stays_visible_when_project_footer_scrolls(shell):
+def test_project_list_uses_the_removed_footer_space(shell):
     w=shell;root=w._root;root.deiconify();root.geometry('1100x700');root.update()
-    selector=w._family_selector
-    before=selector.winfo_rooty()
-    w._project_footer.canvas.yview_moveto(1.0);root.update()
-    assert selector.winfo_viewable() and selector.winfo_rooty()==before
-    assert selector.winfo_rooty()+selector.winfo_height()<=root.winfo_rooty()+root.winfo_height()
-    w._family_selector.current(1);w._select_family();root.update()
+    from .test_toolbar_sidebar_cleanup import assert_compact_sidebar
+    assert_compact_sidebar(w)
+    w._show_family('fire');root.update()
     assert w._family=='fire' and w._fire_workspace.winfo_ismapped()
-    w._project_footer.canvas.yview_moveto(0.0)
 
 
 def test_user_requested_cyan_header_and_navy_sidebar_keep_icon_sizes(shell):

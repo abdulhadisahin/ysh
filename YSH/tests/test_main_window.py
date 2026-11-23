@@ -333,11 +333,11 @@ def test_main_window_initializes_projects_tree(monkeypatch: object) -> None:
 
     assert hasattr(window, "_projects_tree")
     assert window._projects_tree is not None
-    assert window._project_footer.kwargs["height"] == 168
-    assert window._project_footer.propagate is False
-    assert window._project_footer.wheel_active
-    assert window._project_footer.args[0].rows[3] == {"weight": 1, "minsize": 120}
-    assert window._project_summary.args[0] is window._project_footer.content
+    assert not hasattr(window,'_project_footer')
+    assert not hasattr(window,'_sidebar_actions')
+    assert not hasattr(window,'_family_selector')
+    assert window._sidebar.rows[3] == {"weight":1,"minsize":120}
+    assert window._toolbar_delete is not None
 
 
 def test_open_project_dialog_sets_result_before_closing() -> None:

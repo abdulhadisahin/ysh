@@ -10,7 +10,7 @@ def test_ship_and_selective_surfaces(shell,size):
     w=shell;root=w._root;root.deiconify();root.minsize(1100,700);root.geometry(f'{size[0]}x{size[1]}');root.update()
     w._place_header_ship();root.update()
     ship=w._header_ship_label;header=w._shell_header
-    assert ship.winfo_viewable(), [(c._ribbon_group.winfo_x(),c._ribbon_group.winfo_y(),c._ribbon_group.winfo_width(),c._ribbon_group.winfo_height(),header.winfo_width(),header.winfo_height()) for c in (w._ribbon_project,w._ribbon_library,w._ribbon_help)]
+    assert ship.winfo_viewable(), [(c._ribbon_group.winfo_x(),c._ribbon_group.winfo_y(),c._ribbon_group.winfo_width(),c._ribbon_group.winfo_height(),header.winfo_width(),header.winfo_height()) for c in (w._ribbon_project,w._ribbon_library)]
     assert w._header_ship_source_image.width()>ship.winfo_width()
     assert ship.winfo_x()>=0 and ship.winfo_y()>=0
     assert ship.winfo_x()+ship.winfo_width()<=header.winfo_width()
@@ -18,7 +18,7 @@ def test_ship_and_selective_surfaces(shell,size):
     def overlaps(a,b):
         return (a.winfo_rootx()<b.winfo_rootx()+b.winfo_width() and b.winfo_rootx()<a.winfo_rootx()+a.winfo_width()
                 and a.winfo_rooty()<b.winfo_rooty()+b.winfo_height() and b.winfo_rooty()<a.winfo_rooty()+a.winfo_height())
-    groups=[commands._ribbon_group for commands in (w._ribbon_project,w._ribbon_library,w._ribbon_help)]
+    groups=[commands._ribbon_group for commands in (w._ribbon_project,w._ribbon_library)]
     assert all(not overlaps(ship,group) for group in groups), [(i.winfo_rootx(),i.winfo_rooty(),i.winfo_width(),i.winfo_height()) for i in (ship,*groups)]
     geometry=[(g.winfo_x(),g.winfo_y(),g.winfo_width(),g.winfo_height()) for g in groups]
     ship.place_forget();root.update()

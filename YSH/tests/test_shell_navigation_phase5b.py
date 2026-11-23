@@ -128,8 +128,7 @@ def test_sidebar_rounded_commands_match_their_neutral_panel_at_outer_corners() -
         "self._sidebar_delete",
         "self._sidebar_refresh",
     ):
-        action_statement = shell_source.split(f"{action} = ", 1)[1].split("\n", 1)[0]
-        assert "self._create_sidebar_button" in action_statement
+        assert f'{action} = ' not in shell_source
     assert "outside_background=colors.HEADER_SURFACE" in shell_source
 
 
@@ -143,9 +142,10 @@ def test_header_button_host_styles_are_derived_for_all_command_groups() -> None:
         "_toolbar_save",
         "_toolbar_save_as",
         "_toolbar_materials",
-        "_toolbar_pipe_sizes",
+        "_toolbar_fluids",
         "_toolbar_constants",
-        "_toolbar_about",
+        "_toolbar_standards",
+        "_toolbar_delete",
     ):
         statement = shell_source.split(f"self.{control} = ", 1)[1].split("\n", 1)[0]
         assert "self._create_header_button" in statement

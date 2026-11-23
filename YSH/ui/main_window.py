@@ -189,18 +189,17 @@ class MainWindow:
         self._toolbar_save.pack(side="left", padx=(SM, 0))
         self._toolbar_save_as = self._create_header_button(self._ribbon_project, self._translate("action.save_as"), self._save_project_as, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="save_as")
         self._toolbar_save_as.pack(side="left", padx=(SM, 0))
+        self._toolbar_delete = self._create_header_button(self._ribbon_project, self._translate("action.delete"), self._delete_project, style="RoundedDelete.TButton", palette=DELETE_BUTTON_PALETTE, icon_name="delete")
+        self._toolbar_delete.pack(side="left", padx=(SM, 0))
         self._ribbon_library = self._create_ribbon_group(toolbar, "ribbon.data_library")
         self._toolbar_materials = self._create_header_button(self._ribbon_library, self._translate("menu.library.materials"), self._open_material_library, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="library_materials")
         self._toolbar_materials.pack(side="left")
-        self._toolbar_pipe_sizes = self._create_header_button(self._ribbon_library, self._translate("menu.library.pipe_sizes"), self._open_pipe_size_library, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="library_pipe_sizes")
-        self._toolbar_pipe_sizes.pack(side="left", padx=(SM, 0))
+        self._toolbar_fluids = self._create_header_button(self._ribbon_library, self._translate("library2.category.fluids"), self._open_fluid_library, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="library_fluids")
+        self._toolbar_fluids.pack(side="left", padx=(SM, 0))
         self._toolbar_constants = self._create_header_button(self._ribbon_library, self._translate("menu.library.engineering_constants"), self._open_constants_library, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="library_engineering_constants")
         self._toolbar_constants.pack(side="left", padx=(SM, 0))
-        self._toolbar_circuits = self._create_header_button(self._ribbon_library, self._translate("menu.library.corrosion_allowance_circuits"), self._open_corrosion_allowance_circuit_library, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="library_corrosion_circuits")
-        self._toolbar_circuits.pack(side="left", padx=(SM, 0))
-        self._ribbon_help = self._create_ribbon_group(toolbar, "ribbon.help")
-        self._toolbar_about = self._create_header_button(self._ribbon_help, self._translate("menu.help.about"), self._show_about, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="about")
-        self._toolbar_about.pack(side="left")
+        self._toolbar_standards = self._create_header_button(self._ribbon_library, self._translate("library2.category.pipe_standards"), self._open_pipe_size_library, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="library_standards")
+        self._toolbar_standards.pack(side="left", padx=(SM, 0))
 
         self._command_strip = toolbar
         self._header_group_layout = None
@@ -296,55 +295,9 @@ class MainWindow:
         self._projects_tree.bind("<Double-1>", self._open_selected_project)
         self._projects_tree.bind("<Return>", self._open_selected_project)
         self._projects_tree.bind("<Delete>", self._delete_project)
-        # Active-project details must not grow the fixed sidebar rows until the
-        # only expanding row (the project list) collapses. Keep the lower area
-        # bounded and independently scrollable, retaining all project metadata.
-        self._project_footer = ScrollableFrame(navigation, height=168, style="Sidebar.TFrame")
-        self._project_footer.grid(row=5, column=0, sticky="ew", pady=(SM, 0))
-        self._project_footer.grid_propagate(False)
-        self._project_footer.set_wheel_active(True)
-        self._project_footer.content.columnconfigure(0, weight=1)
-        if hasattr(navigation, 'tk'):
-            self._project_footer.canvas.configure(background=colors.SIDEBAR_SURFACE)
-            self._project_footer.content.configure(style='Sidebar.TFrame')
-        actions = ttk.Frame(self._project_footer.content, style="SidebarActions.TFrame", padding=(0, SM, 0, 0))
-        actions.grid(row=0, column=0, sticky="ew")
-        actions.columnconfigure(0, weight=1, uniform="project_actions")
-        actions.columnconfigure(1, weight=1, uniform="project_actions")
-        self._sidebar_actions=actions
-        self._sidebar_new = self._create_sidebar_button(actions, self._translate('action.new'), self._open_new_project, style="RoundedAdd.TButton", palette=ADD_BUTTON_PALETTE, icon_name="new")
-        self._sidebar_new.grid(row=0, column=0, sticky="ew", padx=(0, SM // 2))
-        self._sidebar_open = self._create_sidebar_button(actions, self._translate("action.open"), self._open_selected_project, style="RoundedEdit.TButton", palette=EDIT_BUTTON_PALETTE, icon_name="open")
-        self._sidebar_open.grid(row=0, column=1, sticky="ew", padx=(SM // 2, 0))
-        self._sidebar_save = self._create_sidebar_button(actions, self._translate("action.save"), self._save_project, style="RoundedAdd.TButton", palette=ADD_BUTTON_PALETTE, icon_name="save")
-        self._sidebar_save.grid(row=1, column=0, sticky="ew", padx=(0, SM // 2), pady=(SM // 2, 0))
-        self._sidebar_delete = self._create_sidebar_button(actions, self._translate("action.delete"), self._delete_project, style="RoundedDelete.TButton", palette=DELETE_BUTTON_PALETTE, icon_name="delete")
-        self._sidebar_delete.grid(row=1, column=1, sticky="ew", padx=(SM // 2, 0), pady=(SM // 2, 0))
-        self._sidebar_refresh = self._create_sidebar_button(actions, self._translate("action.refresh"), self._refresh_projects, style="RoundedNeutral.TButton", palette=NEUTRAL_BUTTON_PALETTE, icon_name="refresh")
-        self._sidebar_refresh.grid(row=2, column=0, sticky="ew", padx=SM // 2, pady=SM // 2)
-        for index,button in enumerate((self._sidebar_new,self._sidebar_open,self._sidebar_save,self._sidebar_delete,self._sidebar_refresh)):
-            button.grid_configure(row=index//2,column=index%2,columnspan=1,sticky="ew",padx=SM // 2,pady=SM // 2)
-        self._project_summary = ProjectSummary(self._project_footer.content, self._translate)
-        self._project_summary.grid(row=1, column=0, sticky="ew", pady=(MD, 0))
-
         self._navigation = WorkspaceNavigation()
         self._family = 'fuel'
-        # Fixed, always-visible selector: scrolling project details cannot hide it.
-        self._family_frame = ttk.Frame(navigation, style='Sidebar.TFrame')
-        self._family_frame.grid(row=4, column=0, sticky='ew', pady=(SM, 0))
-        self._family_frame.columnconfigure(0, weight=1)
-        self._family_label = ttk.Label(self._family_frame, style="SidebarTitle.TLabel")
-        self._family_label.grid(row=0, column=0, sticky='w')
-        self._family_value = tk.StringVar()
-        self._family_selector = ttk.Combobox(self._family_frame,
-            textvariable=self._family_value, state='readonly', width=22,
-            postcommand=self._prepare_family_choices)
-        self._family_selector.grid(row=1, column=0, sticky='ew', pady=(2, 4))
-        self._family_selector.bind('<<ComboboxSelected>>', self._select_family)
-        self._family_notice = ttk.Label(self._family_frame, wraplength=220,
-            justify='left', style='SidebarSearchLabel.TLabel')
-        self._family_notice.grid(row=2, column=0, sticky='ew')
-        self._family_notice.grid_remove()
+        # Family belongs to project creation/persistence, not a second selector.
         self._family_parent = content
         self._workspace_row = 1
         self._page_host = ScrollablePageHost(content)
@@ -382,7 +335,6 @@ class MainWindow:
                 self._publish_pipe_selection, self._pipe_sources.remove)
 
         self._pages = {key: getattr(self, attribute) for key, attribute in (("pipe_design", "_pipe_design_page"), ("transfer_pump", "_transfer_pump_page"), ("discharge_head_loss", "_discharge_head_loss_page"), ("suction_npsh", "_suction_npsh_page")) if hasattr(self, attribute)}
-        self.register_localizable(self._project_summary)
         for page in self._pages.values():
             self.register_localizable(page)
         self._attach_dirty_callbacks()
@@ -515,7 +467,7 @@ class MainWindow:
         if self._header_ship_label is None:return
         header=self._shell_header
         rows={}
-        for commands in (self._ribbon_project,self._ribbon_library,self._ribbon_help):
+        for commands in (self._ribbon_project,self._ribbon_library):
             group=commands._ribbon_group
             if group.winfo_ismapped():rows.setdefault(group.winfo_y(),[]).append(group)
         for top,groups in sorted(rows.items()):
@@ -580,7 +532,7 @@ class MainWindow:
             return
         available = max(1, self._shell_header.winfo_width() - 2 * MD)
         groups = [commands._ribbon_group for commands in
-                  (self._ribbon_project, self._ribbon_library, self._ribbon_help)]
+                  (self._ribbon_project, self._ribbon_library)]
         row = column = used = 0
         positions = []
         for group in groups:
@@ -661,15 +613,14 @@ class MainWindow:
         self._toolbar_open.configure(text=self._translate("action.open"))
         self._toolbar_save.configure(text=self._translate("action.save"))
         self._toolbar_save_as.configure(text=self._translate("action.save_as"))
+        self._toolbar_delete.configure(text=self._translate("action.delete"))
         self._toolbar_materials.configure(text=self._translate("menu.library.materials"))
-        self._toolbar_pipe_sizes.configure(text=self._translate("menu.library.pipe_sizes"))
+        self._toolbar_fluids.configure(text=self._translate("library2.category.fluids"))
         self._toolbar_constants.configure(text=self._translate("menu.library.engineering_constants"))
-        self._toolbar_circuits.configure(text=self._translate("menu.library.corrosion_allowance_circuits"))
-        self._toolbar_about.configure(text=self._translate("menu.help.about"))
+        self._toolbar_standards.configure(text=self._translate("library2.category.pipe_standards"))
         for commands in (
             self._ribbon_project,
             self._ribbon_library,
-            self._ribbon_help,
         ):
             group = commands._ribbon_group  # type: ignore[attr-defined]
             group._ribbon_label.configure(  # type: ignore[attr-defined]
@@ -681,11 +632,6 @@ class MainWindow:
         self._project_search_label.configure(text=self._translate("project.search"))
         self._projects_tree.heading("name", text=self._translate("project.name"))
         self._projects_tree.heading("modified", text=self._translate("project.modified"))
-        self._sidebar_new.configure(text=self._translate("action.new"))
-        self._sidebar_open.configure(text=self._translate("action.open"))
-        self._sidebar_save.configure(text=self._translate("action.save"))
-        self._sidebar_delete.configure(text=self._translate("action.delete"))
-        self._sidebar_refresh.configure(text=self._translate("action.refresh"))
         self._refresh_menu_texts()
         self._refresh_notebook_tab_titles()
         if hasattr(self, "_system_context"):
@@ -700,8 +646,7 @@ class MainWindow:
             self._page_host.set_page_title(page_name, self._translate(page_titles[page_name]))
         if selected_tab:
             self._page_host.select(selected_tab)
-        if hasattr(self, '_family_selector'):
-            MainWindow._refresh_family_selector(self)
+        MainWindow._refresh_family_selector(self)
 
     def _export_all_page_states(self) -> dict[str, object]:
         """Collect page-owned persistence contracts into one V1 workspace."""
@@ -890,6 +835,10 @@ class MainWindow:
             return
         if self._material_service is not None:
             MaterialLibraryDialog(self._root, self._material_service, translate=self._translate, localization_owner=self)
+
+    def _open_fluid_library(self) -> None:
+        """Use the existing V6 engineering-library fluid category."""
+        self._open_engineering_library('fluids')
 
     def _open_pipe_size_library(self) -> None:
         """Open the service-backed pipe-size-library editor."""
@@ -1089,8 +1038,7 @@ class MainWindow:
             )
             return
         self._active_project = project
-        if hasattr(self, '_family_selector'):
-            MainWindow._refresh_family_selector(self)
+        MainWindow._refresh_family_selector(self)
         MainWindow._clear_pdf_snapshots(self)
         if hasattr(self, "_projects_tree"):
             search = getattr(self, "_project_search", None)
@@ -1099,7 +1047,7 @@ class MainWindow:
             self._refresh_projects()
             self._select_project_row(project.id)
         self._refresh_window_title()
-        self._project_summary.set_project(project)
+        if hasattr(self,'_project_summary'):self._project_summary.set_project(project)
         self._file_menu.entryconfigure(FILE_MENU_INDEX["close"], state="normal")
         self._file_menu.entryconfigure(FILE_MENU_INDEX["save"], state="disabled")
         self._status_bar.set_message(
@@ -1113,7 +1061,7 @@ class MainWindow:
         self._active_project = None
         MainWindow._clear_pdf_snapshots(self)
         self._refresh_window_title()
-        self._project_summary.clear()
+        if hasattr(self,'_project_summary'):self._project_summary.clear()
         persistence = getattr(self, "_project_persistence_service", None)
         if persistence is not None:persistence.close()
         self._clear_all_pages()
@@ -1228,7 +1176,7 @@ class MainWindow:
         MainWindow._clear_pdf_snapshots(self)
         self._refresh_projects()
         self._refresh_window_title()
-        self._project_summary.set_project(project)
+        if hasattr(self,'_project_summary'):self._project_summary.set_project(project)
         self._file_menu.entryconfigure(FILE_MENU_INDEX["close"], state="normal")
         self._file_menu.entryconfigure(FILE_MENU_INDEX["save"], state="disabled")
         self._status_bar.set_message(self._translate("message.project_saved"))
@@ -1280,7 +1228,7 @@ class MainWindow:
             self._active_project = None
             MainWindow._clear_pdf_snapshots(self)
             self._refresh_window_title()
-            self._project_summary.clear()
+            if hasattr(self,'_project_summary'):self._project_summary.clear()
             self._clear_all_pages()
             self._file_menu.entryconfigure(FILE_MENU_INDEX["close"], state="disabled")
             self._file_menu.entryconfigure(FILE_MENU_INDEX["save"], state="disabled")
@@ -1559,12 +1507,9 @@ class MainWindow:
         return persistence.active_system_family
 
     def _refresh_family_selector(self) -> None:
-        self._family_label.configure(text=self._translate('navigation.system'))
-        self._family_selector.configure(values=tuple(self._translate(key) for key in FAMILIES.values()))
-        self._family_value.set(self._translate(FAMILIES[self._family]))
-        self._family_selector.configure(style='FireFamily.TCombobox' if self._family == 'fire' else 'TCombobox')
         active = getattr(self, '_active_project', None)
-        self._family_selector.configure(state='disabled' if active else 'readonly')
+        # Keep the active-project indicator and warning summary in sync even
+        # though the redundant sidebar family combobox is no longer constructed.
         indicator = getattr(self, '_project_family_indicator', None)
         if indicator is not None:
             if active:
@@ -1615,7 +1560,9 @@ class MainWindow:
         if MainWindow._locked_project_family(self) is not None:
             MainWindow._refresh_family_selector(self)
             return
-        index = self._family_selector.current()
+        selector=getattr(self,'_family_selector',None)
+        if selector is None:return
+        index = selector.current()
         if index >= 0:
             self._show_family(tuple(FAMILIES)[index])
 
@@ -1673,8 +1620,7 @@ class MainWindow:
             if family == 'fire':
                 self._fire_workspace.model.active = key
                 self._fire_workspace.views[key]
-        if hasattr(self, '_family_selector'):
-            MainWindow._refresh_family_selector(self)
+        MainWindow._refresh_family_selector(self)
         if changed and dirty and hasattr(self, '_mark_workspace_dirty'):
             self._mark_workspace_dirty()
 

@@ -83,7 +83,7 @@ def test_silhouette_safe_preserves_edge_to_edge_status_art_with_transparent_padd
 
 def test_asset_families_use_safe_modes_without_page_specific_guesses() -> None:
     assert action_icon_fit_mode("calculate") == "full_asset_safe"
-    assert action_icon_fit_mode("library_materials") == "full_asset_safe"
+    assert action_icon_fit_mode("library_materials") == "canvas"
     assert action_icon_fit_mode("formula") == "full_asset_safe"
     assert status_icon_fit_mode("warning") == "silhouette_safe"
 

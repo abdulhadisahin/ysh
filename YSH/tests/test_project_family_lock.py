@@ -95,7 +95,7 @@ def test_project_navigation_lock_and_context_indicator(shell, family, size):
     assert w._create_project('Family ' + str(uuid4()), '', '', family)
     settle_geometry(root, w._project_family_indicator)
     assert w._family == family
-    assert str(w._family_selector['state']) == 'disabled'
+    assert not hasattr(w,'_family_selector')
     assert w._project_family_indicator.winfo_ismapped()
     for language in ('tr', 'en'):
         original = w._translate
@@ -110,7 +110,6 @@ def test_project_navigation_lock_and_context_indicator(shell, family, size):
             w._refresh_family_selector()
     before = w._export_all_page_states()
     w._show_family(other)
-    w._family_selector.current(0 if other == 'fuel' else 1)
     w._select_family()
     root.update()
     assert w._family == family
@@ -124,11 +123,11 @@ def test_project_navigation_lock_and_context_indicator(shell, family, size):
     project = w._active_project
     w._save_project()
     w._close_project()
-    assert str(w._family_selector['state']) == 'readonly'
+    assert not hasattr(w,'_family_selector')
     assert not indicator.grid_info()
     w._activate_project(project)
     assert w._family == family
-    assert str(w._family_selector['state']) == 'disabled'
+    assert not hasattr(w,'_family_selector')
 
 
 @pytest.mark.parametrize('dialog_name', ['NewProjectDialog', 'SaveProjectAsDialog'])

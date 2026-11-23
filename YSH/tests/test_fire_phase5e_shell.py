@@ -17,7 +17,7 @@ def test_logo_selector_actions_and_header_fit(shell,language,size):
     try:
         w._refresh_family_selector();root.deiconify()
         root.geometry(f'{size[0]}x{size[1]}')
-        settle_geometry(root,w._family_selector)
+        settle_geometry(root,w._toolbar_delete,w._sidebar)
         assert not hasattr(w,'_header_title') and not hasattr(w,'_header_subtitle')
         assert 'D243' in root.title()
         logo=w._sidebar_logo
@@ -33,47 +33,27 @@ def test_logo_selector_actions_and_header_fit(shell,language,size):
         assert toolbar.master.winfo_height()<root.winfo_height()/2
         for family in ('fuel','fire'):
             w._show_family(family);root.update()
-            combo=w._family_selector
-            settle_geometry(root,combo)
-            assert combo.winfo_viewable()
-            assert combo.winfo_rooty()+combo.winfo_height()<root.winfo_rooty()+root.winfo_height()
-            assert combo.winfo_rootx()+combo.winfo_width()<=w._family_frame.winfo_rootx()+w._family_frame.winfo_width()
-        # All project actions remain reachable in the existing scroll viewport.
-        footer=w._project_footer
-        for action in (w._sidebar_new,w._sidebar_open,w._sidebar_save,w._sidebar_delete,w._sidebar_refresh):
-            top=action.winfo_rooty()-footer.content.winfo_rooty()
-            footer.canvas.yview_moveto(top/max(1,footer.content.winfo_height()));root.update()
-            assert action.winfo_rooty()<footer.canvas.winfo_rooty()+footer.canvas.winfo_height()
-            assert action.winfo_rooty()+action.winfo_height()>footer.canvas.winfo_rooty()
-        footer.canvas.yview_moveto(0)
+            assert not hasattr(w,'_family_selector')
+        from .test_toolbar_sidebar_cleanup import assert_compact_sidebar
+        assert_compact_sidebar(w)
+        for action in (w._toolbar_new,w._toolbar_open,w._toolbar_save,w._toolbar_delete):
+            assert action.winfo_viewable()
     finally:
         w._translate=old;w._refresh_family_selector()
 
 
-def test_native_popup_fire_is_red_while_unselected_and_fuel_unchanged(shell):
+def test_creation_family_choice_remains_available_without_sidebar_popup(shell):
+    import tkinter as tk
+    from ui.widgets.project_family_choice import ProjectFamilyChoice
     w=shell;root=w._root;root.deiconify();root.update()
-    combo=w._family_selector
-    assert combo.current()==0 and combo['style']=='TCombobox'
-    combo.tk.call('ttk::combobox::Post',str(combo));root.update()
-    popup=str(combo.tk.call('ttk::combobox::PopdownWindow',str(combo)))+'.f.l'
+    assert not hasattr(w,'_family_selector')
+    dialog=tk.Toplevel(root);choice=ProjectFamilyChoice(dialog,w._translate);choice.pack()
     try:
-        assert combo.tk.call(popup,'get',1)==w._translate('fire.system')
-        assert combo.tk.call(popup,'itemcget',1,'-background')==colors.FIRE_SELECTOR_INACTIVE
-        assert combo.tk.call(popup,'itemcget',1,'-foreground')==colors.FIRE_SELECTOR_TEXT
-        assert combo.tk.call(popup,'itemcget',1,'-selectbackground')==colors.FIRE_SELECTOR_ACTIVE
-        assert combo.tk.call(popup,'itemcget',0,'-background')==''
-        assert combo.current()==0 and w._family=='fuel'
-    finally:
-        combo.tk.call('ttk::combobox::Unpost',str(combo));root.update()
-    w._show_family('fire');root.update()
-    assert combo['style']=='FireFamily.TCombobox'
-    style=ttk.Style(root)
-    assert style.lookup('FireFamily.TCombobox','fieldbackground',('readonly',))==colors.FIRE_SELECTOR_ACTIVE
-    assert style.lookup('FireFamily.TCombobox','foreground',('readonly',))==colors.WHITE
-    assert style.lookup('FireFamily.TCombobox','fieldbackground',('readonly','active'))==colors.FIRE_SELECTOR_HOVER
-    assert style.lookup('FireFamily.TCombobox','fieldbackground',('readonly','pressed'))==colors.FIRE_SELECTOR_PRESSED
-    assert style.lookup('FireFamily.TCombobox','bordercolor',('readonly','focus'))==colors.SHELL_CYAN
-    w._show_family('fuel');assert combo['style']=='TCombobox'
+        assert tuple(choice.choice['values'])==(w._translate('project.family.fuel'),w._translate('project.family.fire'))
+        assert choice.choice.current()==-1
+        choice.choice.current(1);assert choice.selected()=='fire'
+        choice.choice.current(0);assert choice.selected()=='fuel'
+    finally:dialog.destroy()
 
 
 def test_logo_not_reloaded_during_family_language_or_resize(shell,monkeypatch):
