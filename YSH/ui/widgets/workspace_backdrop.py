@@ -6,6 +6,7 @@ Controls and semantic colors are never given window alpha or overlaid artwork.
 """
 from dataclasses import dataclass
 from itertools import count
+from functools import lru_cache
 import tkinter as tk
 from tkinter import ttk
 
@@ -57,22 +58,32 @@ def light_surface(rgb):
     return min(rgb)>195 and max(rgb)-min(rgb)<65
 
 
+def watermark_bounds(size, source_size):
+    """Contain the complete emblem in the viewport with a small clear margin."""
+    width,height=size
+    source_width,source_height=source_size
+    scale=min(width*.94/source_width,height*.94/source_height)
+    fitted_width=max(1,round(source_width*scale))
+    fitted_height=max(1,round(source_height*scale))
+    return ((width-fitted_width)//2,(height-fitted_height)//2,fitted_width,fitted_height)
+
+
+@lru_cache(maxsize=1)
+def load_watermark_emblem(path):
+    """Share only decoded PIL pixels; Tk images remain owned by each viewport."""
+    with Image.open(path) as source:
+        emblem=source.convert('RGBA')
+    bounds=emblem.getchannel('A').getbbox()
+    return emblem.crop(bounds) if bounds else emblem
+
+
 def compose_backdrop(size, emblem):
     width,height=size
     image=Image.new('RGB',size,colors.WORKSPACE_SURFACE)
     if emblem is None:return image
-    side=max(820,round(max(width*1.12,height*1.15)))
-    scale=side/max(emblem.size)
-    logo=emblem.resize((max(1,round(emblem.width*scale)),max(1,round(emblem.height*scale))),Image.Resampling.LANCZOS)
+    x,y,fitted_width,fitted_height=watermark_bounds(size,emblem.size)
+    logo=emblem.resize((fitted_width,fitted_height),Image.Resampling.LANCZOS)
     logo.putalpha(logo.getchannel('A').point(lambda alpha:round(alpha*.24)))
-    # A small alpha-mass correction balances asymmetric artwork optically.
-    alpha=logo.getchannel('A').resize((64,64),Image.Resampling.BILINEAR)
-    weights=list(alpha.get_flattened_data());mass=sum(weights)
-    cx=sum((i%64+.5)*value for i,value in enumerate(weights))/mass if mass else 32
-    cy=sum((i//64+.5)*value for i,value in enumerate(weights))/mass if mass else 32
-    dx=max(-width*.015,min(width*.015,(32-cx)/64*logo.width*.2))
-    dy=max(-height*.015,min(height*.015,(32-cy)/64*logo.height*.2))
-    x=round((width-logo.width)/2+dx);y=round((height-logo.height)/2+dy)
     image.paste(logo,(x,y),logo)
     return image
 
@@ -102,14 +113,12 @@ class WorkspaceBackdrop:
     def __init__(self,host):
         self.host=host;self.canvas=host.canvas;self.style=ttk.Style(host)
         self.surfaces={};self.tints={};self.pending=None;self.painting=False;self.image=None;self.size=None
+        self._destroyed=False
         self.emblem=None;self.background_photo=None;self.paint_count=0;self.scroll_position=None;self.background_position=None
         try:
             path=d243_watermark_logo_path()
             if path:
-                with Image.open(path) as source:
-                    self.emblem=source.convert('RGBA')
-                bounds=self.emblem.getchannel('A').getbbox()
-                if bounds:self.emblem=self.emblem.crop(bounds)
+                self.emblem=load_watermark_emblem(path)
         except (OSError,ValueError):pass
         self.item=self.canvas.create_image(0,0,anchor='nw',tags=('workspace_backdrop',))
         self.canvas.tag_lower(self.item,host._window)
@@ -120,8 +129,10 @@ class WorkspaceBackdrop:
         self.request()
 
     def _destroy(self,event):
-        if event.widget is self.host and self.pending is not None:
-            self.host.after_cancel(self.pending);self.pending=None
+        if event.widget is self.host:
+            self._destroyed=True
+            if self.pending is not None:
+                self.host.after_cancel(self.pending);self.pending=None
 
     def _scrolled(self,first,last):
         self.host.scrollbar.set(first,last)
@@ -130,11 +141,15 @@ class WorkspaceBackdrop:
             self.scroll_position=position;self.request()
 
     def request(self,event=None):
-        if self.painting or self.pending is not None:return
+        if self._destroyed or self.painting or self.pending is not None:return
         self.pending=self.host.after(40,self.paint)
 
     def paint(self):
-        self.pending=None
+        # Explicit paints must consume the queued paint too, otherwise its id
+        # is lost and the next request can leave two timers for this viewport.
+        if self.pending is not None:
+            self.host.after_cancel(self.pending);self.pending=None
+        if self._destroyed:return
         if not self.host.winfo_viewable():return
         self.painting=True
         try:
