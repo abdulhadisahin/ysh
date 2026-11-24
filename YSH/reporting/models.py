@@ -81,10 +81,19 @@ class EngineeringReport:
 def source_rows(source: SourceReference, language: str = 'tr') -> tuple[tuple[str, str], ...]:
     """Translate source labels while retaining its established PDF audit detail."""
     tr = Translator(language).translate
-    return tuple((tr('formula2.source.' + f.name),
-                  (str(value.value) + ' · ' + tr('formula2.' + f.name + '.' + value.value))
-                  if f.name in ('source_type', 'verification_status') else str(value))
-                 for f in fields(source) if (value := getattr(source, f.name)) is not None and value != '')
+    from engineering.source_verification import source_label_key
+    rows = []
+    for field in fields(source):
+        value = getattr(source, field.name)
+        if value is None or value == '':
+            continue
+        if field.name == 'source_type':
+            key = source_label_key(source)
+            value = tr(key) if key == 'sourceaudit.dpo' else value.value + ' · ' + tr(key)
+        elif field.name == 'verification_status':
+            value = value.value + ' · ' + tr('formula2.verification_status.' + value.value)
+        rows.append((tr('formula2.source.' + field.name), str(value)))
+    return tuple(rows)
 
 
 def adapt_snapshot(snapshot: CalculationSnapshot, language: str = 'tr') -> EngineeringReport:

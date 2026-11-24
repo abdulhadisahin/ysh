@@ -32,6 +32,8 @@ def localized_library_value(key: str, value: object, translate: Callable[[str], 
         return translate('constant.'+constant_names[value])
     if key == 'source' and value in ('User', 'USER_INPUT'):
         return translate('library2.manual_user')
+    if key == 'audit_scope' and value:
+        return translate('sourceaudit.scope.'+value)
     if key == 'property_name':
         label = translate('engineering.property.'+str(value))
         return value if label == 'engineering.property.'+str(value) else label
@@ -45,7 +47,8 @@ def record_label(record: object, translate: Callable[[str], str] | None = None) 
         return label+' · '+record.context+' · r'+str(record.revision)
     if hasattr(record,'reference'):
         source=record.reference
-        kind=translate(f'formula2.source_type.{source.source_type.value}') if translate else source.source_type.value
+        from engineering.source_verification import source_label_key
+        kind=translate(source_label_key(source)) if translate else source.source_type.value
         return ' · '.join(str(v) for v in (kind,source.source_organization,source.document,source.revision) if v)
     if hasattr(record,'outside_diameter_mm'):
         return f'{record.standard} · {record.nominal_diameter} · OD {record.outside_diameter_mm} / s {record.wall_thickness_mm} / ID {record.inside_diameter_mm} mm'

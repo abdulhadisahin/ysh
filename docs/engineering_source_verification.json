@@ -1,0 +1,4203 @@
+{
+  "verification_date": "2026-11-24",
+  "database": {
+    "database_sha256": "2ceaa57f504ed6ab7200699aac505c91f51084c571f24b86e02e2cbdf89818c8",
+    "table_counts": {
+      "sources": 0,
+      "rule_sets": 6,
+      "fluid_specifications": 28,
+      "material_surfaces": 10,
+      "engineering_rules": 23,
+      "materials": 4,
+      "engineering_constants": 5,
+      "pump_references": 5,
+      "fluid_properties": 1,
+      "material_properties": 0,
+      "pipe_standards": 1,
+      "pipe_sizes": 148,
+      "pipe_standard_metadata": 0,
+      "pipe_size_metadata": 0,
+      "engineering_constant_metadata": 0,
+      "corrosion_allowance_sources": 0,
+      "corrosion_allowance_circuits": 3
+    },
+    "records": [
+      {
+        "table": "rule_sets",
+        "record": "ENG_D243",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "PROFILE_IDENTITY_NOT_A_VERIFIED_RULE"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "rule_sets",
+        "record": "ENG_EVERLLENCE",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "PROFILE_IDENTITY_NOT_A_VERIFIED_RULE"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "rule_sets",
+        "record": "ENG_TL_FFS",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "PROFILE_IDENTITY_NOT_A_VERIFIED_RULE"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "rule_sets",
+        "record": "ENG_TL_LT500",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "PROFILE_IDENTITY_NOT_A_VERIFIED_RULE"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "rule_sets",
+        "record": "ENG_CUNI_REFERENCE",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "PROFILE_IDENTITY_NOT_A_VERIFIED_RULE"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "rule_sets",
+        "record": "ENG_WARTSILA",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "PROFILE_IDENTITY_NOT_A_VERIFIED_RULE"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "F76_DENSITY",
+        "stored_verification": "VERIFIED",
+        "source_link_present": false,
+        "document": "MIL-DTL-16884R",
+        "edition": "R",
+        "verified_evidence": "F76_R",
+        "issues": [],
+        "reviewed_values": {
+          "property_name": "density",
+          "unit": "kg/m³",
+          "source_min": 800.0,
+          "source_max": 876.0,
+          "source_nominal": null,
+          "default_value": 838.0,
+          "default_method": "DERIVED_MIDPOINT",
+          "reference_temperature_c": 15.0
+        }
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "F76_KINEMATIC_VISCOSITY",
+        "stored_verification": "VERIFIED",
+        "source_link_present": false,
+        "document": "MIL-DTL-16884R",
+        "edition": "R",
+        "verified_evidence": "F76_R",
+        "issues": [],
+        "reviewed_values": {
+          "property_name": "kinematic_viscosity",
+          "unit": "cSt",
+          "source_min": 1.7,
+          "source_max": 4.3,
+          "source_nominal": null,
+          "default_value": 3.0,
+          "default_method": "DERIVED_MIDPOINT",
+          "reference_temperature_c": 40.0
+        }
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "F44_DENSITY",
+        "stored_verification": "VERIFIED",
+        "source_link_present": false,
+        "document": "MIL-DTL-5624X",
+        "edition": "X",
+        "verified_evidence": "F44_X",
+        "issues": [],
+        "reviewed_values": {
+          "property_name": "density",
+          "unit": "kg/m³",
+          "source_min": 788.0,
+          "source_max": 845.0,
+          "source_nominal": null,
+          "default_value": 816.5,
+          "default_method": "DERIVED_MIDPOINT",
+          "reference_temperature_c": 15.0
+        }
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "F44_KINEMATIC_VISCOSITY",
+        "stored_verification": "VERIFIED",
+        "source_link_present": false,
+        "document": "MIL-DTL-5624X",
+        "edition": "X",
+        "verified_evidence": "F44_X",
+        "issues": [],
+        "reviewed_values": {
+          "property_name": "kinematic_viscosity",
+          "unit": "cSt",
+          "source_min": null,
+          "source_max": 7.0,
+          "source_nominal": null,
+          "default_value": null,
+          "default_method": "SOURCE_REQUIRED",
+          "reference_temperature_c": -20.0
+        }
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "DMA_DENSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": "ISO 8217:2024",
+        "edition": null,
+        "verified_evidence": "ISO8217_2024",
+        "issues": [
+          "SOURCE_REQUIRED",
+          "NUMERIC_VALUES_NOT_VERIFIED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "DMA_KINEMATIC_VISCOSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": "ISO 8217:2024",
+        "edition": null,
+        "verified_evidence": "ISO8217_2024",
+        "issues": [
+          "SOURCE_REQUIRED",
+          "NUMERIC_VALUES_NOT_VERIFIED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "DMZ_DENSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": "ISO 8217:2024",
+        "edition": null,
+        "verified_evidence": "ISO8217_2024",
+        "issues": [
+          "SOURCE_REQUIRED",
+          "NUMERIC_VALUES_NOT_VERIFIED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "DMZ_KINEMATIC_VISCOSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": "ISO 8217:2024",
+        "edition": null,
+        "verified_evidence": "ISO8217_2024",
+        "issues": [
+          "SOURCE_REQUIRED",
+          "NUMERIC_VALUES_NOT_VERIFIED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "DMB_DENSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": "ISO 8217:2024",
+        "edition": null,
+        "verified_evidence": "ISO8217_2024",
+        "issues": [
+          "SOURCE_REQUIRED",
+          "NUMERIC_VALUES_NOT_VERIFIED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "DMB_KINEMATIC_VISCOSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": "ISO 8217:2024",
+        "edition": null,
+        "verified_evidence": "ISO8217_2024",
+        "issues": [
+          "SOURCE_REQUIRED",
+          "NUMERIC_VALUES_NOT_VERIFIED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "RMA_20_DENSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": "ISO 8217:2024",
+        "edition": null,
+        "verified_evidence": "ISO8217_2024",
+        "issues": [
+          "SOURCE_REQUIRED",
+          "NUMERIC_VALUES_NOT_VERIFIED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "RMA_20_KINEMATIC_VISCOSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": "ISO 8217:2024",
+        "edition": null,
+        "verified_evidence": "ISO8217_2024",
+        "issues": [
+          "SOURCE_REQUIRED",
+          "NUMERIC_VALUES_NOT_VERIFIED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "RME_180_DENSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": "ISO 8217:2024",
+        "edition": null,
+        "verified_evidence": "ISO8217_2024",
+        "issues": [
+          "SOURCE_REQUIRED",
+          "NUMERIC_VALUES_NOT_VERIFIED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "RME_180_KINEMATIC_VISCOSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": "ISO 8217:2024",
+        "edition": null,
+        "verified_evidence": "ISO8217_2024",
+        "issues": [
+          "SOURCE_REQUIRED",
+          "NUMERIC_VALUES_NOT_VERIFIED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "RMG_380_DENSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": "ISO 8217:2024",
+        "edition": null,
+        "verified_evidence": "ISO8217_2024",
+        "issues": [
+          "SOURCE_REQUIRED",
+          "NUMERIC_VALUES_NOT_VERIFIED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "RMG_380_KINEMATIC_VISCOSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": "ISO 8217:2024",
+        "edition": null,
+        "verified_evidence": "ISO8217_2024",
+        "issues": [
+          "SOURCE_REQUIRED",
+          "NUMERIC_VALUES_NOT_VERIFIED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "RMK_500_DENSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": "ISO 8217:2024",
+        "edition": null,
+        "verified_evidence": "ISO8217_2024",
+        "issues": [
+          "SOURCE_REQUIRED",
+          "NUMERIC_VALUES_NOT_VERIFIED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "RMK_500_KINEMATIC_VISCOSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": "ISO 8217:2024",
+        "edition": null,
+        "verified_evidence": "ISO8217_2024",
+        "issues": [
+          "SOURCE_REQUIRED",
+          "NUMERIC_VALUES_NOT_VERIFIED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "WATER_DENSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "WATER_KINEMATIC_VISCOSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "SEAWATER_DENSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "SEAWATER_KINEMATIC_VISCOSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "LUBE_OIL_DENSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "LUBE_OIL_KINEMATIC_VISCOSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "CONTROL_AIR_DENSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "CONTROL_AIR_KINEMATIC_VISCOSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "STARTING_AIR_DENSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_specifications",
+        "record": "STARTING_AIR_KINEMATIC_VISCOSITY",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "material_surfaces",
+        "record": "CARBON_NEW",
+        "stored_verification": "RECOMMENDATION",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "material_surfaces",
+        "record": "STAINLESS_NEW",
+        "stored_verification": "RECOMMENDATION",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "material_surfaces",
+        "record": "GALVANIZED_NEW",
+        "stored_verification": "RECOMMENDATION",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "material_surfaces",
+        "record": "CUNI_9010_NEW",
+        "stored_verification": "RECOMMENDATION",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "material_surfaces",
+        "record": "COPPER_DRAWN",
+        "stored_verification": "RECOMMENDATION",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "material_surfaces",
+        "record": "HDPE_NEW",
+        "stored_verification": "RECOMMENDATION",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "material_surfaces",
+        "record": "PVC_NEW",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "material_surfaces",
+        "record": "GRE_NEW",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "material_surfaces",
+        "record": "CAST_IRON_NEW",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "material_surfaces",
+        "record": "CARBON_CORRODED",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "D243_FUEL_MAX",
+        "stored_verification": "VERIFIED",
+        "source_link_present": false,
+        "document": "D243",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "EVERLLENCE_DIESEL_FUEL_SUCTION",
+        "stored_verification": "RECOMMENDATION",
+        "source_link_present": false,
+        "document": "Project Guide reference profile",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "EVERLLENCE_DIESEL_FUEL_DELIVERY",
+        "stored_verification": "RECOMMENDATION",
+        "source_link_present": false,
+        "document": "Project Guide reference profile",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "EVERLLENCE_HEAVY_FUEL_SUCTION",
+        "stored_verification": "RECOMMENDATION",
+        "source_link_present": false,
+        "document": "Project Guide reference profile",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "EVERLLENCE_HEAVY_FUEL_DELIVERY",
+        "stored_verification": "RECOMMENDATION",
+        "source_link_present": false,
+        "document": "Project Guide reference profile",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "EVERLLENCE_LUBE_OIL_SUCTION",
+        "stored_verification": "RECOMMENDATION",
+        "source_link_present": false,
+        "document": "Project Guide reference profile",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "EVERLLENCE_LUBE_OIL_DELIVERY",
+        "stored_verification": "RECOMMENDATION",
+        "source_link_present": false,
+        "document": "Project Guide reference profile",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "EVERLLENCE_FRESH_WATER_SUCTION",
+        "stored_verification": "RECOMMENDATION",
+        "source_link_present": false,
+        "document": "Project Guide reference profile",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "EVERLLENCE_FRESH_WATER_DELIVERY",
+        "stored_verification": "RECOMMENDATION",
+        "source_link_present": false,
+        "document": "Project Guide reference profile",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "EVERLLENCE_SEA_WATER_SUCTION",
+        "stored_verification": "RECOMMENDATION",
+        "source_link_present": false,
+        "document": "Project Guide reference profile",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "EVERLLENCE_SEA_WATER_DELIVERY",
+        "stored_verification": "RECOMMENDATION",
+        "source_link_present": false,
+        "document": "Project Guide reference profile",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "EVERLLENCE_CONTROL_AIR",
+        "stored_verification": "RECOMMENDATION",
+        "source_link_present": false,
+        "document": "Project Guide reference profile",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "EVERLLENCE_STARTING_AIR",
+        "stored_verification": "RECOMMENDATION",
+        "source_link_present": false,
+        "document": "Project Guide reference profile",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "TL_FFS_SUCTION",
+        "stored_verification": "LIMITED_APPLICABILITY",
+        "source_link_present": false,
+        "document": "Chapter 11 - Fire Fighting Ships",
+        "edition": "July 2019",
+        "verified_evidence": "TL_FFS_2019",
+        "issues": [],
+        "reviewed_values": {
+          "unit": "m/s",
+          "parameter": "flow_velocity",
+          "hard_min": null,
+          "hard_max": 2.0,
+          "applicability": "TL_FFS"
+        }
+      },
+      {
+        "table": "engineering_rules",
+        "record": "TL_FFS_DELIVERY",
+        "stored_verification": "LIMITED_APPLICABILITY",
+        "source_link_present": false,
+        "document": "Chapter 11 - Fire Fighting Ships",
+        "edition": "July 2019",
+        "verified_evidence": "TL_FFS_2019",
+        "issues": [],
+        "reviewed_values": {
+          "unit": "m/s",
+          "parameter": "flow_velocity",
+          "hard_min": null,
+          "hard_max": 4.0,
+          "applicability": "TL_FFS"
+        }
+      },
+      {
+        "table": "engineering_rules",
+        "record": "TL_FFS_NPSH",
+        "stored_verification": "LIMITED_APPLICABILITY",
+        "source_link_present": false,
+        "document": "Chapter 11 - Fire Fighting Ships",
+        "edition": "July 2019",
+        "verified_evidence": "TL_FFS_2019",
+        "issues": [],
+        "reviewed_values": {
+          "unit": "m",
+          "parameter": "npsh_margin",
+          "hard_min": 1.0,
+          "hard_max": null,
+          "applicability": "TL_FFS"
+        }
+      },
+      {
+        "table": "engineering_rules",
+        "record": "TL_LT500_GALVANIZED_STEEL",
+        "stored_verification": "LIMITED_APPLICABILITY",
+        "source_link_present": false,
+        "document": "User-approved ships less than 500 GT profile",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "TL_LT500_COPPER",
+        "stored_verification": "LIMITED_APPLICABILITY",
+        "source_link_present": false,
+        "document": "User-approved ships less than 500 GT profile",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "BALLAST",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "BILGE",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "CUNI_9010",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "CUNI_7030",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_rules",
+        "record": "WARTSILA",
+        "stored_verification": "SOURCE_REQUIRED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "materials",
+        "record": "ff4b55ed-87c4-41b0-8a43-f50c64cb1a53",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": "",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "materials",
+        "record": "2be775e2-6c9a-454a-b9f9-a7221033de15",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": "",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "materials",
+        "record": "e96b853a-e6cf-45a7-8d50-62c731dfdc93",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": "",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "materials",
+        "record": "91eb47bb-91c7-45f0-870a-1a6ab5f89794",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": "",
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_constants",
+        "record": "safety_factor",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_constants",
+        "record": "design_pressure_bar",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_constants",
+        "record": "weld_factor",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_constants",
+        "record": "corrosion_allowance_mm",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "engineering_constants",
+        "record": "display_decimal_places",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "PRESENTATION_SETTING_NOT_ENGINEERING_CONSTANT"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pump_references",
+        "record": "02df2a07-7d25-446f-9da8-3ede11d2787d",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "REFERENCE_VESSEL_EVIDENCE_REQUIRED_NOT_A_STANDARD_DEFAULT"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pump_references",
+        "record": "6eab2418-316e-4736-af1f-0504217dd510",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "REFERENCE_VESSEL_EVIDENCE_REQUIRED_NOT_A_STANDARD_DEFAULT"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pump_references",
+        "record": "7266d686-5def-4d6b-af41-71df80209bdd",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "REFERENCE_VESSEL_EVIDENCE_REQUIRED_NOT_A_STANDARD_DEFAULT"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pump_references",
+        "record": "43612480-94de-4c30-a6ba-7a432f5c12eb",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "REFERENCE_VESSEL_EVIDENCE_REQUIRED_NOT_A_STANDARD_DEFAULT"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pump_references",
+        "record": "d96b5968-acf6-4ef1-afef-dd33305acafa",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "REFERENCE_VESSEL_EVIDENCE_REQUIRED_NOT_A_STANDARD_DEFAULT"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "fluid_properties",
+        "record": "798d8f53-8988-44ef-80af-4358148371d5",
+        "stored_verification": "VERIFIED",
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "VERIFIED_WITHOUT_TRACEABLE_SOURCE",
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_standards",
+        "record": "EN_10220",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "c2dde2a2-03fb-4e35-916f-3c0fca071c90",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "f79064d9-4ace-458b-b806-ad2fb640888d",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "d84c65cd-920a-49e5-9e09-532c343183ef",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "338388eb-0629-48bf-855a-788ce1063f52",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "00951514-55a4-462d-a9a2-42ff61078c7b",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "b058c106-e1c7-4a28-a6cf-5e26866c7190",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "d8dc3682-c4e5-471a-81b4-f346165ada7f",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "2a8e2e87-0a5e-4246-8b07-ff927fd105fd",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "c6cee6c2-8caf-4236-9cef-9c6466f7f176",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "5303366e-d07b-4570-abd3-edda0aa1e679",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "00e55e6e-ec39-4266-b2d6-77223d0cd70d",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "2b0a1cda-9842-455d-8025-c9c11d77011d",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "7365ef80-d2e1-4d81-843a-ab41f0577dee",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "d3b2c332-0e76-45d5-885b-1ff8f4d880be",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "fa622c7d-5f94-4209-ac4f-10d780f63469",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "933a9b38-20d2-44d5-aed7-a03410582566",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "d989cb05-8722-424c-8653-5f47de2ee23c",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "2622d7ab-57da-48b5-936e-6e14b60583f6",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "8349800d-7aa4-46e5-9dc3-5bd86b9e412e",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "8cd1d781-df9f-4a75-8b77-9f53d56b34fc",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "a9503ddb-6eb8-4454-8f5f-9f8402aab621",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "2dc38c57-eeac-4b2f-845b-390d4e1ceba2",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "da88615c-4d44-4e76-94c5-8c2bb08b24ca",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "c3d343e1-d787-436e-ba94-deb89dee8539",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "cdd53931-77ce-4b74-975e-f6d60184833f",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "14907d01-b741-4fee-8d11-e3f7009440f1",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "b73b58e7-6469-4ed0-a39a-d4e49ef7f5ce",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "bfbaacf1-5544-4a3e-bd70-b76f8ac54415",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "5ce6e488-1b5d-40ef-9c2a-8626d819815c",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "add9c809-aef1-4a79-b0b3-059b3c3e00c9",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "30953b9e-7333-40c0-8bf4-b90611e37ea7",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "c3660782-54e0-47dc-a54a-b00248523d03",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "3dd23957-4a55-426e-a79f-6f7e0ac47471",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "c5509070-6afb-4683-807e-988cca7927ac",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "7315bfb1-5124-454d-b0fd-2f8440fcfabc",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "8fd5b740-355b-411a-a637-60300583fed2",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "048ebbce-3138-476c-be3e-ed1b229d35d8",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "e0ca7962-2a81-4728-9bba-13efe48b2d2d",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "f6f663e6-b7e1-4061-8fb2-de646543d598",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "90a11b07-0301-4378-9b2c-333a4b4000f9",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "85145977-5efb-4701-aac0-e80f39af5346",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "9f44fdc2-686d-4da2-9002-a0d39bcbeaa0",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "a41daf07-193a-4a46-b690-50ec6d0f2869",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "b992d2f9-06c0-44f1-b71a-3ddc21d82c35",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "6528bef4-a560-4736-8eba-562254f3fc28",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "4e10f022-1f84-4d74-949a-aeadcbb81cda",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "f3d3a479-5e97-41cc-8b7f-d936cea880a8",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "f3bbeefd-84e7-4a3f-9590-3a2ce12fde29",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "d3e9c422-9b72-40a4-951c-660a03db57b7",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "d0124b9f-884a-40cd-b139-70dcb1cb612c",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "c9a7f708-0c52-4c0f-8b2a-0cef3c8e04de",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "cfa302e6-bce1-423d-9d21-7a0127536ca4",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "0e86aa06-67cc-4dbb-bc93-dd43c088b4b9",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "ad341d8f-f387-4cbd-9804-015082aadd26",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "a4381ec7-a071-4251-a6af-bce451d4ce2b",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "0abb0af0-4fd9-4c22-9ad2-2b949c843a81",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "a341585e-adb7-4e93-a198-92303639735d",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "6bf0d615-7ae4-48ec-80b5-1c4881162549",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "a0403f75-e29c-472a-b0b0-c56f515e525f",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "1bd7a254-7453-49c2-bfb2-3331eeca5e51",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "b7bf62f6-a4be-4ef1-85cc-2563c491c28a",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "0fb202de-2cb5-4b75-acc0-e35af6a9fd46",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "044d9af5-196e-4cef-9882-4c0a49485e52",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "c1f8bba7-96c1-4020-85ee-e3013975d827",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "a33150a4-7f98-451b-9265-7d3a0a49bed9",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "698770eb-aca3-4b92-baee-33ab0f43e2c5",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "11ad9aea-2685-43d8-b723-d3b06d85d8c3",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "bc0bbbbd-f1b4-417f-8860-a8c32b3c3cdf",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "a7f9f21e-bbe8-4ede-a946-e220cf0b0a27",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "a3069394-ead4-47a2-b8a0-a0a2b4417fb3",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "7a71f1b4-e3be-4ebe-b194-4e25b5782829",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "474c9076-4284-4deb-8d9e-1c55d2566449",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "b02eb5d7-ffc6-4f28-9078-4d65f37183bf",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "5014c242-aa9f-4062-9371-f2e208449ac1",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "4a9de7b8-6ce1-41e9-b410-5532cdc3972c",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "3046fd3b-02d2-4eff-850a-c332e620fc3f",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "122d83f5-29b3-4b1e-96ef-26136879fa34",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "40199c0f-7178-431b-aae3-40698e3baa28",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "6068091e-0752-4879-ae63-d634c2ae952e",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "8f208e02-a781-4d9e-979d-13d70961a081",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "3be78faa-40eb-4c8d-ab81-e4eeb8e498cf",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "e876a07d-ba67-48ff-bdfa-046846f5876e",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "7660fc07-b146-47d9-a1fb-83f9b8c84023",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "df197ed1-69ef-4307-a7e0-1e3c98dd7126",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "132580f2-3158-4085-8a7c-306839d14f3e",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "1dfaddc5-322f-4d34-aa59-e21245076381",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "e40570f9-da4e-4f12-ad76-21b8583e4eec",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "efffc87a-e928-40f3-ba46-df27f82630be",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "94ae59ac-e1d6-41d3-9e9c-e9a658bdca22",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "e81bcf17-51c1-4ddf-be77-cdbf5ad3d479",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "46a0926b-fe40-4807-a8e8-5d85c91f69d8",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "3241d800-6bec-4acf-9312-15a2d0798e3e",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "e75f5213-3f33-4285-9993-ff3b0f40cef7",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "b0c2dd1a-651f-4dc7-b050-0f347bb0e8f7",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "5a582f9f-117e-433b-970d-9ee99c68d70b",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "120afb14-c96b-4f02-9f50-1855ab49517e",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "cbc9709a-3a9c-41b8-9265-919c31c068b7",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "1e513928-3484-4fe8-b188-6a444a493f40",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "94112dc0-ff48-48a8-86a7-bcbdfd2929cf",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "e041af16-3cc5-4f22-8894-eaf41a46fe16",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "99939d1c-c193-41d0-9a70-1a69baf3f22d",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "87e34e0d-c95b-4c10-9d48-061cc4d16d53",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "812f7551-06bb-4346-964b-995a909efad4",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "3ddc3cd9-1b6f-48c6-b000-0d1a2e0cb056",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "d91272eb-399d-48d2-9727-d3d562e184b2",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "f3fa1b20-7974-4815-9da8-786bab2720e0",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "421963a8-198e-4b0a-9ead-9202029e3510",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "74e066cf-09f6-4aff-80fc-341ceeef7fda",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "7b882d7d-7e0b-467f-8ddb-b6dd814e94d8",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "76ddf2c6-e559-4bd1-ad71-2a7b9ed09046",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "19779a26-b497-46bf-bbd9-d98929b7836e",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "63fa8d6f-d7a0-4182-8623-d0383dcd517b",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "bed9f4a6-c183-4fa4-90a1-f3ef36348028",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "258f2012-9899-44fe-9594-068dedd23b00",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "a1a7fea4-9973-4e1d-9c8d-cee3ae19b126",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "9c296b26-0a95-4026-826c-2af65627a87d",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "ca41f35f-1faa-4294-81a7-f28d7b3c18c9",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "ff29fa8d-3eac-4761-9df8-ace2d30da9e6",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "bc9733c1-6739-45c7-9f9f-f754c5feda80",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "43f8b461-d8c4-4566-9858-1595f80fcfb4",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "22b79956-ed99-4d5a-9ba3-8fb8426da75d",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "d017ba12-9773-4ae5-a699-a9ce96ddeff4",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "fe82c590-475f-428e-8f3b-84f21e81a844",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "2f8835e5-2da4-4437-80a6-6c2f230dfc94",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "9e00563d-f964-460d-81ed-eadd2ba3b199",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "469a7a3a-90b5-40fd-b50b-1e8754865f0d",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "9d53a41c-86e2-471f-9226-32c0c13d9d5d",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "02f2dc9d-b82b-4fe3-b702-e5b28627856a",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "4033dded-246b-4fda-846f-bcc9d7cb4453",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "239368ea-f2f4-4d6b-b9c9-9e162379db40",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "6b477792-a5b9-4c48-baf2-175bd983e838",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "eef79427-cc67-4568-82e7-6d325682f31a",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "5b13fba7-934e-4c82-893d-5b158f6897f4",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "3ded9027-4f05-4886-b7d0-7109ac9b4cf2",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "f53cec98-6f80-428e-b868-1cf80ff1f607",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "b0397cbe-9aee-454c-870a-a5a5c4bf36eb",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "f0046268-e5ce-4370-bb7e-5d205c12b0fb",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "02d1f369-2eb6-45e0-9d1c-d325901341ab",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "eb520cfc-dcc4-479a-8b4f-a246e0bbe253",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "b0dc1927-6256-4253-ae38-255ad7b979a3",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "cde8adc3-b81b-4684-bfa2-b487e35a648c",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "6734278d-eb64-42ca-84d2-330efdad9bc8",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "b0119b86-c049-4f4b-9e26-8369ca24339e",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "d836213a-a67f-4512-88cd-6047e7d695ca",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "75f309b2-1b04-4b9f-965f-1c00c3d88226",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "133d6813-9624-4969-b3d7-7e67954c9202",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "2f202693-34bc-4030-a672-c3b56d92f9d5",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "pipe_sizes",
+        "record": "96655a40-4e58-4e9c-aad0-54c8ae34a79d",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "corrosion_allowance_circuits",
+        "record": "FUEL",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "corrosion_allowance_circuits",
+        "record": "SEA_WATER",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      },
+      {
+        "table": "corrosion_allowance_circuits",
+        "record": "BOILER_BLOWDOWN",
+        "stored_verification": null,
+        "source_link_present": false,
+        "document": null,
+        "edition": null,
+        "verified_evidence": null,
+        "issues": [
+          "SOURCE_REQUIRED_OR_APPLICABILITY_UNRESOLVED",
+          "PUBLICATION_DATE_UNRESOLVED"
+        ],
+        "reviewed_values": null
+      }
+    ]
+  },
+  "embedded_sources": [
+    {
+      "file": "engineering/fire/library.py",
+      "line": 105,
+      "constructor": "SourceReference",
+      "source_type_expression": "DYNAMIC",
+      "document_expression": null,
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "engineering/formula/common.py",
+      "line": 26,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.USER_INPUT",
+      "document_expression": null,
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "MANUAL_INPUT_NO_EXTERNAL_STANDARD_INFERRED"
+      ]
+    },
+    {
+      "file": "engineering/formula/discharge.py",
+      "line": 17,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.CALCULATED if linked else SourceType.USER_INPUT",
+      "document_expression": null,
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "MANUAL_INPUT_NO_EXTERNAL_STANDARD_INFERRED"
+      ]
+    },
+    {
+      "file": "engineering/formula/discharge.py",
+      "line": 29,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.USER_INPUT",
+      "document_expression": null,
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "MANUAL_INPUT_NO_EXTERNAL_STANDARD_INFERRED"
+      ]
+    },
+    {
+      "file": "engineering/formula/discharge.py",
+      "line": 33,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.MATERIAL_STANDARD if inp.material_id else SourceType.USER_INPUT",
+      "document_expression": null,
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "MANUAL_INPUT_NO_EXTERNAL_STANDARD_INFERRED"
+      ]
+    },
+    {
+      "file": "engineering/formula/discharge.py",
+      "line": 55,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.CALCULATED",
+      "document_expression": null,
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "D243_CALCULATION_NO_EXTERNAL_STANDARD_INFERRED"
+      ]
+    },
+    {
+      "file": "engineering/formula/fire_foam.py",
+      "line": 48,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.CALCULATED",
+      "document_expression": "\"D243 Fire Phase 0 — Source Decisions\"",
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {
+        "revision": "\"2026-10-21\"",
+        "section": "\"4 — Nominal volumetric mixing contract\"",
+        "notes": "\"Derived relation under explicit mixture basis; not a source for input defaults or compliance.\""
+      },
+      "issues": [
+        "D243_CALCULATION_NO_EXTERNAL_STANDARD_INFERRED"
+      ]
+    },
+    {
+      "file": "engineering/formula/fire_hazen_williams.py",
+      "line": 33,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.MANUFACTURER_DATA",
+      "document_expression": "\"ZF Inductor\"",
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {
+        "source_organization": "\"Johnson Controls / SKUM\"",
+        "revision": "\"FDS-2017084-04 ©2024\"",
+        "section": "\"p.2 Calculations\"",
+        "notes": "\"Phase 0 S03 practical units; limited water straight-pipe scope; not a C-value source or compliance approval.\""
+      },
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "engineering/formula/pipe.py",
+      "line": 23,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.PIPE_STANDARD",
+      "document_expression": "result.trace.get(\"pipe_standard_code\")",
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "engineering/formula/suction.py",
+      "line": 20,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.USER_INPUT",
+      "document_expression": null,
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "MANUAL_INPUT_NO_EXTERNAL_STANDARD_INFERRED"
+      ]
+    },
+    {
+      "file": "engineering/pipe_design/rules.py",
+      "line": 102,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.ENGINEERING_REFERENCE",
+      "document_expression": null,
+      "verification_status_expression": "VerificationStatus.UNVERIFIED",
+      "recorded_metadata_expressions": {
+        "notes": "\"Existing Rp0.2 / B compatibility calculation; not a verified current TL rule.\""
+      },
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "engineering/pipe_design/rules.py",
+      "line": 180,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.D243_CRITERION",
+      "document_expression": null,
+      "verification_status_expression": "VerificationStatus.USER_SUPPLIED",
+      "recorded_metadata_expressions": {
+        "notes": "\"D243 V2 project fuel design maximum; not a TL rule.\""
+      },
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "engineering/pipe_design/rules.py",
+      "line": 112,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.USER_INPUT",
+      "document_expression": null,
+      "verification_status_expression": "VerificationStatus.USER_SUPPLIED",
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "MANUAL_INPUT_NO_EXTERNAL_STANDARD_INFERRED"
+      ]
+    },
+    {
+      "file": "engineering/pipe_design/v2_calculator.py",
+      "line": 30,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.USER_INPUT",
+      "document_expression": null,
+      "verification_status_expression": "VerificationStatus.USER_SUPPLIED",
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "MANUAL_INPUT_NO_EXTERNAL_STANDARD_INFERRED"
+      ]
+    },
+    {
+      "file": "engineering/snapshots/builders.py",
+      "line": 35,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.MATERIAL_STANDARD",
+      "document_expression": "material.get('standard') or None",
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {
+        "notes": "material.get('source') or None"
+      },
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "engineering/snapshots/builders.py",
+      "line": 53,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.MATERIAL_STANDARD",
+      "document_expression": "material.get('standard') or None",
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {
+        "notes": "material.get('source') or None"
+      },
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "engineering/transfer_pump/v2_calculator.py",
+      "line": 22,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.CALCULATED",
+      "document_expression": null,
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "D243_CALCULATION_NO_EXTERNAL_STANDARD_INFERRED"
+      ]
+    },
+    {
+      "file": "engineering/transfer_pump/v2_models.py",
+      "line": 38,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.USER_INPUT",
+      "document_expression": null,
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "MANUAL_INPUT_NO_EXTERNAL_STANDARD_INFERRED"
+      ]
+    },
+    {
+      "file": "engineering/transfer_pump/v2_state.py",
+      "line": 29,
+      "constructor": "SourceReference",
+      "source_type_expression": "DYNAMIC",
+      "document_expression": null,
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "engineering/warning_rules.py",
+      "line": 80,
+      "constructor": "EngineeringSource",
+      "source_type_expression": "DYNAMIC",
+      "document_expression": null,
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "engineering/warning_rules.py",
+      "line": 85,
+      "constructor": "EngineeringSource",
+      "source_type_expression": "DYNAMIC",
+      "document_expression": null,
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "engineering/warning_rules.py",
+      "line": 90,
+      "constructor": "EngineeringSource",
+      "source_type_expression": "DYNAMIC",
+      "document_expression": null,
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "repositories/source_repository.py",
+      "line": 44,
+      "constructor": "SourceReference",
+      "source_type_expression": "DYNAMIC",
+      "document_expression": null,
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "services/engineering_library_service.py",
+      "line": 219,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.REFERENCE_VESSEL_DATA",
+      "document_expression": null,
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {
+        "notes": "record.source or None"
+      },
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "services/engineering_library_service.py",
+      "line": 284,
+      "constructor": "SourceReference",
+      "source_type_expression": "DYNAMIC",
+      "document_expression": null,
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "services/fire_hazen_williams_service.py",
+      "line": 49,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.PIPE_STANDARD",
+      "document_expression": null,
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {
+        "notes": "\"Applied PipeSelection geometry; source verification not supplied.\""
+      },
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "services/fire_workspace.py",
+      "line": 152,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.PROJECT_CRITERION",
+      "document_expression": "meta['document'] or None",
+      "verification_status_expression": "VerificationStatus.USER_SUPPLIED",
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "services/library_views.py",
+      "line": 62,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.D243_CRITERION if getattr(record, 'rule_nature', '') == 'D243_CRITERION'\n                        else SourceType.ENGINEERING_REFERENCE",
+      "document_expression": "document or None",
+      "verification_status_expression": "status",
+      "recorded_metadata_expressions": {
+        "source_organization": "authority or None",
+        "revision": "getattr(record, 'source_edition', '') or None",
+        "section": "getattr(record, 'source_clause', '') or None",
+        "notes": "notes or None"
+      },
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "services/pipe_design_service.py",
+      "line": 113,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.PIPE_STANDARD",
+      "document_expression": "standard.display_name",
+      "verification_status_expression": "VerificationStatus.UNVERIFIED",
+      "recorded_metadata_expressions": {
+        "notes": "\"Stored library dimensions; verification is not inferred.\""
+      },
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "services/pipe_design_service.py",
+      "line": 131,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.MATERIAL_STANDARD",
+      "document_expression": "material.standard",
+      "verification_status_expression": "VerificationStatus.UNVERIFIED",
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "services/transfer_pump_service.py",
+      "line": 61,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.CALCULATED",
+      "document_expression": null,
+      "verification_status_expression": null,
+      "recorded_metadata_expressions": {},
+      "issues": [
+        "D243_CALCULATION_NO_EXTERNAL_STANDARD_INFERRED"
+      ]
+    },
+    {
+      "file": "services/transfer_pump_service.py",
+      "line": 54,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.REFERENCE_VESSEL_DATA",
+      "document_expression": null,
+      "verification_status_expression": "VerificationStatus.UNVERIFIED",
+      "recorded_metadata_expressions": {
+        "notes": "row.source or None"
+      },
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    },
+    {
+      "file": "ui/engineering_context_controller.py",
+      "line": 343,
+      "constructor": "SourceReference",
+      "source_type_expression": "SourceType.MATERIAL_STANDARD if name=='absolute_roughness' else SourceType.FLUID_LIBRARY",
+      "document_expression": "reference.get('source_document') or None",
+      "verification_status_expression": "VerificationStatus.VERIFIED if reference.get('verification')=='VERIFIED' else VerificationStatus.USER_SUPPLIED if reference.get('verification')=='RECOMMENDATION' else VerificationStatus.UNVERIFIED",
+      "recorded_metadata_expressions": {
+        "source_organization": "reference.get('source_authority') or None",
+        "revision": "reference.get('source_edition') or None",
+        "notes": "reference.get('source_note') or None"
+      },
+      "issues": [
+        "CHECK_RECORD_OR_RUNTIME_SOURCE_METADATA"
+      ]
+    }
+  ],
+  "source_evidence": [
+    {
+      "key": "F76_R",
+      "owner": "US Department of Defense",
+      "document_number": "MIL-DTL-16884R",
+      "edition": "R",
+      "publication_date": "2025-01-03",
+      "publication_precision": "day",
+      "clause": "Table I, p.7",
+      "applicability": "F-76: density at 15°C; viscosity at 40°C. Midpoints are D243-derived, not source nominals.",
+      "scope": "NUMERIC_RANGE",
+      "url": "https://quicksearch.dla.mil/qsDocDetails.aspx?ident_number=12122",
+      "revision_date": null,
+      "effective_date": null,
+      "copyright_year": null,
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "F44_X",
+      "owner": "US Department of Defense",
+      "document_number": "MIL-DTL-5624X",
+      "edition": "X",
+      "publication_date": "2024-02-12",
+      "publication_precision": "day",
+      "clause": "Table I, p.10",
+      "applicability": "JP-5/F-44: density at 15°C; viscosity maximum at -20°C. No viscosity default verified.",
+      "scope": "NUMERIC_RANGE",
+      "url": "https://quicksearch.dla.mil/qsDocDetails.aspx?ident_number=5558",
+      "revision_date": null,
+      "effective_date": null,
+      "copyright_year": null,
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "ISO8217_2024",
+      "owner": "ISO",
+      "document_number": "ISO 8217:2024",
+      "edition": "7",
+      "publication_date": "2024-05-30",
+      "publication_precision": "day",
+      "clause": "Publisher life-cycle stage 60.60",
+      "applicability": "Document identity/date only; normative grade/property tables not obtained.",
+      "scope": "BIBLIOGRAPHY_ONLY",
+      "url": "https://www.iso.org/standard/80579.html",
+      "revision_date": null,
+      "effective_date": null,
+      "copyright_year": null,
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "TL_FFS_2019",
+      "owner": "Türk Loydu",
+      "document_number": "Chapter 11 - Fire Fighting Ships",
+      "edition": "July 2019",
+      "publication_date": "2019-07",
+      "publication_precision": "month",
+      "clause": "Section 1 C.5.1; C.5.3.3, p.1-11",
+      "applicability": "TL_FFS only. Retrieved PDF includes RCS 03/2021 and 02/2022; not a universal vessel rule.",
+      "scope": "LIMITED_VALUE_SCOPE",
+      "url": "https://www.turkloydu.org/pdf-files/turk-loydu-kurallari/cilt-c/chapter-11-fire-fighting-ships-2019-JULY.pdf",
+      "revision_date": null,
+      "effective_date": "2019-07-01",
+      "copyright_year": null,
+      "adoption_date": null,
+      "amendments": "RCS 03/2021; RCS 02/2022 (retrieved consolidated PDF)",
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "TL_LT500_2019",
+      "owner": "Türk Loydu",
+      "document_number": "Chapter 35 - Tentative Rules for Ships less than 500 GT",
+      "edition": "July 2019",
+      "publication_date": "2019-07",
+      "publication_precision": "month",
+      "clause": "Section 4 A.1.2.5, p.4-2",
+      "applicability": "Galvanised steel/copper seawater piping in this explicit scope. Original edition of generic D243 profile is unspecified.",
+      "scope": "CORROBORATION_ONLY",
+      "url": "https://www.turkloydu.org/pdf-files/turk-loydu-kurallari/cilt-c/chapter-35-Tentative-Rules-For-Ships-Less-Than-500-GRT-%28JULY-2019%29.pdf",
+      "revision_date": null,
+      "effective_date": "2019-07-01",
+      "copyright_year": null,
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "EVERLLENCE_L3240CD_NR",
+      "owner": "Everllence",
+      "document_number": "L32/40CD GenSet NR Project Guide - Marine",
+      "edition": "10.2026/4.0",
+      "publication_date": "2026-10",
+      "publication_precision": "month",
+      "clause": "6.2.1, Table 85, pp.163-164/311",
+      "applicability": "Engine-specific non-binding recommendations. Do not assign this variant/edition to generic profiles. Air ranges are delivery-side only.",
+      "scope": "CORROBORATION_ONLY",
+      "url": "https://www.everllence.com/applications/projectguides/4stroke/Genset/PG_G-II_L3240CD%20NR.pdf",
+      "revision_date": "2026-10-13",
+      "effective_date": null,
+      "copyright_year": "2025",
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "EN10220_2002",
+      "owner": "CEN",
+      "document_number": "EN 10220:2002",
+      "edition": "2002",
+      "publication_date": "2002-12",
+      "publication_precision": "month",
+      "clause": "Cover; contents clause 6",
+      "applicability": "Bibliography verified via CEN-member preview; all 148 local dimensions not reverified against licensed tables. Not an allowable-stress standard.",
+      "scope": "BIBLIOGRAPHY_ONLY",
+      "url": "https://csnonlinefirmy.agentura-cas.cz/html_nahledy/42/69049/69049_nahled.htm",
+      "revision_date": null,
+      "effective_date": null,
+      "copyright_year": null,
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "DIN_EN10220_2003",
+      "owner": "DIN",
+      "document_number": "DIN EN 10220:2003-03",
+      "edition": "German adoption",
+      "publication_date": "2003-03",
+      "publication_precision": "month",
+      "clause": "Publisher catalogue",
+      "applicability": "National adoption date; must not replace the EN publication date.",
+      "scope": "BIBLIOGRAPHY_ONLY",
+      "url": "https://www.dinmedia.de/en/standard/din-en-10220/54122066",
+      "revision_date": null,
+      "effective_date": null,
+      "copyright_year": null,
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "HI_NPSH_2024",
+      "owner": "Hydraulic Institute",
+      "document_number": "ANSI/HI 9.6.1-2024",
+      "edition": "2024",
+      "publication_date": null,
+      "publication_precision": null,
+      "clause": "Publisher catalogue",
+      "applicability": "Edition identified; full margin tables/applicability not obtained. ANSI approval 2024-07-29 is not established as publication date.",
+      "scope": "BIBLIOGRAPHY_ONLY",
+      "url": "https://www.pumps.org/what-we-do/standards/page/2/?tab=individual-standards",
+      "revision_date": null,
+      "effective_date": null,
+      "copyright_year": null,
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "SKUM_ZF_04",
+      "owner": "Johnson Controls / SKUM",
+      "document_number": "FDS-2017084-04",
+      "edition": "04",
+      "publication_date": null,
+      "publication_precision": null,
+      "clause": "p.2 Calculations",
+      "applicability": "Hazen-Williams equation/unit package only. Does not authorize seawater applicability or a universal C value.",
+      "scope": "EQUATION_UNITS_ONLY",
+      "url": "https://docs.johnsoncontrols.com/specialhazards/api/khub/documents/dEMK03nJ_8bSJITUY0xc0Q/content",
+      "revision_date": null,
+      "effective_date": null,
+      "copyright_year": "2024",
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "EPA_EPANET22",
+      "owner": "US EPA",
+      "document_number": "EPA/600/R-20/133",
+      "edition": "EPANET 2.2",
+      "publication_date": "2020",
+      "publication_precision": "year",
+      "clause": "3.1; Tables 3.1-3.2",
+      "applicability": "Water-distribution method context; not marine approval or verification of D243 loss coefficients.",
+      "scope": "METHOD_CONTEXT_ONLY",
+      "url": "https://nepis.epa.gov/Exe/ZyPURL.cgi?Dockey=P10113EM.txt",
+      "revision_date": null,
+      "effective_date": null,
+      "copyright_year": null,
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "CGPM_GRAVITY",
+      "owner": "BIPM / CGPM",
+      "document_number": "3rd CGPM Declaration 2",
+      "edition": "1901",
+      "publication_date": "1901",
+      "publication_precision": "year",
+      "clause": "Declaration 2",
+      "applicability": "Conventional standard gravity; not a measured local acceleration.",
+      "scope": "VALUE_ONLY",
+      "url": "https://www.bipm.org/en/committees/cg/cgpm/3-1901/resolution-2",
+      "revision_date": null,
+      "effective_date": null,
+      "copyright_year": null,
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "IMO_MSC98",
+      "owner": "IMO",
+      "document_number": "MSC.98(73)",
+      "edition": "As adopted",
+      "publication_date": null,
+      "publication_precision": null,
+      "clause": "Annex chapters 6, 7, 8, 14",
+      "applicability": "Adopted 2000-12-05; effective 2002-07-01. Historical instrument, not current consolidated compliance.",
+      "scope": "HISTORICAL_INSTRUMENT",
+      "url": "https://wwwcdn.imo.org/localresources/en/KnowledgeCentre/IndexofIMOResolutions/MSCResolutions/MSC.98%2873%29.pdf",
+      "revision_date": null,
+      "effective_date": "2002-07-01",
+      "copyright_year": null,
+      "adoption_date": "2000-12-05",
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "IMO_FSS2026",
+      "owner": "IMO",
+      "document_number": "FSS Code IC155E",
+      "edition": "2026",
+      "publication_date": null,
+      "publication_precision": null,
+      "clause": "Current publications list",
+      "applicability": "Edition listed; full consolidated normative text not reviewed.",
+      "scope": "BIBLIOGRAPHY_ONLY",
+      "url": "https://www.imo.org/en/publications/pages/currentpublications.aspx",
+      "revision_date": null,
+      "effective_date": null,
+      "copyright_year": null,
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "VIKING_XMAX",
+      "owner": "Viking",
+      "document_number": "F_081620 / XMAX",
+      "edition": "Unrecorded",
+      "publication_date": null,
+      "publication_precision": null,
+      "clause": "Product description",
+      "applicability": "Product-specific volumetric concentration example; no D243 default or product recommendation.",
+      "scope": "PRODUCT_ONLY",
+      "url": "https://www.vikinggroupinc.com/products/foam-products/high-ex-fff/xmax",
+      "revision_date": null,
+      "effective_date": null,
+      "copyright_year": null,
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "FOMTEC_XMAX",
+      "owner": "Dafo Fomtec AB",
+      "document_number": "LS xMax",
+      "edition": "Revised 2025-04-22",
+      "publication_date": null,
+      "publication_precision": null,
+      "clause": "pp.1-2",
+      "applicability": "Product-specific application/concentration; revision date is not established as publication date.",
+      "scope": "PRODUCT_ONLY",
+      "url": "https://www.fomtec.com/wp-content/uploads/2022/04/Fomtec%E2%94%AC%C2%AE-LS-xMax.pdf",
+      "revision_date": "2025-04-22",
+      "effective_date": null,
+      "copyright_year": null,
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "NAFFCO_FILMPLUS",
+      "owner": "NAFFCO",
+      "document_number": "FILMPLUS AFFF",
+      "edition": "Unrecorded",
+      "publication_date": null,
+      "publication_precision": null,
+      "clause": "Use Concentration table",
+      "applicability": "Product-specific examples; no dated revision supplied.",
+      "scope": "PRODUCT_ONLY",
+      "url": "https://www.naffco.com/en/aqueous-film-forming-foam-afff",
+      "revision_date": null,
+      "effective_date": null,
+      "copyright_year": null,
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "VIKING_NOZZLE",
+      "owner": "Viking",
+      "document_number": "F_062104",
+      "edition": "20.06.15 Rev.20.1",
+      "publication_date": null,
+      "publication_precision": null,
+      "clause": "Model E VK810-VK817 technical data",
+      "applicability": "Date code retained verbatim; no unsupported date interpretation or Nozzle activation.",
+      "scope": "PRODUCT_ONLY",
+      "url": "https://www.vikinggroupinc.com/sites/default/files/migrated/062104.pdf",
+      "revision_date": null,
+      "effective_date": null,
+      "copyright_year": null,
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "NFPA13_2025",
+      "owner": "NFPA",
+      "document_number": "NFPA 13",
+      "edition": "2025",
+      "publication_date": null,
+      "publication_precision": null,
+      "clause": "LiNK edition page",
+      "applicability": "Full standard unavailable to this audit; no C-table verification from edition number.",
+      "scope": "NOT_ACCESSIBLE",
+      "url": "https://link.nfpa.org/all-publications/13/2025",
+      "revision_date": null,
+      "effective_date": null,
+      "copyright_year": null,
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "NFPA13_BALLOT",
+      "owner": "NFPA",
+      "document_number": "NFPA13 A2024 second-draft ballot",
+      "edition": "2023-12-06 memorandum",
+      "publication_date": null,
+      "publication_precision": null,
+      "clause": "SR-1169 / SR-1171",
+      "applicability": "Committee draft is not an issued normative standard.",
+      "scope": "DRAFT_ONLY",
+      "url": "https://docinfofiles.nfpa.org/files/AboutTheCodes/13/13_A2024_AUT_SSD_SD__ballot_final.pdf",
+      "revision_date": "2023-12-06",
+      "effective_date": null,
+      "copyright_year": null,
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    },
+    {
+      "key": "TEOS10",
+      "owner": "IOC / SCOR / IAPSO",
+      "document_number": "TEOS-10",
+      "edition": "2010",
+      "publication_date": null,
+      "publication_precision": null,
+      "clause": "Official overview",
+      "applicability": "Thermodynamic framework identified. Does not verify stored seawater values, viscosity defaults or Hazen-Williams applicability.",
+      "scope": "METHOD_CONTEXT_ONLY",
+      "url": "https://www.teos-10.org/",
+      "revision_date": null,
+      "effective_date": null,
+      "copyright_year": null,
+      "adoption_date": null,
+      "amendments": null,
+      "verification_date": "2026-11-24"
+    }
+  ],
+  "unresolved": [
+    {
+      "area": "Edition selection",
+      "issue": "Priority: Türk Loydu, ISO, Everllence/MAN, other authoritative sources; technical applicability takes precedence. No confirmed superseded same-scope active record was identified. TL current portal requires interactive terms; latest applicability remains review-required. Do not archive historical references or substitute a newer unrelated standard."
+    },
+    {
+      "area": "Historical research references",
+      "issue": "TL Chapter 107 (2016), IMO A.1122(30), original Colebrook paper and Wärtsilä profiles remain verification-pending; prior research citations do not establish a current applicable numerical rule."
+    },
+    {
+      "area": "Pipe Design",
+      "issue": "Rp0.2/B legacy stress, safety/weld factors and corrosion defaults lack a verified applicable rule. Never attach TL/ISO by resemblance."
+    },
+    {
+      "area": "Transfer Pump",
+      "issue": "Reference-vessel records require their original dataset. Q=V/t and regression outputs are D243 calculations, not class limits."
+    },
+    {
+      "area": "Discharge / Suction / ENPY",
+      "issue": "Local-loss coefficient tables, empirical unit coefficients and exact NPSH margin edition/application remain unverified. Standard gravity is separately identified."
+    },
+    {
+      "area": "Seawater",
+      "issue": "No verified T/salinity/pressure property record, allowable stress 68 MPa or material/service corrosion source established. HW remains blocked."
+    },
+    {
+      "area": "Fire",
+      "issue": "Nozzle, seawater HW, universal application density/duration/C and current class compliance remain SOURCE_REQUIRED. Product data and committee drafts cannot unlock them."
+    },
+    {
+      "area": "Warning Center / Formula View / Word",
+      "issue": "Display frozen source facts only. No live research lookup may reinterpret historical snapshots."
+    },
+    {
+      "area": "DPO",
+      "issue": "7 m/s is an accepted internal D243 criterion. No signed DPO document/publication date was supplied; do not globally relabel D243 or legacy defaults as DPO Standardı."
+    },
+    {
+      "area": "Manufacturer profiles",
+      "issue": "Liquid ranges corroborated in a specific Everllence guide. Generic profiles lack exact engine/edition binding; air rows are delivery-side only."
+    },
+    {
+      "area": "TL <500 GT",
+      "issue": "2019 clause corroborates the values; generic stored profile does not establish original edition or current project applicability."
+    }
+  ],
+  "policy": "Metadata only; no values, flags, formulas, user databases or historical snapshots changed. No runtime network lookup."
+}

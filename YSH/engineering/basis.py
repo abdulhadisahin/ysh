@@ -29,6 +29,8 @@ def basis_rows(payload,translate):
         rows.append((label+' / '+tr('engineering.source'),source.strip(' ·')))
         rows.append((label+' / '+tr('engineering.verification.label'),tr('engineering.verification.'+reference.get('verification','SOURCE_REQUIRED'))))
         if reference.get('source_note'):rows.append((label+' / '+tr('engineering.note'),reference['source_note']))
+        from engineering.source_verification import evidence_rows
+        rows.extend(evidence_rows(reference.get('source_evidence'),tr))
     for rule in payload.get('rules',()):
         rows.append((rule['name'],tr('engineering.nature.'+rule['rule_nature'])))
         lo,hi=(rule.get('hard_min'),rule.get('hard_max')) if rule['rule_nature']=='HARD_LIMIT' else (rule.get('recommended_min'),rule.get('recommended_max'))
@@ -39,6 +41,8 @@ def basis_rows(payload,translate):
         rows.append((tr('engineering.verification.label'),tr('engineering.verification.'+rule['verification'])))
         if rule.get('applicability'):rows.append((tr('engineering.applicability'),tr('engineering.scope.'+rule['applicability'])))
         if rule.get('notes'):rows.append((tr('engineering.note'),rule['notes']))
+        from engineering.source_verification import evidence_rows
+        rows.extend(evidence_rows(rule.get('source_evidence'),tr))
     return tuple(rows)
 
 def basis_text(payload,translate):return '\n'.join(label+': '+value for label,value in basis_rows(payload,translate))

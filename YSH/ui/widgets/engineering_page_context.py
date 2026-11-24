@@ -8,9 +8,12 @@ def rule_summary(rule,tr):
     source=' · '.join(value for value in (rule.source_authority,rule.source_document,rule.source_edition,rule.source_clause) if value)
     scope=tr('engineering.scope.'+rule.applicability) if rule.applicability else tr('engineering.scope_unrecorded')
     if rule.applicability and scope=='engineering.scope.'+rule.applicability:scope=rule.applicability
+    from engineering.source_verification import record_evidence,evidence_rows
+    proof=record_evidence(rule)
+    metadata='\n'+' · '.join(label+': '+value for label,value in evidence_rows(proof.payload(),tr)) if proof else ''
     return (rule.name+': '+bounds+' '+rule.unit+' · '+tr('engineering.nature.'+rule.rule_nature)+'\n'+
             tr('engineering.source')+': '+(source or tr('engineering.status.SOURCE_REQUIRED'))+' · '+scope+' · '+
-            tr('engineering.verification.'+rule.verification))
+            tr('engineering.verification.'+rule.verification)+metadata)
 
 class EngineeringPageContext(ttk.Frame):
     def __init__(self,parent,controller,module):

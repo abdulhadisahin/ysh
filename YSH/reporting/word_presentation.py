@@ -15,7 +15,7 @@ for prefix in PREFIXES:
         code=key.removeprefix(prefix)
         if key.startswith(prefix) and re.fullmatch(r'[A-Z][A-Z0-9_]*',code):STATUS_KEYS.setdefault(code,key)
 STATUS_KEYS.update({'MANUAL':'source.state.manual','LINKED':'source.state.linked','OVERRIDE':'word.manual_override',
- 'STALE':'source.state.stale','USER_INPUT':'source.state.manual','USER_SUPPLIED':'source.state.manual','DESIGN':'word.transfer.design',
+ 'STALE':'source.state.stale','USER_INPUT':'formula2.source_type.USER_INPUT','USER_SUPPLIED':'source.state.manual','DESIGN':'word.transfer.design',
  'EMPIRICAL':'word.transfer.empirical','VOLUME':'word.volume_mode','MASS':'word.mass_mode',
  'RULE_NOT_CONFIGURED':'formula2.check.NOT_CONFIGURED','BLOCKED_APPLICABILITY':'center.status.BLOCKED',
  'WARNING':'word.status.warning','ERROR':'word.status.error','BLOCKED':'word.status.blocked',
@@ -80,4 +80,9 @@ def basis_explanations(payload,language):
         elif default is not None:paragraphs.append(tr('word.explain.default',default=ui.number(default),unit=unit))
         if used is not None:
             paragraphs.append(tr('word.explain.override' if item.get('status')=='OVERRIDE' else 'word.explain.used',used=ui.number(used),unit=unit))
+        from engineering.source_verification import evidence_rows
+        paragraphs.extend(label+': '+value for label,value in evidence_rows(ref.get('source_evidence'),tr))
+    for rule in payload.get('rules',()):
+        from engineering.source_verification import evidence_rows
+        paragraphs.extend(label+': '+value for label,value in evidence_rows(rule.get('source_evidence'),tr))
     return tuple(paragraphs)

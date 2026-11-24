@@ -14,4 +14,6 @@ def finding_text(finding,translate):
     lines.append(tr('engineering.verification.'+record['verification']))
     if record.get('applicability'):lines.append(tr('engineering.applicability')+': '+tr('engineering.scope.'+record['applicability']))
     if record.get('notes'):lines.append(record['notes'])
+    from engineering.source_verification import evidence_rows
+    lines.extend(label+': '+value for label,value in evidence_rows(record.get('source_evidence'),tr))
     return '\n'.join(lines)

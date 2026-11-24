@@ -4,7 +4,11 @@ import json,math
 
 
 def record_payload(record):
-    return json.loads(json.dumps(asdict(record),default=str,ensure_ascii=False,allow_nan=False))
+    values=json.loads(json.dumps(asdict(record),default=str,ensure_ascii=False,allow_nan=False))
+    from engineering.source_verification import record_evidence
+    proof=record_evidence(record)
+    if proof is not None:values['source_evidence']=proof.payload()
+    return values
 
 def rule_status(rule,value):
     if rule.rule_nature=='SOURCE_REQUIRED' or rule.verification=='SOURCE_REQUIRED':return 'SOURCE_REQUIRED'

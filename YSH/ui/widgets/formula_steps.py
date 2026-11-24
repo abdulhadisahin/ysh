@@ -6,6 +6,7 @@ from tkinter import ttk
 from engineering.formula.common import reason_for
 from engineering.formula.models import FormulaStep
 from engineering.provenance import SourceReference
+from engineering.source_verification import source_label_key
 from ui.formula_asset_policy import step_asset_names, STEP_ASSET_KEYS, QUARANTINED_ASSETS
 from ui.widgets.detail_disclosure import DetailDisclosure
 
@@ -34,7 +35,9 @@ def source_rows(source: SourceReference, translate: Callable[[str], str]) -> tup
         value = getattr(source, field.name)
         if value is None or value == "":
             continue
-        if field.name in ("source_type", "verification_status"):
+        if field.name == 'source_type':
+            value=translate(source_label_key(source))
+        elif field.name == "verification_status":
             value = translate(f"formula2.{field.name}.{value.value}")
         elif hasattr(value, "isoformat"):
             value = value.isoformat()
@@ -61,7 +64,7 @@ def step_sections(step: FormulaStep, translate: Callable[[str], str]) -> tuple[S
     if step.used_values:
         rows = [(tr("formula2.symbol"), tr("formula2.used"), tr("formula2.unit"), tr("formula2.source_type"), tr("formula2.override"))]
         rows.extend((v.symbol or tr(v.terminology_key or "formula2.value"), number(v.used_value), v.unit,
-                     tr(f"formula2.source_type.{v.source.source_type.value}"),
+                     tr(source_label_key(v.source)),
                      tr(f"formula2.override.{v.override_policy.value}") +
                      (f" · {tr('formula2.overridden')}" if v.is_overridden else "")) for v in step.used_values)
         sections.append(StepSection("used_values", rows=tuple(rows)))

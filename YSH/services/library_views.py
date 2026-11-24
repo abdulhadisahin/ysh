@@ -20,6 +20,13 @@ class PropertyView:
 class SourceView:
     id: UUID
     reference: SourceReference
+    publication_date: str | None = None
+    verification_date: str | None = None
+    source_url: str | None = None
+    applicability: str | None = None
+    audit_scope: str | None = None
+    effective_date: str | None = None
+    amendments: str | None = None
 
 
 def material_properties(materials, existing, parent_id):
@@ -61,5 +68,10 @@ def catalog_sources(records, existing):
             verification_status=status, notes=notes or None)
         if reference not in seen:
             seen.add(reference)
-            rows.append(SourceView(uuid5(NAMESPACE_URL, 'd243:library-source-view:'+repr(reference)), reference))
+            from engineering.source_verification import record_evidence
+            proof=record_evidence(record)
+            rows.append(SourceView(uuid5(NAMESPACE_URL, 'd243:library-source-view:'+repr(reference)), reference,
+                proof.publication_date if proof else None, proof.verification_date if proof else None,
+                proof.url if proof else None, proof.applicability if proof else None, proof.scope if proof else None,
+                proof.effective_date if proof else None, proof.amendments if proof else None))
     return tuple(rows)
