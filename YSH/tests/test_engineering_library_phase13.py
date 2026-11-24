@@ -93,7 +93,7 @@ def test_constructor_and_repeated_browsing_never_seed_or_write(library_database,
         before=conn.total_changes
     service=EngineeringLibraryService(library_database)
     expected_fluids=service._repos['fluids'].get_all()
-    assert len(expected_fluids)==14
+    assert len(expected_fluids)==20
     for repo in service._repos.values():
         for name in ('create','update','create_standard'):
             if hasattr(repo,name): monkeypatch.setattr(repo,name,lambda *a,**k:pytest.fail('browse wrote data'))

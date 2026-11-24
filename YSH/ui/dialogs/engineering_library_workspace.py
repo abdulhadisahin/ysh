@@ -21,10 +21,16 @@ from ui.library_presentation import detail_group, ordered_editor_fields
 from ui.theme import colors, typography
 from ui.theme.library_visuals import configure_library_visuals, verification_role, fire_source_role, PANE_WEIGHTS, pane_positions
 from ui.theme.spacing import SM, MD
+from engineering.catalog_completion import OperatingFluidProperty, MechanicalGradeProperty
 
 
 def localized_library_value(key: str, value: object, translate: Callable[[str], str]) -> object:
     """Translate known display terms while leaving stored identifiers and source facts intact."""
+    if isinstance(value,str) and value.startswith('catalog.'):
+        return translate(value)
+    if key == 'classification':return translate('catalog.classification.'+str(value))
+    if key == 'concentration_basis' and value:return translate('catalog.'+str(value))
+    if key == 'national_adoption_status':return translate('engineering.verification.'+str(value))
     constant_names = {'Corrosion Allowance': 'corrosion_allowance', 'Design Pressure': 'design_pressure',
         'Safety Factor': 'safety_factor', 'Weld Factor': 'weld_factor',
         'Display Decimal Places': 'display_decimal_places'}
@@ -41,6 +47,12 @@ def localized_library_value(key: str, value: object, translate: Callable[[str], 
 
 
 def record_label(record: object, translate: Callable[[str], str] | None = None) -> str:
+    if isinstance(record,MechanicalGradeProperty):
+        limit=str(record.minimum_value)+' … '+str(record.maximum_value) if record.maximum_value is not None else '≥ '+str(record.minimum_value)
+        return f'{record.property_name}: {limit} {record.unit} · {record.thickness_above_mm} < t ≤ {record.thickness_up_to_mm} mm'
+    if isinstance(record,OperatingFluidProperty):
+        name=translate('engineering.property.'+record.property_name) if translate else record.property_name
+        return f'{name}: {record.value} {record.unit} · {record.reference_temperature_c} °C · {record.reference_salinity_g_kg} g/kg · {record.reference_pressure_mpa} MPa'
     """Use engineering identities in pickers rather than prominently showing UUIDs."""
     if hasattr(record,'parameter_type'):
         label=translate('library2.category.'+next(k for k,v in FIRE_CATEGORIES.items() if v==record.parameter_type)) if translate else record.parameter_type.value
@@ -221,7 +233,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         self._category_box.configure(values=tuple(self._categories));self._category.set(tr(f'library2.category.{current.code}'))
         (self._parent_label.grid if current.parent else self._parent_label.grid_remove)()
         (self._parent_box.grid if current.parent else self._parent_box.grid_remove)()
-        parents=self._controller.service.list_records(current.parent) if current.parent else ()
+        parents=self._controller.service.list_display_records(current.parent) if current.parent else ()
         self._parents={tr('library2.choose_parent'):None}
         self._parents.update({record_label(r,tr):getattr(r,CATEGORY_BY_CODE[current.parent].key_field) for r in parents})
         self._parent_box.configure(values=tuple(self._parents),state='readonly' if current.parent else 'disabled')

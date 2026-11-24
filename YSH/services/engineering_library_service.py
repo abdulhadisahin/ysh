@@ -37,6 +37,9 @@ from engineering.fire.enums import FireSourceStatus
 from repositories.fire_library_repository import FireLibraryRepository, FIRE_RECORD_PREFIX
 from services.system_context_service import DEFAULT_SYSTEMS
 from services.library_views import PropertyView, SourceView, material_properties, catalog_sources
+from services.catalog_completion_service import CatalogCompletionService
+from engineering.catalog_completion import OperatingFluidProperty, MechanicalGrade, MechanicalGradeProperty
+from engineering.source_verification import BY_KEY
 
 
 class LibraryError(ValueError):
@@ -73,6 +76,7 @@ class EngineeringLibraryService:
 
     def __init__(self, database: LibraryDatabase) -> None:
         """Instantiate adapters without loading any dataset or initializing storage."""
+        self.completion = CatalogCompletionService(database)
         self._repos = {code: cls(database) for code, cls in (
             ("systems",SystemRepository),("circuits",CircuitRepository),("fluids",FluidRepository),
             ("fluid_properties",FluidPropertyRepository),("materials",MaterialRepository),
@@ -146,14 +150,20 @@ class EngineeringLibraryService:
             if category == 'fluid_properties':
                 rows += tuple(r for r in self.list_records('fluid_specifications')
                     if parent_id is None or r.fluid_id == parent_id)
+                rows += tuple(r for r in self.completion.operating.get_all() if parent_id is None or r.fluid_id == parent_id)
             else:
                 rows += material_properties(parents, rows, parent_id)
+                rows += tuple(r for r in self.completion.mechanics.get_all() if parent_id is None or r.grade_id == parent_id)
         else:
             rows = self.list_records(category, parent_id)
+            if category == 'materials':
+                rows += self.completion.grades.get_all()
             if category == 'sources':
                 records = tuple(r for code in ('fluid_specifications', 'material_surfaces', 'engineering_rules')
                                 for r in self.list_records(code))
                 rows += catalog_sources(records, rows)
+                from services.library_views import completion_sources
+                rows += completion_sources((*self.completion.operating.get_all(),*self.completion.grades.get_all()),rows)
             elif category == 'constants':
                 rows = tuple(r for r in rows if r.key != 'display_decimal_places')
         return tuple(sorted(rows, key=self._sort_key))
@@ -172,7 +182,7 @@ class EngineeringLibraryService:
 
     def ownership(self, category: str, record: object) -> str:
         """Ambiguous reference ownership is conservative, not assumed to be user data."""
-        if isinstance(record, (PropertyView, SourceView)):
+        if isinstance(record, (PropertyView, SourceView, OperatingFluidProperty, MechanicalGrade, MechanicalGradeProperty)):
             return 'reference'
         if category in FIRE_CATEGORIES:
             return 'user'
@@ -208,8 +218,23 @@ class EngineeringLibraryService:
     def details(self, category: str, record: object) -> LibraryDetails:
         """Compose raw fields and one cached source lookup per selected linkage."""
         data = tuple((f.name,getattr(record,f.name)) for f in fields(record)
-                     if getattr(record,f.name) is not None and f.name!='reference'
+                     if getattr(record,f.name) is not None and f.name not in ('reference','source_key')
                      and not (category in FIRE_CATEGORIES and f.name in ('source','system_family')))
+        from engineering.catalog import FluidSpecification
+        if isinstance(record,OperatingFluidProperty):data += (('data_role','catalog.kind.operating'),)
+        elif isinstance(record,FluidSpecification):data += (('data_role','catalog.kind.specification'),)
+        elif isinstance(record,MechanicalGradeProperty):data += (('data_role','catalog.kind.mechanical'),)
+        if hasattr(record,'source_key'):
+            proof=BY_KEY[record.source_key]
+            data += tuple((key,value) for key,value in (
+                ('source_authority',proof.owner),('source_document',proof.document_number),('source_edition',proof.edition),
+                ('publication_date',proof.publication_date),('verification_date',proof.verification_date),
+                ('source_clause',proof.clause),('source_url',proof.url),('revision_date',proof.revision_date)) if value)
+        if category=='fluids':
+            profile=self.completion.profiles.get(record.id)
+            if profile:
+                data += tuple((f.name,getattr(profile,f.name)) for f in fields(profile) if f.name!='fluid_id' and getattr(profile,f.name) is not None)
+                data += (('aliases',', '.join(self.completion.aliases(record.id))),)
         sources = []
         if category == "sources":
             sources.append(record.reference)

@@ -17,6 +17,8 @@ class EngineeringCatalogService:
         self.sources=SourceRepository(database)
         self.reload()
     def reload(self):
+        from services.catalog_completion_service import CatalogCompletionService
+        self.completion=CatalogCompletionService(self.fluid_repository._database)
         self.fluid_records=self.fluid_repository.get_all(active_only=True)
         self.property_records=self.properties.get_all(active_only=True)
         self.surface_records=self.surfaces.get_all(active_only=True)
@@ -24,6 +26,8 @@ class EngineeringCatalogService:
         profile_ids={rule.profile_id for rule in self.rule_records}
         self.profile_records=tuple(r for r in self.profile_repository.get_all() if r.is_active and r.id in profile_ids)
         self.material_records=tuple(self.material_repository.get_all())
+        self.mechanical_grade_records=self.completion.grades.get_all()
+        self.operating_property_records=self.completion.operating.get_all()
         self.material_property_records=tuple(r for material in self.material_records
             for r in self.material_properties.get_by_material(material.id))
         self.source_records={row.id:row.reference for row in self.sources.get_all()}

@@ -27,7 +27,7 @@ def test_phase3_schema_seeds_exact_editable_d243_defaults(library_database: Libr
         table = connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='corrosion_allowance_circuits'").fetchone()
     values = {item.code: item.default_corrosion_allowance_mm for item in circuit_service.get_active_circuits()}
 
-    assert version == 6
+    assert version == 8
     assert table is not None
     assert values == {"FUEL": 1.0, "SEA_WATER": 3.0, "BOILER_BLOWDOWN": 1.5}
 
@@ -59,7 +59,8 @@ def test_pipe_page_persists_circuit_default_and_override_state() -> None:
     source = (ROOT / "ui/pages/pipe_design_page.py").read_text(encoding="utf-8")
     assert '"circuit_code": self._selected_circuit_code()' in source
     assert '"corrosion_allowance_manual_override": self._corrosion_allowance_override' in source
-    assert 'text=self._translate("field.circuit")' in source
+    assert 'text=self._translate("pipe.project_context")' in source
+    assert 'textvariable=self._project_circuit_display' in source
     assert "def _on_circuit_selected" in source
     assert "def _update_circuit_summary" in source
     assert "result.default_corrosion_allowance" in source

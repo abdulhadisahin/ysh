@@ -87,7 +87,7 @@ def test_v6_upgrade_is_additive_and_idempotent(library_database):
     library_database.initialize()
     library_database.initialize()
     with library_database.connection() as connection:
-        assert connection.execute('SELECT version FROM schema_version').fetchone()[0]==7
+        assert connection.execute('SELECT version FROM schema_version').fetchone()[0]==8
         for table,rows in before.items():
             actual=tuple(tuple(row) for row in connection.execute('SELECT * FROM '+table))
             if table=='fluid_specifications':

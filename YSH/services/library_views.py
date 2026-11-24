@@ -45,6 +45,26 @@ def material_properties(materials, existing, parent_id):
     return tuple(rows)
 
 
+def completion_sources(records, existing):
+    """Read-only source projections for scoped catalog additions."""
+    from datetime import date
+    from engineering.source_verification import BY_KEY
+    seen={r.reference for r in existing}
+    rows=[]
+    for key in dict.fromkeys(r.source_key for r in records):
+        proof=BY_KEY[key]
+        reference=SourceReference(source_type=SourceType.ENGINEERING_REFERENCE,source_organization=proof.owner,
+            document=proof.document_number,revision=proof.edition,section=proof.clause,
+            verification_date=date.fromisoformat(proof.verification_date),
+            verification_status=VerificationStatus.PARTIALLY_VERIFIED,notes=proof.applicability)
+        if reference not in seen:
+            seen.add(reference)
+            rows.append(SourceView(uuid5(NAMESPACE_URL,'d243:completion-source:'+key),reference,
+                proof.publication_date,proof.verification_date,proof.url,proof.applicability,proof.scope,
+                proof.effective_date,proof.amendments))
+    return tuple(rows)
+
+
 def catalog_sources(records, existing):
     """Preserve recorded facts and uncertainty; never infer dates or new sources."""
     seen = {row.reference for row in existing}

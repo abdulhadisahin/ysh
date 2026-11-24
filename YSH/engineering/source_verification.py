@@ -34,6 +34,14 @@ class SourceEvidence:
 
 
 SOURCES = (
+    SourceEvidence('MIT_WATER_TABLES_2023','MIT / Nayar, Sharqawy, Lienhard','Seawater Thermophysical Properties Library - Tables','Library 3.1.3 (2016-12-21); tables updated 2023-12-09',None,None,
+        'Tables 3 and 21, printed pp.3 and 21 (PDF pp.6 and 24)',
+        'Published correlation tables, not measured batch properties. Stored subset: T=10/20/40°C, S=0 or 30/35/40 g/kg, P=0.101325 MPa. No interpolation. S=0 is pure-water approximation.',
+        'LIMITED_VALUE_SCOPE','https://web.mit.edu/seawater/2017_MIT_Seawater_Property_Tables_r2b_2023c.pdf',revision_date='2023-12-09'),
+    SourceEvidence('EN10216_1_2013','CEN / DIN','EN 10216-1:2013','2013; DIN adoption 2014-03','2013-12','month',
+        '8.3.1 Table 5; 7.2 Table 1; printed p.10 (preview PDF p.69)',
+        'P235TR2 / 1.0255 seamless non-alloy TR2 tubes; room-temperature properties, specified delivery condition. T>60 mm by agreement. Not allowable stress or roughness. TS national adoption/date not verified.',
+        'LIMITED_VALUE_SCOPE','https://api.pageplace.de/preview/DT0400.9783410304173_A41769316/preview-9783410304173_A41769316.pdf'),
     SourceEvidence('F76_R','US Department of Defense','MIL-DTL-16884R','R','2025-01-03','day',
         'Table I, p.7','F-76: density at 15°C; viscosity at 40°C. Midpoints are D243-derived, not source nominals.',
         'NUMERIC_RANGE','https://quicksearch.dla.mil/qsDocDetails.aspx?ident_number=12122'),
