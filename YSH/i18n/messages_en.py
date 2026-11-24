@@ -3,6 +3,7 @@
 from i18n.terminology import terminology_messages
 
 MESSAGES = {
+    'pipe.project_context': 'System / Circuit',
     'project.family.seawater': 'Seawater System',
     'engineering.fluid.seawater': 'Seawater',
     'engineering.select.fluid_temperature_c': 'Fluid Temperature [°C] (optional)',

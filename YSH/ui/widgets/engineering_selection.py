@@ -11,7 +11,7 @@ class EngineeringSelectionForm(ttk.Frame):
         self.catalog=catalog;self.tr=translate;self.variables={};self.boxes={};self.labels={};self.choices={}
         self.columnconfigure(1,weight=1)
         fixed_line=module in ('discharge_head_loss','suction_npsh')
-        fields=('fluid','material','surface','profile') if fixed_line else ('fluid','material','surface','service','line_type','profile')
+        fields=('fluid','material','surface','profile') if fixed_line else ('fluid','material','surface','service','profile')
         seawater=context is not None and context.system is not None and context.system.code=='SEA_WATER'
         if seawater:
             if module is not None:fields+=('strength_material',)
@@ -51,7 +51,6 @@ class EngineeringSelectionForm(ttk.Frame):
             services={none:None,**{self.tr('engineering.service.'+code):code for code in SERVICES if code}}
             if context.service and context.service not in SERVICES:services[context.service]=context.service
             self._set('service',services,context.service or None)
-            self._set('line_type',{none:None,**{self.tr('engineering.line.'+code):code for code in ('SUCTION','DELIVERY')}},context.line_type or None)
         self._set('profile',{none:None,**{r.name:r.id for r in self.catalog.profile_records}},context.rule_set_id)
         for name,label in self.labels.items():label.configure(text=self.tr('engineering.select.'+name))
     def _surfaces(self,selected=None):

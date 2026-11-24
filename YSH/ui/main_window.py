@@ -1524,12 +1524,31 @@ class MainWindow:
                 indicator.grid_remove()
         controller=getattr(self,'_engineering_context_controller',None)
         if controller is not None:controller.refresh_labels()
+        MainWindow._refresh_pipe_project_identity(self)
         MainWindow._refresh_warning_center(self)
         MainWindow._refresh_family_notice(self)
 
     def _prepare_family_choices(self) -> None:
         # ttk populates its native listbox after postcommand returns.
         self._family_selector.after_idle(self._style_family_choices)
+
+    def _refresh_pipe_project_identity(self) -> None:
+        """Display the locked family and a validated circuit, without changing legacy inputs."""
+        page=getattr(self,'_pipe_design_page',None)
+        display=getattr(page,'_project_circuit_display',None)
+        if display is None:return
+        family=MainWindow._locked_project_family(self)
+        if family is None:
+            display.set(self._translate('context.none.system'))
+            return
+        text=self._translate(FAMILY_KEYS[family])
+        context=self._system_context
+        expected={'fuel':'FUEL','fire':'FIRE','seawater':'SEA_WATER'}[family]
+        service=getattr(self,'_system_context_service',None)
+        if service is not None and context.system is not None and context.system.code==expected:
+            circuit=next((r for r in service.circuits(context.system_id) if r.id==context.circuit_id),None)
+            if circuit is not None:text+=' · '+circuit.name_tr
+        display.set(text)
 
     def _style_family_choices(self) -> None:
         """Keep the unselected Fire option visibly red in the native popup.
@@ -1735,4 +1754,5 @@ class MainWindow:
         if page is not None and hasattr(page, "set_project_context"):
             page.set_project_context(context)
         if getattr(self,'_fire_workspace',None) is not None:self._fire_workspace.observe()
+        MainWindow._refresh_pipe_project_identity(self)
         MainWindow._refresh_family_notice(self)

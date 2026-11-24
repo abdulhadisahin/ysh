@@ -3,6 +3,7 @@
 from i18n.terminology import terminology_messages
 
 MESSAGES = {
+    'pipe.project_context': 'Sistem / Devre',
     'project.family.seawater': 'Deniz Suyu Sistemi',
     'engineering.fluid.seawater': 'Deniz Suyu',
     'engineering.select.fluid_temperature_c': 'Akışkan Sıcaklığı [°C] (isteğe bağlı)',

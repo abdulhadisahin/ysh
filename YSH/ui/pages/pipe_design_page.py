@@ -118,6 +118,7 @@ class PipeDesignPage(ttk.Frame):
         self._source = tk.StringVar(value=self._t("message.material_source"))
         self._material = tk.StringVar()
         self._circuit = tk.StringVar()
+        self._project_circuit_display = tk.StringVar(value=self._t('context.none.system'))
         self._line_role = tk.StringVar(value=self._t("message.select"))
         self._line_role_codes: dict[str, str] = {}
         self._circuit_codes: dict[str, str] = {}
@@ -610,21 +611,12 @@ class PipeDesignPage(ttk.Frame):
         self._no_bend_note.grid(row=5, column=0, columnspan=2, sticky="w", pady=2)
 
         self._circuit_label = ttk.Label(
-            diameter_form, text=self._translate("field.circuit"), style="PipeField.TLabel"
+            diameter_form, text=self._translate("pipe.project_context"), style="PipeField.TLabel"
         )
         self._circuit_label.grid(row=1, column=2, sticky="w", pady=3, padx=(MD, 0))
-        self._circuit_box = ttk.Combobox(
-            diameter_form, textvariable=self._circuit, state="readonly", width=20, style="Pipe.TCombobox",
-        )
-        self._circuit_box.grid(row=1, column=3, sticky="w", padx=(SM, 0), pady=3)
-        self._circuit_box.bind("<<ComboboxSelected>>", self._on_circuit_selected)
-        self._widgets.append(self._circuit_box)
-        self._line_role_label = ttk.Label(diameter_form, text=self._translate("field.line_role"), style="PipeField.TLabel")
-        self._line_role_label.grid(row=3, column=0, sticky="w", pady=3)
-        self._line_role_box = ttk.Combobox(diameter_form, textvariable=self._line_role, state="readonly", width=20, style="Pipe.TCombobox")
-        self._line_role_box.grid(row=3, column=1, sticky="w", padx=(SM, 0), pady=3)
-        self._line_role_box.bind("<<ComboboxSelected>>", self._on_line_role_selected)
-        self._widgets.append(self._line_role_box)
+        self._project_circuit_label = ttk.Label(diameter_form,textvariable=self._project_circuit_display,
+                                               style='PipeField.TLabel',wraplength=240)
+        self._project_circuit_label.grid(row=1,column=3,sticky='w',padx=(SM,0),pady=3)
 
         self._pipe_standard_label = ttk.Label(
             diameter_form,
@@ -979,8 +971,7 @@ class PipeDesignPage(ttk.Frame):
             label.configure(text=self._translate(key))
         self._source_label.configure(text=self._translate("field.rp_source"))
         self._material_label.configure(text=self._translate("engineering.strength_material" if hasattr(self,"_engineering_panel") else "field.material"))
-        self._circuit_label.configure(text=self._translate("field.circuit"))
-        self._line_role_label.configure(text=self._translate("field.line_role"))
+        self._circuit_label.configure(text=self._translate("pipe.project_context"))
         self._circuit_default_label.configure(text=self._translate("result.default_corrosion_allowance"))
         self._source_box.configure(values=(
             self._translate("message.material_source"),
@@ -1116,7 +1107,7 @@ class PipeDesignPage(ttk.Frame):
         """Keep the explicit event binding; the traced variable owns invalidation."""
 
     def _load_circuits(self) -> None:
-        """Load active D243 circuit defaults from the service layer."""
+        """Retain legacy corrosion defaults without exposing a circuit selector."""
         self._circuit_codes.clear(); self._circuit_defaults.clear(); self._circuit_names.clear()
         labels: list[str] = []
         for circuit in self._service.get_active_corrosion_allowance_circuits():
@@ -1127,7 +1118,6 @@ class PipeDesignPage(ttk.Frame):
             self._circuit_codes[label] = circuit.code
             self._circuit_defaults[circuit.code] = circuit.default_corrosion_allowance_mm
             self._circuit_names[circuit.code] = circuit.display_name
-        self._circuit_box.configure(values=labels)
         self._select_circuit(None)
 
     def _selected_circuit_code(self) -> str | None:
@@ -1161,11 +1151,10 @@ class PipeDesignPage(ttk.Frame):
         self._evaluate_velocity_warning()
 
     def _load_line_roles(self) -> None:
-        """Expose stable line-role codes while retaining Turkish display labels."""
+        """Retain stable codes and legacy labels for stored line-function metadata."""
         selected = self._selected_line_role_code()
         self._line_role_codes = {self._t("message.select"): ""}
         self._line_role_codes.update({role.turkish_label: role.code for role in LINE_ROLES})
-        self._line_role_box.configure(values=list(self._line_role_codes))
         self._select_line_role(selected)
 
     def _selected_line_role_code(self) -> str | None:
