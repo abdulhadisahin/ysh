@@ -17,6 +17,7 @@ class WarningStatus(StrEnum):
 FAMILY_MODULES = {
     'fuel': ('pipe_design', 'transfer_pump', 'discharge_head_loss', 'suction_npsh'),
     'fire': ('foam', 'hw'),
+    'seawater': ('pipe_design', 'discharge_head_loss', 'suction_npsh'),
 }
 
 

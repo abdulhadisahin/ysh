@@ -56,8 +56,8 @@ class EngineeringPageContext(ttk.Frame):
                 text=tr('engineering.density_reference')+': '+shown+'\n'+text
         self.summary.configure(text=text)
         line={'discharge_head_loss':'DELIVERY','suction_npsh':'SUCTION'}.get(self.module)
-        if line:
-            details=[tr('engineering.module_line',line=tr('engineering.line.'+line))]
+        if line or c.family()=='seawater':
+            details=[tr('engineering.module_line',line=tr('engineering.line.'+line))] if line else []
             if c.family():
                 for rule in c.catalog.matching_rules(context,c.family(),self.module):
                     if rule.verification!='SOURCE_REQUIRED' and any(v is not None for v in (

@@ -102,7 +102,7 @@ def test_constructor_and_repeated_browsing_never_seed_or_write(library_database,
     assert service._repos['systems'].get_all()==()
     assert service._repos['fluids'].get_all()==expected_fluids
     assert service._repos['sources'].get_all()==()
-    assert len(service.list_records('systems'))==3
+    assert len(service.list_records('systems'))==4
     assert not hasattr(service,'delete') and not hasattr(service,'remove')
 
 

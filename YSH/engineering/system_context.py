@@ -38,10 +38,19 @@ class SystemContext:
     applicability_scope: str = ''
     surface_profile_id: UUID | None = None
     engineering_defaults_json: str = '{}'
+    fluid_temperature_c: float | None = None
+    fluid_salinity_g_kg: float | None = None
     revision: int = 1
     is_active: bool = True
 
     def __post_init__(self) -> None:
+        import math
+        for name in ('fluid_temperature_c', 'fluid_salinity_g_kg'):
+            value=getattr(self,name)
+            if value is not None and (isinstance(value,bool) or not isinstance(value,(float,int)) or not math.isfinite(value)):
+                raise ValueError('Invalid fluid reference condition')
+        if self.fluid_salinity_g_kg is not None and self.fluid_salinity_g_kg < 0:
+            raise ValueError('Invalid salinity')
         for name in ("system", "circuit", "fluid"):
             if getattr(self, name) is not None and not isinstance(getattr(self, name), ContextReference):
                 raise ValueError("Invalid context reference")

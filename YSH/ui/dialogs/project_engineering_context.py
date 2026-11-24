@@ -18,7 +18,8 @@ class ProjectEngineeringContextDialog:
         self.choices={};self.variables={}
         from ui.widgets.engineering_selection import EngineeringSelectionForm
         self.selection=EngineeringSelectionForm(form,self.catalog,self.tr,context)
-        self.selection.grid(row=0,column=0,columnspan=2,rowspan=6,sticky='nsew')
+        action_row=max(6,len(self.selection.variables))
+        self.selection.grid(row=0,column=0,columnspan=2,rowspan=action_row,sticky='nsew')
         self.variables=self.selection.variables;self.choices=self.selection.choices
         scopes={self.tr('engineering.none'):'',**{self.tr('engineering.scope.'+v):v for v in ('TL_FFS','TL_LT500')}}
         self.choices['applicability']=scopes
@@ -31,8 +32,8 @@ class ProjectEngineeringContextDialog:
         self.variables['mechanical']=tk.StringVar(value=selected)
         ttk.Label(form,text=self.tr('engineering.mechanical_material')).grid(row=0,column=2,columnspan=2,sticky='w',padx=10)
         ttk.Combobox(form,textvariable=self.variables['mechanical'],values=tuple(mechanical),state='readonly',width=40).grid(row=1,column=2,columnspan=2,sticky='ew',padx=10)
-        ttk.Button(form,text=self.tr('engineering.apply'),command=self.apply).grid(row=6,column=1,sticky='e',pady=6)
-        ttk.Button(form,text=self.tr('engineering.reload'),command=self.reload).grid(row=6,column=3,sticky='e')
+        ttk.Button(form,text=self.tr('engineering.apply'),command=self.apply).grid(row=action_row,column=1,sticky='e',pady=6)
+        ttk.Button(form,text=self.tr('engineering.reload'),command=self.reload).grid(row=action_row,column=3,sticky='e')
         body=ttk.Frame(self.window);body.grid(row=2,column=0,sticky='nsew',padx=12);body.rowconfigure(0,weight=1);body.columnconfigure(0,weight=1)
         self.tree=ttk.Treeview(body,columns=('module','property','default','used','status'),show='headings',height=8)
         for column,width in (('module',210),('property',160),('default',110),('used',110),('status',135)):
@@ -47,7 +48,10 @@ class ProjectEngineeringContextDialog:
         ttk.Label(self.window,text=self.tr('engineering.scope_notice'),style='Info.TLabel',wraplength=890).grid(row=4,column=0,sticky='w',padx=12,pady=5)
         self.refresh()
     def apply(self):
-        updated=self.selection.value()
+        try:updated=self.selection.value()
+        except ValueError:
+            messagebox.showerror(self.tr('engineering.context_title'),self.tr('engineering.action_unavailable'),parent=self.window)
+            return
         mechanical=self.choices['mechanical'].get(self.variables['mechanical'].get())
         surface=next((r for r in self.catalog.surface_records if r.id==updated.surface_profile_id),None)
         updated=updated.changed(material_id=mechanical.id if mechanical else surface.material_id if surface else None,

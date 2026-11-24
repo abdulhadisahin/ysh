@@ -12,6 +12,7 @@ from database.base_database import BaseDatabase
 from database.migrations import migrate
 from database.library_v5 import create_v5_schema
 from database.library_v6 import create_v6_schema
+from database.library_v7 import create_v7_schema
 from database.en_10220_pipe_size_seed import (
     EN_10220_DESCRIPTION,
     EN_10220_STANDARD,
@@ -24,7 +25,7 @@ from paths import ApplicationPaths
 class LibraryDatabase(BaseDatabase):
     """Creates and migrates the per-user editable engineering library."""
 
-    SCHEMA_VERSION = 6
+    SCHEMA_VERSION = 7
 
     def __init__(self, database_path: Path | None = None) -> None:
         super().__init__(database_path or ApplicationPaths().libraries_database_path)
@@ -38,6 +39,7 @@ class LibraryDatabase(BaseDatabase):
             4: self._prepare_corrosion_schema,
             5: create_v5_schema,
             6: create_v6_schema,
+            7: create_v7_schema,
         })
 
     @staticmethod

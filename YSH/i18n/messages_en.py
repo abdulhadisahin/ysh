@@ -3,6 +3,17 @@
 from i18n.terminology import terminology_messages
 
 MESSAGES = {
+    'project.family.seawater': 'Seawater System',
+    'engineering.fluid.seawater': 'Seawater',
+    'engineering.select.fluid_temperature_c': 'Fluid Temperature [°C] (optional)',
+    'engineering.select.fluid_salinity_g_kg': 'Salinity [g/kg] (optional)',
+    'engineering.select.strength_material': 'Strength Material',
+    'library2.field.reference_salinity_g_kg': 'Reference Salinity [g/kg]',
+    'word.family.seawater': 'Seawater System',
+    'seawater.fluid_required': 'A seawater fluid record is required. Check the Library.',
+    'seawater.conditions_required': 'Seawater properties require temperature, salinity and a verified source.',
+    'seawater.material_required': 'Material strength and corrosion allowance require a verified source applicable to the material and service.',
+    'seawater.hw_blocked': 'Hazen–Williams applicability to seawater is unverified. Source required.',
     'library2.group.settings': 'Display Settings',
     'library2.category.presentation_settings': 'Number Display',
     'library2.manual_user': 'User',

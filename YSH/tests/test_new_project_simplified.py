@@ -79,7 +79,7 @@ def test_new_dialog_has_only_four_fields_one_system_and_filtered_fluids(shell,la
         assert not hasattr(dialog,'_notes_text') and not hasattr(dialog,'_notes_label')
         assert len([w for w in widgets if w.winfo_class()=='TCombobox'])==2
         assert not hasattr(dialog,'_engineering_selection')
-        assert tuple(dialog._family_choice.choice['values'])==(tr('project.family.fuel'),tr('project.family.fire'))
+        assert tuple(dialog._family_choice.choice['values'])==tuple(tr('project.family.'+f) for f in ('fuel','fire','seawater'))
         assert dialog._family_choice.choice.current()==-1
         dialog._family_choice.choice.current(0);dialog._family_choice.choice.event_generate('<<ComboboxSelected>>')
         root.update()

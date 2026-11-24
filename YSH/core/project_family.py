@@ -1,5 +1,6 @@
 """Project family stored exclusively in the existing navigation namespace."""
-FAMILY_KEYS = {'fuel': 'project.family.fuel', 'fire': 'project.family.fire'}
+FAMILY_KEYS = {'fuel': 'project.family.fuel', 'fire': 'project.family.fire',
+               'seawater': 'project.family.seawater'}
 
 
 def project_family(workspace: dict[str, object]) -> str:

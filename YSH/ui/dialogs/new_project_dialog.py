@@ -9,6 +9,7 @@ from tkinter import messagebox, ttk
 from i18n.translator import Translator
 from ui.widgets.project_family_choice import ProjectFamilyChoice
 from ui.theme.spacing import LG, MD, SM
+from core.project_family import FAMILY_KEYS
 
 
 class NewProjectDialog:
@@ -92,17 +93,24 @@ class NewProjectDialog:
     def _refresh_fluids(self,event=None):
         selected=self._fluid_records.get(self._fluid_choice.get())
         index=self._family_choice.choice.current()
-        family=('fuel','fire')[index] if index in (0,1) else None
+        family=tuple(FAMILY_KEYS)[index] if 0 <= index < len(FAMILY_KEYS) else None
         records=self._catalog.project_fluids(family) if self._catalog is not None else ()
         self._fluid_records={self._translate('engineering.none'):None}
         for fluid in records:
-            label=fluid.name_tr
+            label=self._translate('engineering.fluid.seawater') if family=='seawater' else fluid.name_tr
             if label in self._fluid_records:label+=' · '+fluid.code
             self._fluid_records[label]=fluid
+        if family == 'seawater':
+            # Classification selects the existing canonical seawater identity only.
+            canonical=next((r for r in records if r.code=='SEAWATER'),None)
+            selected=canonical or (records[0] if len(records)==1 else None)
+            self._fluid_records={label:fluid for label,fluid in self._fluid_records.items()
+                                 if fluid is not None and selected is not None and fluid.id==selected.id}
         self._fluid_choice.configure(values=tuple(self._fluid_records),state='readonly' if records else 'disabled')
         self._fluid_choice.set(next((label for label,fluid in self._fluid_records.items()
                                     if selected is not None and fluid is not None and fluid.id==selected.id),
                                    self._translate('engineering.none')))
+        if family == 'seawater':self._fluid_choice.configure(state='disabled')
 
     def refresh_texts(self) -> None:
         """Refresh this open dialog without altering entered project metadata."""
@@ -136,10 +144,17 @@ class NewProjectDialog:
         # Never retain an old cross-family selection after a system change.
         self._refresh_fluids()
         fluid=self._fluid_records.get(self._fluid_choice.get())
+        if family == 'seawater' and fluid is None:
+            messagebox.showerror(self._translate('dialog.error'),self._translate('seawater.fluid_required'),parent=self._dialog)
+            return 'break'
         if fluid is not None:
             from engineering.system_context import SystemContext,ContextReference
             self.engineering_context=SystemContext().changed(fluid=ContextReference(
                 id=fluid.id,code=fluid.code,name_tr=fluid.name_tr,name_en=fluid.name_en))
+            if family == 'seawater':
+                from services.system_context_service import DEFAULT_SYSTEMS, reference
+                system=next(row for row in DEFAULT_SYSTEMS if row.code=='SEA_WATER')
+                self.engineering_context=self.engineering_context.changed(system=reference(system))
         self.result = (name, description, notes, family)
         self._dialog.grab_release()
         self._destroy()

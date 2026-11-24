@@ -19,9 +19,9 @@ def collect_warning_summary(window):
     family = window._locked_project_family()
     tr = window._translate
     states = []
-    if family == 'fuel':
+    if family in ('fuel','seawater'):
         for key, page in window._pages.items():
-            if key not in FAMILY_MODULES['fuel']:
+            if key not in FAMILY_MODULES[family]:
                 continue
             items = []
             def add(severity, code, message_key='', detail='', source=''):
@@ -77,6 +77,13 @@ def collect_warning_summary(window):
                 add(S.STALE, 'superseded_result', 'center.superseded')
             controller=getattr(window,'_engineering_context_controller',None)
             if controller is not None:
+                if family=='seawater':
+                    basis=controller.catalog.seawater_basis(controller.context_for(key),key)
+                    if not basis['fluid_ready']:add(S.SOURCE_REQUIRED,'seawater.conditions','seawater.conditions_required')
+                    if key=='pipe_design':
+                        if not basis['material_properties'] or not basis['corrosion_criteria']:
+                            add(S.SOURCE_REQUIRED,'seawater.material','seawater.material_required')
+                        add(S.SOURCE_REQUIRED,'seawater.hw','seawater.hw_blocked')
                 for name,link in controller.links.get(key,{}).items():
                     if link.stale:add(S.STALE,'engineering:'+name,'source.state.stale',source=tr('engineering.property.'+name))
                     elif link.status=='SOURCE_REQUIRED':add(S.SOURCE_REQUIRED,'engineering:'+name,'report.source_required',source=tr('engineering.property.'+name))

@@ -74,13 +74,14 @@ class EngineeringContextController:
         self.links[module][name]=self.links[module][name].edit(value)
         self.refresh_labels()
     def apply(self,context):
+        self.validate_family_context(context)
         changed=context!=self.window._system_context
         self.window._apply_system_context(context)
         if changed:
             for page in self.window._pages.values():
                 if page._formula_steps():page._engineering_context_stale=True
         references=self.catalog.references(context)
-        if self.family()=='fuel':
+        if self.family() in ('fuel','seawater'):
             for module,mapping in FIELD_MAP.items():
                 references=self.catalog.references(self.context_for(module))
                 page=self.window._pages[module]
@@ -149,9 +150,13 @@ class EngineeringContextController:
         if action!='keep':self.write(module,name,result.used_value)
         self.window._mark_workspace_dirty();self.refresh_labels()
     def context_for(self,module):return self.module_contexts.get(module,self.window._system_context)
+    def validate_family_context(self,context):
+        if self.family()=='seawater' and context.fluid_id not in {r.id for r in self.catalog.project_fluids('seawater')}:
+            raise ValueError('Seawater project requires a compatible seawater fluid')
     def set_module_context(self,module,context):
+        self.validate_family_context(context)
         if module not in ('pipe_design','discharge_head_loss','suction_npsh'):raise ValueError('Unsupported module override')
-        fields=('fluid_id','material_id','surface_profile_id','service','line_type','rule_set_id','applicability_scope')
+        fields=('fluid_id','material_id','surface_profile_id','service','line_type','rule_set_id','applicability_scope','fluid_temperature_c','fluid_salinity_g_kg')
         project=self.window._system_context
         if all(getattr(context,name)==getattr(project,name) for name in fields):self.module_contexts.pop(module,None)
         else:self.module_contexts[module]=context
@@ -186,7 +191,13 @@ class EngineeringContextController:
         form=EngineeringSelectionForm(dialog,self.catalog,tr,self.context_for(module),module=module);form.grid(row=0,column=0,sticky='ew',padx=12,pady=12)
         ttk.Label(dialog,text=tr('engineering.module_notice'),wraplength=530).grid(row=1,column=0,padx=12,sticky='w')
         actions=ttk.Frame(dialog);actions.grid(row=2,column=0,padx=12,pady=12,sticky='e')
-        def apply():self.set_module_context(module,form.value());dialog.destroy()
+        def apply():
+            from tkinter import messagebox
+            try:self.set_module_context(module,form.value())
+            except ValueError:
+                messagebox.showerror(tr('engineering.context_title'),tr('engineering.action_unavailable'),parent=dialog)
+                return
+            dialog.destroy()
         def project():self.use_project_context(module);dialog.destroy()
         ttk.Button(actions,text=tr('engineering.use_project'),command=project).pack(side='left',padx=4)
         ttk.Button(actions,text=tr('engineering.apply'),command=apply).pack(side='left',padx=4)
@@ -198,14 +209,26 @@ class EngineeringContextController:
             label=getattr(page,'_engineering_context_label',None)
             if label is None:continue
             context=self.context_for(module)
-            values=self.links.get(module,{}) if self.family()=='fuel' or module in self.module_contexts else {}
+            values=self.links.get(module,{}) if self.family() in ('fuel','seawater') or module in self.module_contexts else {}
             parts=[]
             for name,link in values.items():
                 value=str(link.used_value) if link.used_value is not None else tr('engineering.none')
                 temperature=link.reference.get('reference_temperature_c')
+                salinity=link.reference.get('reference_salinity_g_kg')
                 parts.append(tr('engineering.property.'+name)+': '+value+' '+link.reference.get('unit','')+
-                    (' @ '+str(temperature)+' °C' if temperature is not None else '')+' ['+tr('engineering.status.'+link.status)+']')
+                    (' @ '+str(temperature)+' °C' if temperature is not None else '')+
+                    (' · '+str(salinity)+' g/kg' if salinity is not None else '')+' ['+tr('engineering.status.'+link.status)+']')
             text=' · '.join(parts)
+            if self.family()=='seawater':
+                basis=self.catalog.seawater_basis(context,module)
+                if not basis['fluid_ready']:text+='\n'+tr('seawater.conditions_required')
+                if module=='pipe_design':
+                    if not basis['material_properties'] or not basis['corrosion_criteria']:
+                        text+='\n'+tr('seawater.material_required')
+                    for item in basis['material_properties']:
+                        record=item['record'];source=item['source']
+                        details=' · '.join(str(source[name]) for name in ('source_organization','document','revision','section','table','effective_date','verification_date') if source.get(name))
+                        text+='\n'+tr('engineering.property.'+record['property_name'])+': '+str(record['value'])+' '+record['unit']+' · '+details
             profile=next((r for r in self.catalog.profile_records if r.id==context.rule_set_id),None)
             directional=context.service in ('DIESEL_FUEL_SUCTION','DIESEL_FUEL_DELIVERY')
             if context.service and not (directional and module in ('discharge_head_loss','suction_npsh')):
@@ -257,6 +280,7 @@ class EngineeringContextController:
             item=link.payload();item['status']=link.status
             payload['values'].append(item)
         evidence=snapshot.evidence;velocity=None
+        if family=='seawater':payload['seawater_basis']=self.catalog.seawater_basis(context,module)
         if module=='pipe_design':
             variable=next((v for step in snapshot.formula_steps for v in step.variables if v.symbol=='V'),None)
             velocity=variable.value if variable else None
@@ -276,6 +300,16 @@ class EngineeringContextController:
                 record=record_payload(rule);record.update(observed_value=velocity,status=rule_status(rule,velocity));payload['rules'].append(record)
                 findings.extend(evaluate_rule(rule,velocity))
         from engineering.warning_rules import EngineeringFinding,WarningSeverity
+        if family=='seawater':
+            basis=payload['seawater_basis']
+            missing=[]
+            if not basis['fluid_ready']:missing.append('seawater.conditions_required')
+            if module=='pipe_design' and (not basis['material_properties'] or not basis['corrosion_criteria']):
+                missing.append('seawater.material_required')
+            for key in missing:
+                findings.append(EngineeringFinding(code=key,severity=WarningSeverity.ENGINEERING_WARNING,
+                    message_key=key,actual_value=None,lower_bound=None,upper_bound=None,
+                    unit='',source_id=None,context={},visual_status='SOURCE_REQUIRED'))
         for item in payload['values']:
             link_status=item['status']
             if link_status not in ('SOURCE_REQUIRED','STALE'):continue

@@ -17,7 +17,8 @@ DEFAULT_SYSTEMS = tuple(System(
     code=code, name_tr=tr, name_en=en,
 ) for code, tr, en in (("FUEL", "Yakıt", "Fuel"),
                       ("FRESH_WATER", "Tatlı Su", "Fresh Water"),
-                      ("OIL", "Yağ", "Oil")))
+                      ("OIL", "Yağ", "Oil"),
+                      ("SEA_WATER", "Deniz Suyu", "Seawater")))
 
 
 @dataclass(frozen=True, slots=True)

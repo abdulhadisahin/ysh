@@ -145,7 +145,7 @@ def test_legacy_workspace_and_new_project_default_to_fuel(shell):
     state=w._export_all_page_states();state.pop('navigation')
     w._load_all_page_states(state);w._root.update()
     assert w._family=='fuel'
-    assert w._navigation.last_active_module_by_family=={'fuel':'pipe_design','fire':'foam'}
+    assert w._navigation.last_active_module_by_family=={'fuel':'pipe_design','fire':'foam','seawater':'pipe_design'}
     w._show_family('fire');w._clear_all_pages();w._root.update()
     assert w._family=='fuel'
 

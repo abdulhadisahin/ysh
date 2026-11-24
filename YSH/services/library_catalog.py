@@ -95,7 +95,7 @@ from engineering.catalog import FluidSpecification,MaterialSurface,EngineeringRu
 from dataclasses import fields as model_fields
 
 def catalog_fields(model):
-    floats={'source_min','source_max','source_nominal','default_value','reference_temperature_c','roughness_mm',
+    floats={'source_min','source_max','source_nominal','default_value','reference_temperature_c','reference_salinity_g_kg','roughness_mm',
             'recommended_min','recommended_max','hard_min','hard_max','yellow_fraction','critical_multiplier'}
     required={'code','name','fluid_id','fluid_group','property_name','unit','material_name','surface_condition',
               'profile_id','parameter','default_method','verification','rule_nature','yellow_fraction','critical_multiplier'}

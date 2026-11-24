@@ -66,8 +66,8 @@ def test_application_defaults_are_stable_without_database_writes(library_databas
         assert service.systems()==expected
         assert all(service.circuits(row.id)==() for row in expected)
         assert service.fluids()==expected_fluids
-    assert {s.code for s in expected}=={'FUEL','FRESH_WATER','OIL'}
-    assert {s.name_tr for s in expected}=={'Yakıt','Tatlı Su','Yağ'}
+    assert {s.code for s in expected}=={'FUEL','FRESH_WATER','OIL','SEA_WATER'}
+    assert {s.name_tr for s in expected}=={'Yakıt','Tatlı Su','Yağ','Deniz Suyu'}
     assert counts()==before
 
 

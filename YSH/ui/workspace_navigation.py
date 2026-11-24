@@ -2,10 +2,11 @@
 from dataclasses import dataclass, field
 from core.project_family import project_family
 
-FAMILIES = {'fuel': 'navigation.fuel', 'fire': 'fire.system'}
+FAMILIES = {'fuel': 'navigation.fuel', 'fire': 'fire.system', 'seawater': 'project.family.seawater'}
 MODULES = {
     'fuel': ('pipe_design', 'transfer_pump', 'discharge_head_loss', 'suction_npsh'),
     'fire': ('foam', 'hw'),
+    'seawater': ('pipe_design', 'discharge_head_loss', 'suction_npsh'),
 }
 
 

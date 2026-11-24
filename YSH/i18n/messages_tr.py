@@ -3,6 +3,17 @@
 from i18n.terminology import terminology_messages
 
 MESSAGES = {
+    'project.family.seawater': 'Deniz Suyu Sistemi',
+    'engineering.fluid.seawater': 'Deniz Suyu',
+    'engineering.select.fluid_temperature_c': 'Akışkan Sıcaklığı [°C] (isteğe bağlı)',
+    'engineering.select.fluid_salinity_g_kg': 'Tuzluluk [g/kg] (isteğe bağlı)',
+    'engineering.select.strength_material': 'Dayanım Malzemesi',
+    'library2.field.reference_salinity_g_kg': 'Referans Tuzluluk [g/kg]',
+    'word.family.seawater': 'Deniz Suyu Sistemi',
+    'seawater.fluid_required': 'Deniz suyu akışkan kaydı gerekli. Kütüphaneyi kontrol edin.',
+    'seawater.conditions_required': 'Deniz suyu özellikleri için sıcaklık, tuzluluk ve doğrulanmış kaynak gerekli.',
+    'seawater.material_required': 'Malzeme dayanımı ve korozyon artımı için malzeme/servis kapsamına uygun doğrulanmış kaynak gerekli.',
+    'seawater.hw_blocked': 'Deniz suyu için Hazen–Williams uygulanabilirliği doğrulanmadı. Kaynak gerekli.',
     'library2.group.settings': 'Görünüm Ayarları',
     'library2.category.presentation_settings': 'Sayı Gösterimi',
     'library2.manual_user': 'Kullanıcı',

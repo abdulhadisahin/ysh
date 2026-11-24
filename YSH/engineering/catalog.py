@@ -27,6 +27,7 @@ class FluidSpecification:
     default_value:float|None=None
     default_method:str='SOURCE_REQUIRED'
     reference_temperature_c:float|None=None
+    reference_salinity_g_kg:float|None=None
     source_authority:str=''
     source_document:str=''
     source_edition:str=''
@@ -38,7 +39,8 @@ class FluidSpecification:
     created_at:datetime=field(default_factory=now)
     modified_at:datetime=field(default_factory=now)
     def __post_init__(self):
-        numeric(self.source_min,self.source_max,self.source_nominal,self.default_value,self.reference_temperature_c)
+        numeric(self.source_min,self.source_max,self.source_nominal,self.default_value,self.reference_temperature_c,self.reference_salinity_g_kg)
+        if self.reference_salinity_g_kg is not None and self.reference_salinity_g_kg < 0:raise ValueError('Invalid salinity')
         if self.property_name in ('density','kinematic_viscosity') and any(v is not None and v<=0 for v in (self.source_min,self.source_max,self.source_nominal,self.default_value)):
             raise ValueError('Positive physical property required')
         if self.default_method not in METHODS or self.verification not in VERIFICATIONS: raise ValueError('Invalid property policy')

@@ -54,7 +54,7 @@ from ui.widgets.status_bar import StatusBar
 from ui.widgets.scrollable_frame import ScrollableFrame
 from ui.widgets.scrollable_page_host import ScrollablePageHost
 from ui.widgets.system_context_panel import SystemContextPanel
-from ui.workspace_navigation import WorkspaceNavigation, FAMILIES
+from ui.workspace_navigation import WorkspaceNavigation, FAMILIES, MODULES
 from core.project_family import FAMILY_KEYS
 from ui.widgets.tooltip import Tooltip
 from engineering.system_context import SystemContext
@@ -1574,10 +1574,10 @@ class MainWindow:
         if not hasattr(self, '_navigation'):
             return
         family = self._family
-        host = self._page_host if family == 'fuel' else self._fire_workspace.host
+        host = self._page_host if family in ('fuel','seawater') else self._fire_workspace.host
         selected = host.select()
         key = next((key for key, tab in host._page_keys.items() if str(tab) == selected), None)
-        if key and self._navigation.last_active_module_by_family[family] != key:
+        if key in MODULES[family] and self._navigation.last_active_module_by_family[family] != key:
             self._navigation.last_active_module_by_family[family] = key
             if dirty:
                 self._mark_workspace_dirty()
@@ -1614,6 +1614,14 @@ class MainWindow:
                 self._fire_workspace.grid_remove()
             self._page_host.grid()
             host = self._page_host
+            transfer=host._page_keys.get('transfer_pump')
+            if transfer is not None:
+                if family=='seawater':host.tab(transfer,state='hidden')
+                elif host.tab(transfer,'state')=='hidden':
+                    from engineering.module_registry import module_availability
+                    enabled=next(item.enabled for item in module_availability(self._system_context)
+                                 if item.definition.code.value=='transfer_pump')
+                    host.tab(transfer,state='normal' if enabled else 'disabled')
         self._family = family
         if hasattr(self, '_navigation'):
             self._navigation.active_system_family = family
@@ -1714,6 +1722,9 @@ class MainWindow:
                 host.set_page_enabled(item.definition.code.value, item.enabled)
             if item.reason_key:
                 notices.append(self._translate(item.definition.name_key) + ": " + self._translate(item.reason_key))
+        if host is not None and getattr(self, '_family', None) == 'seawater':
+            transfer=host._page_keys.get('transfer_pump')
+            if transfer is not None:host.tab(transfer,state='hidden')
         if hasattr(self, "_context_panel"):
             self._context_panel.load(context)
             self._context_panel.set_module_notice("\n".join(notices))
