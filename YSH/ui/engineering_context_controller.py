@@ -1,18 +1,29 @@
 """UI/context adapter. Physics remains in pure calculators; applied links are explicit."""
 from dataclasses import replace
 import json
+import math
+from decimal import Decimal
 from engineering.snapshots.serialization import canonical
 from engineering.formula.models import FormulaStep,SelectionReason
 from services.engineering_value_links import EngineeringValueLink,bind
 from engineering.rule_evaluation import evaluate_rule,rule_status,record_payload
 
-FIELD_MAP={'discharge_head_loss':{'kinematic_viscosity':'nu','absolute_roughness':'k'},
+FIELD_MAP={'discharge_head_loss':{'kinematic_viscosity':'nu','absolute_roughness':'k','density':'fluid_density'},
            'suction_npsh':{'kinematic_viscosity':'viscosity','absolute_roughness':'roughness','density':'density'}}
+
+def _conversion_equal(a,b):
+    """Allow only machine rounding of unit conversion, never engineering tolerance."""
+    return a==b or abs(a-b)<=4*max(math.ulp(a),math.ulp(b))
 
 class EngineeringContextController:
     def __init__(self,window,catalog):
-        self.window=window;self.catalog=catalog;self.links={};self.step_cache={};self.suppress=False;self.module_contexts={};self._module_dialogs={}
+        self.window=window;self.catalog=catalog;self.links={};self.step_cache={};self.suppress=False;self.module_contexts={};self._module_dialogs={};self.hydraulic_modules=set()
         for module,page in window._pages.items():
+            if module=='discharge_head_loss':
+                import tkinter as tk
+                page._fields.setdefault('fluid_density',tk.StringVar(master=page))
+                page._fields['fluid_density'].trace_add('write',page._mark_dirty)
+                page._fields['fluid_density'].trace_add('write',page._invalidate_result)
             original=page._formula_steps
             page._formula_steps=lambda original=original,module=module:self.explain(module,original())
             if hasattr(page,'_formula_panel'):page._formula_panel._step_provider=page._formula_steps
@@ -32,17 +43,24 @@ class EngineeringContextController:
                     page._engineering_panel.grid(row=3,column=0,sticky='ew',pady=(4,0))
             if module in FIELD_MAP:self.write(module,'absolute_roughness',None)
     def family(self):return self.window._locked_project_family()
+    def references_for(self,module):
+        context=self.context_for(module)
+        return self.catalog.hydraulic_references(context) if module in self.hydraulic_modules else self.catalog.references(context)
     def clear(self):
-        self.links={};self.step_cache={};self.module_contexts={}
+        self.links={};self.step_cache={};self.module_contexts={};self.hydraulic_modules=set()
         for dialog in self._module_dialogs.values():
             if dialog.winfo_exists():dialog.destroy()
         self._module_dialogs={}
-        for page in self.window._pages.values():page._engineering_context_stale=False
+        for page in self.window._pages.values():
+            page._engineering_context_stale=False
+            panel=getattr(page,'_engineering_panel',None)
+            if panel is not None and hasattr(panel,'operating'):panel._shown_context=None
         self.refresh_labels()
-    def payload(self):return {'version':1,'module_contexts':{m:c.to_payload() for m,c in self.module_contexts.items()},'stale_modules':[m for m,p in self.window._pages.items() if getattr(p,'_engineering_context_stale',False)],'links':{m:{n:v.payload() for n,v in links.items()} for m,links in self.links.items()}}
+    def payload(self):return {'version':1,'hydraulic_modules':sorted(self.hydraulic_modules),'module_contexts':{m:c.to_payload() for m,c in self.module_contexts.items()},'stale_modules':[m for m,p in self.window._pages.items() if getattr(p,'_engineering_context_stale',False)],'links':{m:{n:v.payload() for n,v in links.items()} for m,links in self.links.items()}}
     def load(self,payload):
         if payload and payload.get('version')!=1:raise ValueError('Unsupported engineering links')
         from engineering.system_context import SystemContext
+        self.hydraulic_modules=set((payload or {}).get('hydraulic_modules',())) & set(FIELD_MAP)
         self.module_contexts={m:SystemContext.from_workspace({'system_context':c}) for m,c in (payload or {}).get('module_contexts',{}).items() if m in self.window._pages}
         self.links={m:{n:EngineeringValueLink.from_payload(v) for n,v in values.items()}
                     for m,values in (payload or {}).get('links',{}).items() if m in FIELD_MAP}
@@ -55,7 +73,7 @@ class EngineeringContextController:
         if not text:return None
         from engineering.input_parsing import parse_engineering_float
         value=parse_engineering_float(text,field_name=name)
-        if name=='kinematic_viscosity' and page._viscosity_unit.get()!='cSt':value*=1e6
+        if name=='kinematic_viscosity' and page._viscosity_unit.get()!='cSt':value=float(Decimal(str(value))*Decimal('1000000'))
         return value
     def write(self,module,name,value):
         if value is None and name!='absolute_roughness':return
@@ -63,7 +81,7 @@ class EngineeringContextController:
         try:
             if name=='kinematic_viscosity':page._viscosity_unit.set('cSt')
             if name=='absolute_roughness':
-                if module=='discharge_head_loss':page._source_mode='manual';page._source.set(self.window._translate('message.manual_source'));page._set_source_mode()
+                if module=='discharge_head_loss':page._source_mode='manual';page._source.set(self.window._translate('message.manual_source'));page._set_source_mode(reset_value=False)
                 else:page._roughness_source_mode='manual';page._roughness_source.set(self.window._translate('message.manual_source'));page._set_roughness_source(reset_value=False)
             if value is not None:page._fields[FIELD_MAP[module][name]].set(str(value))
         finally:self.suppress=False
@@ -75,6 +93,7 @@ class EngineeringContextController:
         self.refresh_labels()
     def apply(self,context):
         self.validate_family_context(context)
+        if context.fluid is not None:self.hydraulic_modules.update(FIELD_MAP)
         changed=context!=self.window._system_context
         self.window._apply_system_context(context)
         if changed:
@@ -83,7 +102,7 @@ class EngineeringContextController:
         references=self.catalog.references(context)
         if self.family() in ('fuel','seawater'):
             for module,mapping in FIELD_MAP.items():
-                references=self.catalog.references(self.context_for(module))
+                references=self.references_for(module)
                 page=self.window._pages[module]
                 mode=getattr(page,'_source_mode',None) if module=='discharge_head_loss' else getattr(page,'_roughness_source_mode',None)
                 if mode!='manual':self.write(module,'absolute_roughness',None)
@@ -109,9 +128,11 @@ class EngineeringContextController:
         self.observe();self.window._mark_workspace_dirty()
     def observe(self):
         for module,links in self.links.items():
-            references=self.catalog.references(self.context_for(module))
+            references=self.references_for(module)
             for name,link in tuple(links.items()):
                 links[name]=link.observe(references.get(name))
+                if module in self.hydraulic_modules and link.kept_current and link.pending==links[name].pending:
+                    links[name]=replace(links[name],kept_current=True)
                 if links[name].stale and self.window._pages[module]._formula_steps():self.window._pages[module]._engineering_context_stale=True
         # Compare frozen rule records only; never recalculate historical results.
         for module,page in self.window._pages.items():
@@ -145,29 +166,39 @@ class EngineeringContextController:
             self.apply(context.changed(engineering_defaults_json=canonical(defaults)))
             self.action(module,name,'update')
             return
-        result=link.keep() if action=='keep' else link.use_reference() if action=='reference' else link.update()
+        if action=='update' and module in self.hydraulic_modules and link.pending is not None and link.reference.get('default_value') is None and link.used_value is not None:
+            result=EngineeringValueLink(link.pending,link.used_value)
+        else:result=link.keep() if action=='keep' else link.use_reference() if action=='reference' else link.update()
         self.links[module][name]=result
-        if action!='keep':self.write(module,name,result.used_value)
+        unchanged_fluid=module in self.hydraulic_modules and name in ('density','kinematic_viscosity') and result.used_value==link.used_value
+        if action!='keep' and not unchanged_fluid:self.write(module,name,result.used_value)
         self.window._mark_workspace_dirty();self.refresh_labels()
     def context_for(self,module):return self.module_contexts.get(module,self.window._system_context)
     def validate_family_context(self,context):
         if self.family()=='seawater' and context.fluid_id not in {r.id for r in self.catalog.project_fluids('seawater')}:
             raise ValueError('Seawater project requires a compatible seawater fluid')
-    def set_module_context(self,module,context):
+        if self.family() in ('fuel','fire') and context.fluid_id is not None and context.fluid_id not in {r.id for r in self.catalog.project_fluids(self.family())}:
+            raise ValueError('Project requires a compatible fluid')
+    def set_module_context(self,module,context,*,fluid_only=False):
         self.validate_family_context(context)
         if module not in ('pipe_design','discharge_head_loss','suction_npsh'):raise ValueError('Unsupported module override')
-        fields=('fluid_id','material_id','surface_profile_id','service','line_type','rule_set_id','applicability_scope','fluid_temperature_c','fluid_salinity_g_kg')
+        fields=('fluid_id','material_id','surface_profile_id','service','line_type','rule_set_id','applicability_scope','fluid_temperature_c','fluid_salinity_g_kg','fluid_reference_pressure_mpa')
         project=self.window._system_context
         if all(getattr(context,name)==getattr(project,name) for name in fields):self.module_contexts.pop(module,None)
         else:self.module_contexts[module]=context
-        self._apply_module_context(module)
+        self._apply_module_context(module,fluid_only=fluid_only)
     def use_project_context(self,module):
         self.module_contexts.pop(module,None)
         self._apply_module_context(module)
-    def _apply_module_context(self,module):
-        references=self.catalog.references(self.context_for(module));links=self.links.setdefault(module,{})
-        if module in FIELD_MAP:self.write(module,'absolute_roughness',None)
+    def _apply_module_context(self,module,*,fluid_only=False):
+        references=self.references_for(module);links=self.links.setdefault(module,{})
+        if module in FIELD_MAP:
+            page=self.window._pages[module]
+            selected_material=page._material_ids.get(page._material.get())
+            if not fluid_only or (selected_material is None and self.context_for(module).surface_profile_id is None):
+                self.write(module,'absolute_roughness',None)
         for name in FIELD_MAP.get(module,{}):
+            if fluid_only and name=='absolute_roughness':continue
             if name not in references:
                 if name in links:links[name]=links[name].observe(None)
                 continue
@@ -176,10 +207,31 @@ class EngineeringContextController:
                 try:value=self.read(module,name)
                 except ValueError:continue
                 links[name]=bind(references[name],value)
+                if module in self.hydraulic_modules and name in ('density','kinematic_viscosity') and value is not None:continue
+            elif module in self.hydraulic_modules and name in ('density','kinematic_viscosity') and current.used_value is not None:
+                links[name]=current.observe(references[name])
+                continue
             else:links[name]=current.observe(references[name]).update()
             self.write(module,name,links[name].used_value)
         self.window._pages[module]._engineering_context_stale=True
         self.window._mark_workspace_dirty();self.observe()
+
+    def select_fluid(self,module,fluid_id,temperature,salinity,pressure):
+        from services.system_context_service import reference
+        fluid=next((f for f in self.catalog.project_fluids(self.family()) if f.id==fluid_id),None)
+        if module not in FIELD_MAP or fluid is None:raise ValueError('Incompatible fluid')
+        context=self.context_for(module).changed(fluid=reference(fluid),fluid_temperature_c=temperature,
+            fluid_salinity_g_kg=salinity if self.family()=='seawater' else None,fluid_reference_pressure_mpa=pressure)
+        if module in self.hydraulic_modules and context==self.context_for(module):return
+        self.hydraulic_modules.add(module)
+        self.set_module_context(module,context,fluid_only=True)
+
+    def use_project_fluid(self,module):
+        project=self.window._system_context
+        context=self.context_for(module).changed(fluid=project.fluid,fluid_temperature_c=project.fluid_temperature_c,
+            fluid_salinity_g_kg=project.fluid_salinity_g_kg,fluid_reference_pressure_mpa=project.fluid_reference_pressure_mpa)
+        self.hydraulic_modules.add(module)
+        self.set_module_context(module,context,fluid_only=True)
     def open_module_context(self,module):
         import tkinter as tk
         from tkinter import ttk
@@ -188,7 +240,7 @@ class EngineeringContextController:
         if old is not None and old.winfo_exists():old.lift();return
         tr=self.window._translate;dialog=tk.Toplevel(self.window._root);dialog.transient(self.window._root)
         dialog.title(tr('engineering.edit_module'));dialog.columnconfigure(0,weight=1)
-        form=EngineeringSelectionForm(dialog,self.catalog,tr,self.context_for(module),module=module);form.grid(row=0,column=0,sticky='ew',padx=12,pady=12)
+        form=EngineeringSelectionForm(dialog,self.catalog,tr,self.context_for(module),module=module,family=self.family());form.grid(row=0,column=0,sticky='ew',padx=12,pady=12)
         ttk.Label(dialog,text=tr('engineering.module_notice'),wraplength=530).grid(row=1,column=0,padx=12,sticky='w')
         actions=ttk.Frame(dialog);actions.grid(row=2,column=0,padx=12,pady=12,sticky='e')
         def apply():
@@ -209,7 +261,7 @@ class EngineeringContextController:
             label=getattr(page,'_engineering_context_label',None)
             if label is None:continue
             context=self.context_for(module)
-            values=self.links.get(module,{}) if self.family() in ('fuel','seawater') or module in self.module_contexts else {}
+            values=self.links.get(module,{}) if self.family() in ('fuel','seawater') or module in self.module_contexts or module in self.hydraulic_modules else {}
             parts=[]
             for name,link in values.items():
                 value=str(link.used_value) if link.used_value is not None else tr('engineering.none')
@@ -221,7 +273,8 @@ class EngineeringContextController:
             text=' · '.join(parts)
             if self.family()=='seawater':
                 basis=self.catalog.seawater_basis(context,module)
-                if not basis['fluid_ready']:text+='\n'+tr('seawater.conditions_required')
+                ready=all(self.references_for(module).get(n,{}).get('default_value') is not None for n in ('density','kinematic_viscosity')) if module in self.hydraulic_modules else basis['fluid_ready']
+                if not ready:text+='\n'+tr('seawater.conditions_required')
                 if module=='pipe_design':
                     if not basis['material_properties'] or not basis['corrosion_criteria']:
                         text+='\n'+tr('seawater.material_required')
@@ -272,15 +325,23 @@ class EngineeringContextController:
                  'surface_profile_id':str(context.surface_profile_id) if context.surface_profile_id else None,
                  'context_scope':'OVERRIDE' if module in self.module_contexts else 'LINKED','service':context.service,
                  'line_type':{'discharge_head_loss':'DELIVERY','suction_npsh':'SUCTION'}.get(module,context.line_type),'values':[], 'rules':[]}
+        if module in self.hydraulic_modules:
+            payload['fluid_conditions']={'temperature_c':context.fluid_temperature_c,'salinity_g_kg':context.fluid_salinity_g_kg,
+                'pressure_mpa':context.fluid_reference_pressure_mpa}
         if module in self.module_contexts:
             project_fluid=self.window._system_context.fluid
             payload['project_fluid']=project_fluid.name_tr if project_fluid else ''
         for name,link in self.links.get(module,{}).items():
             # Already applied inputs, never substitute defaults while capturing.
             item=link.payload();item['status']=link.status
+            item['is_override']=link.overridden
+            if module=='discharge_head_loss' and name=='density':item['use_role']='REFERENCE_ONLY'
             payload['values'].append(item)
         evidence=snapshot.evidence;velocity=None
-        if family=='seawater':payload['seawater_basis']=self.catalog.seawater_basis(context,module)
+        if family=='seawater':
+            payload['seawater_basis']=self.catalog.seawater_basis(context,module)
+            if module in self.hydraulic_modules:
+                payload['seawater_basis']['fluid_ready']=all(self.references_for(module).get(n,{}).get('default_value') is not None for n in ('density','kinematic_viscosity'))
         if module=='pipe_design':
             variable=next((v for step in snapshot.formula_steps for v in step.variables if v.symbol=='V'),None)
             velocity=variable.value if variable else None
@@ -331,7 +392,9 @@ class EngineeringContextController:
                 item['used_value']=actual
                 default=item['reference'].get('default_value')
                 if item['status'] not in ('STALE','SOURCE_REQUIRED'):
-                    item['status']='OVERRIDE' if default is not None and actual!=default else 'LINKED'
+                    equal=_conversion_equal(actual,default) if default is not None and name=='kinematic_viscosity' else actual==default
+                    item['is_override']=default is not None and not equal
+                    item['status']='OVERRIDE' if item['is_override'] else 'LINKED'
         annotation=canonical(payload)
         from engineering.provenance import EngineeringValue,SourceReference,SourceType,VerificationStatus,OverridePolicy
         enriched=[]
@@ -340,14 +403,18 @@ class EngineeringContextController:
             for item in payload['values']:
                 reference=item['reference'];name=reference['property_name'];variable=next((v for v in step.variables if v.symbol==symbols.get(name)),None)
                 if variable is None:continue
-                source=SourceReference(source_type=SourceType.MATERIAL_STANDARD if name=='absolute_roughness' else SourceType.FLUID_LIBRARY,
-                    source_organization=reference.get('source_authority') or None,document=reference.get('source_document') or None,
-                    revision=reference.get('source_edition') or None,
-                    verification_status=VerificationStatus.VERIFIED if reference.get('verification')=='VERIFIED' else VerificationStatus.USER_SUPPLIED if reference.get('verification')=='RECOMMENDATION' else VerificationStatus.UNVERIFIED,
-                    notes=reference.get('source_note') or None)
+                manual_fluid=module in self.hydraulic_modules and name in ('density','kinematic_viscosity') and (
+                    reference.get('default_value') is None or reference.get('record_kind')!='OPERATING_POINT' or item['status']=='STALE')
+                source=SourceReference(source_type=SourceType.USER_INPUT if manual_fluid else SourceType.MATERIAL_STANDARD if name=='absolute_roughness' else SourceType.FLUID_LIBRARY,
+                    source_organization=None if manual_fluid else reference.get('source_authority') or None,document=None if manual_fluid else reference.get('source_document') or None,
+                    revision=None if manual_fluid else reference.get('source_edition') or None,
+                    verification_status=VerificationStatus.USER_SUPPLIED if manual_fluid else VerificationStatus.VERIFIED if reference.get('verification')=='VERIFIED' else VerificationStatus.USER_SUPPLIED if reference.get('verification')=='RECOMMENDATION' else VerificationStatus.UNVERIFIED,
+                    notes=self.window._translate('hydro.manual_source_note') if manual_fluid else reference.get('source_note') or None)
                 updates[variable.symbol]=replace(variable,source=source,reason=SelectionReason.MATERIAL_LIBRARY if name=='absolute_roughness' else variable.reason)
                 default=reference.get('default_value')
+                if manual_fluid:default=None
                 if default is not None and name=='kinematic_viscosity' and variable.unit=='m²/s':default*=1e-6
+                if default is not None and name=='kinematic_viscosity' and _conversion_equal(default,variable.value):default=variable.value
                 evidence_value=EngineeringValue(used_value=variable.value,unit=variable.unit,source=source,
                     override_policy=OverridePolicy.SUGGESTED if default is not None else OverridePolicy.USER_INPUT,
                     recommended_value=default,symbol=variable.symbol,terminology_key=variable.terminology_key,

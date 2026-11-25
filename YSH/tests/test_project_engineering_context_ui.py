@@ -21,7 +21,8 @@ def test_context_applies_only_empty_fields_and_explicit_updates(shell):
     page._fields['nu'].set('');page._fields['k'].set('')
     context=chosen(c.catalog)
     c.apply(context)
-    assert c.read('discharge_head_loss','kinematic_viscosity')==3
+    assert c.read('discharge_head_loss','kinematic_viscosity') is None
+    assert c.links['discharge_head_loss']['kinematic_viscosity'].status=='SOURCE_REQUIRED'
     assert c.read('discharge_head_loss','absolute_roughness')==.045
     page._fields['k'].set('.1')
     assert c.links['discharge_head_loss']['absolute_roughness'].status=='OVERRIDE'
@@ -41,17 +42,17 @@ def test_context_applies_only_empty_fields_and_explicit_updates(shell):
 
 def test_project_defaults_roundtrip_and_calculation_overrides_are_local(shell):
     w=shell;c=project(w);c.apply(chosen(c.catalog))
-    page=w._pages['discharge_head_loss'];page._fields['nu'].set('4')
-    assert c.catalog.references(w._system_context)['kinematic_viscosity']['default_value']==3
-    c.action('discharge_head_loss','kinematic_viscosity','project')
-    assert c.catalog.references(w._system_context)['kinematic_viscosity']['default_value']==4
+    page=w._pages['discharge_head_loss'];page._fields['k'].set('.1')
+    assert c.catalog.references(w._system_context)['absolute_roughness']['default_value']==.045
+    c.action('discharge_head_loss','absolute_roughness','project')
+    assert c.catalog.references(w._system_context)['absolute_roughness']['default_value']==.1
     state=w._export_all_page_states();service=w._project_persistence_service
     service.save(state);identifier=w._active_project.id
     reopened,_=service.open(identifier)
     w._activate_project(reopened);w._root.update()
     assert w._locked_project_family()=='fuel'
     assert w._system_context.fluid.code=='F76'
-    assert w._engineering_context_controller.read('discharge_head_loss','kinematic_viscosity')==4
+    assert w._engineering_context_controller.read('discharge_head_loss','absolute_roughness')==.1
     assert w._export_all_page_states()['engineering_links']==state['engineering_links']
 
 
@@ -71,7 +72,7 @@ def test_context_dialog_geometry_and_localized_contract(shell,size,language):
             assert widget.winfo_x()+widget.winfo_width()<=dialog.window.winfo_width()
         assert dialog.window.winfo_width()<=size[0] and dialog.window.winfo_height()<=size[1]
         assert 'system_family' not in dialog.variables
-        assert len(dialog.tree.get_children())==5
+        assert len(dialog.tree.get_children())==6
     finally:
         if dialog:dialog.window.destroy()
         w._translate=old
@@ -94,6 +95,13 @@ def test_calculation_freezes_actual_values_and_old_reports_ignore_library(shell,
     monkeypatch.setattr('ui.main_window.messagebox.showerror',fail)
     page._fields['nu'].set('');page._fields['k'].set('')
     c.apply(chosen(c.catalog))
+    # Reconstruct a pre-v8 saved source link. Loading must retain it, while a
+    # new calculation must flag its specification midpoint as stale operating data.
+    from services.engineering_value_links import bind
+    legacy={'version':1,'links':{'discharge_head_loss':{
+        'kinematic_viscosity':bind(c.catalog.references(w._system_context)['kinematic_viscosity'],4).payload(),
+        'absolute_roughness':c.links['discharge_head_loss']['absolute_roughness'].payload()}}}
+    c.load(legacy)
     for key,value in {'d':'100','q':'25','l':'10','h':'5','nu':'4'}.items():page._fields[key].set(value)
     page._calculate();w._root.update()
     assert page._last_result
@@ -103,7 +111,8 @@ def test_calculation_freezes_actual_values_and_old_reports_ignore_library(shell,
     value=next(v for v in basis['values'] if v['reference']['property_name']=='kinematic_viscosity')
     assert value['reference']['source_min']==1.7 and value['reference']['source_max']==4.3
     assert value['reference']['default_value']==3 and value['used_value']==4
-    assert value['reference']['default_method']=='DERIVED_MIDPOINT' and value['status']=='OVERRIDE'
+    assert value['reference']['default_method']=='DERIVED_MIDPOINT' and value['status']=='STALE'
+    assert value['is_override'] and value['pending']['verification']=='SOURCE_REQUIRED'
     assert value['reference']['source_document']=='MIL-DTL-16884R'
     assert any(s.key=='engineering_basis' for s in step_sections(snapshot.formula_steps[0],w._translate))
     report=adapt_snapshot(snapshot,language='en')
@@ -115,7 +124,8 @@ def test_calculation_freezes_actual_values_and_old_reports_ignore_library(shell,
     text='\n'.join(p.extract_text() for p in PdfReader(BytesIO(pdf)).pages)
     assert 'MIL-DTL-16884R' in text and '1.7' in text and '4.3' in text
     assert EN['engineering.method.DERIVED_MIDPOINT'] in text
-    assert EN['engineering.status.OVERRIDE'] in text
+    assert EN['engineering.status.STALE'] in text
+    assert any(v.source.source_type.value=='USER_INPUT' and not v.is_overridden for step in snapshot.formula_steps for v in step.used_values if v.symbol=='ν')
     frozen=snapshot.evidence_json
     c.catalog.property_records=tuple(replace(r,default_value=900,default_method='USER_DEFINED') if r.property_name=='density' else r for r in c.catalog.property_records)
     assert adapt_snapshot(snapshot,language='en')==report and snapshot.evidence_json==frozen

@@ -3,6 +3,19 @@
 from i18n.terminology import terminology_messages
 
 MESSAGES = {
+    'hydro.manual_source_note': 'Manual operating value. A prior specification link does not verify the operating property.',
+    "hydro.fluid.temperature": "Operating temperature [°C]",
+    "hydro.fluid.salinity": "Salinity [g/kg]",
+    "hydro.fluid.pressure": "Property reference pressure [MPa absolute]",
+    "hydro.fluid.apply": "Apply Fluid",
+    "hydro.fluid.atmosphere": "Select atmospheric pressure",
+    "hydro.fluid.notice": "Enter density and viscosity manually if no exact match exists. Inputs are preserved; review source changes using Update / Keep Current.",
+    "hydro.fluid.density_reference": "Density [kg/m³] — reference only",
+    "hydro.condition.temperature_c": "Operating temperature [°C]",
+    "hydro.condition.salinity_g_kg": "Salinity [g/kg]",
+    "hydro.condition.pressure_mpa": "Property reference pressure [MPa absolute]",
+    "hydro.reference_only": "Reference only; not used in this equation",
+    "engineering.method.PUBLISHED_POINT": "Published property point",
     'library2.field.data_role': 'Data role',
     'catalog.kind.operating': 'Published condition-specific property point; not an automatic calculation default.',
     'catalog.kind.specification': 'Specification / reference record; not assumed to be an actual operating property.',

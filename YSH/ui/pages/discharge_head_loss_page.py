@@ -407,6 +407,7 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         sections[11] = FormulaSection("RESULT",f"{self._translate('result.total_hydraulic_loss')} hhat = {format_user_number(result.total_hydraulic_loss_m)} m\n{self._translate('result.system_manometric_head')} Hs = {format_user_number(result.system_head_m)} m", system_stage, "result")
         return sections
     def _calculate(self)->None:
+        if hasattr(self,'_fluid_preflight') and not self._fluid_preflight():return
         try:
             labels={"d":"Pipe Inside Diameter (mm)","q":"Flow Rate","nu":"Kinematic Viscosity","l":"Pipe Length","k":"Roughness (mm)","h":"Geodetic Head"};field_keys={"d":"field.pipe_inside_diameter","q":"field.flow_rate","nu":"field.kinematic_viscosity","l":"field.pipe_length","k":"field.roughness","h":"field.geodetic_head"};n=lambda key:parse_engineering_float(self._fields[key].get(),field_name=labels[key],field_key=field_keys[key]);viscosity=n("nu")*1e-6 if self._viscosity_unit.get()=="cSt" else n("nu");material_id=self._material_ids.get(self._material.get()) if self._using_library_source() else None
             if self._using_library_source() and material_id is None:raise ValidationError(ValidationIssue("selection_required","field.material"))

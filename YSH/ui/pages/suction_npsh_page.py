@@ -591,6 +591,7 @@ class SuctionNPSHPage(ttk.Frame):
             self._mark_dirty()
 
     def _calculate_suction_loss(self) -> None:
+        if hasattr(self,'_fluid_preflight') and not self._fluid_preflight():return
         """Calculate hydraulics without requiring pressure or NPSH inputs."""
         try:
             labels = {"diameter": "Pipe Inside Diameter (mm)", "flow": "Flow Rate", "viscosity": "Kinematic Viscosity", "length": "Pipe Length", "roughness": "Roughness (mm)"}
@@ -641,6 +642,7 @@ class SuctionNPSHPage(ttk.Frame):
         notify_success(self,"hydraulics",result)
 
     def _calculate_enpy(self) -> None:
+        if hasattr(self,'_fluid_preflight') and not self._fluid_preflight():return
         """Calculate ENPY using the current valid suction-line loss only."""
         loss = getattr(self, "_last_loss", None)
         if loss is None:

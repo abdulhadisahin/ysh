@@ -6,9 +6,9 @@ from engineering.system_context import SystemContext,ContextReference
 SERVICES=('', 'DIESEL_FUEL_DELIVERY','DIESEL_FUEL_SUCTION','SEA_WATER_COOLING','FRESH_WATER_COOLING','LUBE_OIL','BALLAST','BILGE')
 
 class EngineeringSelectionForm(ttk.Frame):
-    def __init__(self,parent,catalog,translate,context=None,*,module=None):
+    def __init__(self,parent,catalog,translate,context=None,*,module=None,family=None):
         super().__init__(parent)
-        self.catalog=catalog;self.tr=translate;self.variables={};self.boxes={};self.labels={};self.choices={}
+        self.catalog=catalog;self.tr=translate;self.variables={};self.boxes={};self.labels={};self.choices={};self.family=family
         self.columnconfigure(1,weight=1)
         fixed_line=module in ('discharge_head_loss','suction_npsh')
         fields=('fluid','material','surface','profile') if fixed_line else ('fluid','material','surface','service','profile')
@@ -31,7 +31,7 @@ class EngineeringSelectionForm(ttk.Frame):
         self.context=context;none=self.tr('engineering.none')
         fluid_choices={none:None}
         seawater=context.system is not None and context.system.code=='SEA_WATER'
-        for fluid in (self.catalog.project_fluids('seawater') if seawater else self.catalog.fluid_records):
+        for fluid in (self.catalog.project_fluids(self.family) if self.family else self.catalog.project_fluids('seawater') if seawater else self.catalog.fluid_records):
             label=fluid.name_tr
             if label in fluid_choices:label+=' · '+fluid.code
             fluid_choices[label]=fluid.id

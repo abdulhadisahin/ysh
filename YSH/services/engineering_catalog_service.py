@@ -98,6 +98,30 @@ class EngineeringCatalogService:
         return {'fluid_ready':fluid_ready,'material_properties':properties,'corrosion_criteria':corrosion,
                 'temperature_c':context.fluid_temperature_c,'salinity_g_kg':context.fluid_salinity_g_kg,
                 'hw_applicability':'SOURCE_REQUIRED'}
+
+    def hydraulic_references(self,context):
+        """Operating points only; specification bounds/midpoints are never substituted."""
+        import uuid
+        values={k:v for k,v in self.references(context).items() if k not in ('density','kinematic_viscosity')}
+        profile=self.completion.profiles.get(context.fluid_id) if context.fluid_id else None
+        salinity=context.fluid_salinity_g_kg if profile and profile.classification=='SEA_WATER' else 0
+        points=self.completion.operating_references(context.fluid_id,temperature_c=context.fluid_temperature_c,
+            salinity_g_kg=salinity,pressure_mpa=context.fluid_reference_pressure_mpa) if context.fluid_id else {}
+        if profile and profile.classification=='FRESH_WATER' and context.fluid_salinity_g_kg not in (None,0):points={}
+        for name,unit in (('density','kg/m³'),('kinematic_viscosity','cSt')):
+            point=points.get(name);proof=point.get('source_evidence',{}) if point else {}
+            condition=f'{context.fluid_id}:{name}:{context.fluid_temperature_c}:{salinity}:{context.fluid_reference_pressure_mpa}'
+            values[name]={'id':point['id'] if point else str(uuid.uuid5(uuid.NAMESPACE_URL,'d243:manual-fluid:'+condition)),
+                'property_name':name,'name':context.fluid.name_tr if context.fluid else '', 'unit':unit,
+                'default_value':point['value'] if point else None,'default_method':'PUBLISHED_POINT' if point else 'SOURCE_REQUIRED',
+                'source_min':None,'source_max':None,'source_nominal':None,'record_kind':'OPERATING_POINT' if point else 'MANUAL_REQUIRED',
+                'reference_temperature_c':context.fluid_temperature_c,'reference_salinity_g_kg':salinity,
+                'reference_pressure_mpa':context.fluid_reference_pressure_mpa,
+                'source_authority':proof.get('owner',''),'source_document':proof.get('document_number',''),
+                'source_edition':proof.get('edition',''),'source_note':proof.get('applicability',''),
+                'verification':'VERIFIED' if point else 'SOURCE_REQUIRED'}
+            if proof:values[name]['source_evidence']=proof
+        return values
     def matching_rules(self,context,family,module):
         group=next((r.fluid_group for r in self.property_records if r.fluid_id==context.fluid_id),'')
         material=next((r.material_name for r in self.surface_records if r.id==context.surface_profile_id),'')

@@ -67,8 +67,16 @@ class ReportLanguage:
 
 def basis_explanations(payload,language):
     ui=ReportLanguage(language);tr=ui.tr;paragraphs=[]
+    for key,value in payload.get('fluid_conditions',{}).items():
+        if value is not None:paragraphs.append(tr('hydro.condition.'+key)+': '+(str(value).replace('.',',') if language=='tr' else str(value)))
     for item in payload.get('values',()):
         ref=item['reference'];name=ui.text(ref.get('name') or payload.get('fluid') or '')
+        if item.get('pending'):paragraphs.append(tr('engineering.pending')+': '+ui.status('SOURCE_REQUIRED' if item['pending'].get('default_value') is None else 'LINKED'))
+        if ref.get('record_kind')=='OPERATING_POINT':
+            for field,key in (('reference_temperature_c','temperature_c'),('reference_salinity_g_kg','salinity_g_kg'),('reference_pressure_mpa','pressure_mpa')):
+                if ref.get(field) is not None:
+                    value=str(ref[field]).replace('.',',') if language=='tr' else str(ref[field])
+                    paragraphs.append(tr('engineering.reference')+' / '+tr('hydro.condition.'+key)+': '+value)
         property_name=tr('engineering.property.'+ref['property_name']);unit=ref.get('unit','')
         low,high=ref.get('source_min'),ref.get('source_max');temperature=ref.get('reference_temperature_c')
         default,used=ref.get('default_value'),item.get('used_value')
@@ -78,7 +86,9 @@ def basis_explanations(payload,language):
         if ref.get('default_method')=='DERIVED_MIDPOINT' and low is not None and high is not None and default is not None:
             paragraphs.append(tr('word.explain.midpoint',default=ui.number(default),unit=unit) if ref.get('source_nominal') is None else tr('word.explain.default',default=ui.number(default),unit=unit))
         elif default is not None:paragraphs.append(tr('word.explain.default',default=ui.number(default),unit=unit))
-        if used is not None:
+        if used is not None and item.get('use_role')=='REFERENCE_ONLY':
+            paragraphs.append(tr('hydro.reference_only')+': '+ui.number(used)+' '+unit)
+        elif used is not None:
             paragraphs.append(tr('word.explain.override' if item.get('status')=='OVERRIDE' else 'word.explain.used',used=ui.number(used),unit=unit))
         from engineering.source_verification import evidence_rows
         paragraphs.extend(label+': '+value for label,value in evidence_rows(ref.get('source_evidence'),tr))

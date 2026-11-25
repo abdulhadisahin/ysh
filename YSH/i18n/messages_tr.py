@@ -3,6 +3,19 @@
 from i18n.terminology import terminology_messages
 
 MESSAGES = {
+    'hydro.manual_source_note': 'Manuel işletme değeri. Önceki spesifikasyon bağlantısı işletme özelliğini doğrulamaz.',
+    "hydro.fluid.temperature": "İşletme sıcaklığı [°C]",
+    "hydro.fluid.salinity": "Tuzluluk [g/kg]",
+    "hydro.fluid.pressure": "Özellik referans basıncı [MPa mutlak]",
+    "hydro.fluid.apply": "Akışkanı Uygula",
+    "hydro.fluid.atmosphere": "Atmosfer basıncını seç",
+    "hydro.fluid.notice": "Tam eşleşme yoksa yoğunluk ve viskoziteyi manuel girin. Girdiler korunur; kaynak değişikliklerini Güncelle / Mevcut Değeri Koru ile inceleyin.",
+    "hydro.fluid.density_reference": "Yoğunluk [kg/m³] — bilgi amaçlı",
+    "hydro.condition.temperature_c": "İşletme sıcaklığı [°C]",
+    "hydro.condition.salinity_g_kg": "Tuzluluk [g/kg]",
+    "hydro.condition.pressure_mpa": "Özellik referans basıncı [MPa mutlak]",
+    "hydro.reference_only": "Bilgi amaçlı; bu denklemde kullanılmaz",
+    "engineering.method.PUBLISHED_POINT": "Yayımlanmış özellik noktası",
     'library2.field.data_role': 'Veri Türü',
     'catalog.kind.operating': 'Koşula bağlı yayımlanmış özellik noktası; otomatik hesap varsayılanı değildir.',
     'catalog.kind.specification': 'Spesifikasyon / referans kaydı; gerçek işletme özelliği olarak kabul edilmez.',

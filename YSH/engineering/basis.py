@@ -3,6 +3,8 @@ import json
 
 def basis_rows(payload,translate):
     tr=translate;rows=[]
+    for key,value in payload.get('fluid_conditions',{}).items():
+        if value is not None:rows.append((tr('hydro.condition.'+key),str(value)))
     if payload.get('project_fluid'):rows.append((tr('engineering.project_fluid'),payload['project_fluid']))
     if payload.get('context_scope'):rows.append((tr('engineering.context_title'),tr('engineering.status.'+payload['context_scope'])))
     if payload.get('surface_condition'):rows.append((tr('engineering.select.surface'),payload['surface_condition'].replace('_',' ').title()))
@@ -20,15 +22,21 @@ def basis_rows(payload,translate):
         temperature=reference.get('reference_temperature_c')
         rows.append((label+' / '+tr('engineering.reference'),(span+' '+unit+(' @ '+str(temperature)+' °C' if temperature is not None else '')).strip() if span else tr('engineering.range_unrecorded')))
         if reference.get('source_nominal') is not None:rows.append((label+' / '+tr('engineering.nominal'),str(reference['source_nominal'])+' '+unit))
+        if reference.get('record_kind')=='OPERATING_POINT':
+            for field,key in (('reference_temperature_c','temperature_c'),('reference_salinity_g_kg','salinity_g_kg'),('reference_pressure_mpa','pressure_mpa')):
+                if reference.get(field) is not None:rows.append((label+' / '+tr('engineering.reference')+' / '+tr('hydro.condition.'+key),str(reference[field])))
         rows.append((label+' / '+tr('engineering.default'),str(reference['default_value'])+' '+unit if reference.get('default_value') is not None else tr('engineering.status.SOURCE_REQUIRED')))
         if 'library_default' in reference:rows.append((label+' / '+tr('engineering.library_default'),str(reference['library_default'])+' '+unit))
         rows.append((label+' / '+tr('engineering.method.label'),tr('engineering.method.'+reference.get('default_method','SOURCE_REQUIRED'))))
-        rows.append((label+' / '+tr('engineering.used'),str(item['used_value'])+' '+unit if item.get('used_value') is not None else tr('engineering.none')))
+        rows.append((label+' / '+tr('hydro.reference_only' if item.get('use_role')=='REFERENCE_ONLY' else 'engineering.used'),str(item['used_value'])+' '+unit if item.get('used_value') is not None else tr('engineering.none')))
         rows.append((label+' / '+tr('engineering.status'),tr('engineering.status.'+item.get('status','MANUAL'))))
         source=' · '.join(str(reference.get(n) or '') for n in ('source_authority','source_document','source_edition'))
         rows.append((label+' / '+tr('engineering.source'),source.strip(' ·')))
         rows.append((label+' / '+tr('engineering.verification.label'),tr('engineering.verification.'+reference.get('verification','SOURCE_REQUIRED'))))
         if reference.get('source_note'):rows.append((label+' / '+tr('engineering.note'),reference['source_note']))
+        if item.get('pending'):
+            pending=item['pending']
+            rows.append((tr('engineering.pending'),tr('engineering.status.'+('SOURCE_REQUIRED' if pending.get('default_value') is None else 'LINKED'))))
         from engineering.source_verification import evidence_rows
         rows.extend(evidence_rows(reference.get('source_evidence'),tr))
     for rule in payload.get('rules',()):
