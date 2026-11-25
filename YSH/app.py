@@ -154,6 +154,9 @@ class YSHApplication:
             from repositories.calculation_repository import CalculationRepository
             self._main_window.set_snapshot_history_service(
                 SnapshotHistoryService(CalculationRepository(self._project_database)))
+        if hasattr(self._main_window, "restore_project_session"):
+            from core.user_settings import UserSettings
+            self._main_window.restore_project_session(UserSettings(self._paths.settings_file_path))
         self._root.mainloop()
 
     def _apply_window_icon(self) -> None:

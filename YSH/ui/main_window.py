@@ -1006,14 +1006,32 @@ class MainWindow:
         self._activate_project(project, self._text("message.project_created"))
         return True
 
+    def restore_project_session(self, settings) -> None:
+        """Restore saved data once, after all application services are attached."""
+        if getattr(self, "_session_restore_attempted", False):
+            return
+        self._session_restore_attempted = True
+        self._session_settings = settings
+        if self._active_project is not None:
+            return
+        try:
+            identity = settings.session().get("last_project_id")
+            if identity:
+                project = self._project_persistence_service.get_project(UUID(identity))
+                self._activate_project(project, quiet=True)
+        except Exception:
+            LOGGER.warning("Last project unavailable; retaining the no-project workspace.", exc_info=True)
+
     def _activate_project(
         self,
         project: Project,
         message: str | None = None,
-    ) -> None:
+        *, quiet: bool = False,
+    ) -> bool:
         persistence = getattr(self, "_project_persistence_service", None)
         previous_project = self._active_project
         previous_state = self._export_all_page_states()
+        self._session_loading = True
         try:
             if persistence is not None:
                 has_saved_state = getattr(
@@ -1035,12 +1053,14 @@ class MainWindow:
                 self._load_all_page_states(previous_state)
             except Exception:
                 LOGGER.exception("Unable to restore the prior project workspace.")
-            messagebox.showerror(
-                self._translate("dialog.error"),
-                self._translate("validation.unexpected_error"),
-                parent=self._root,
-            )
-            return
+            self._session_loading = False
+            if not quiet:
+                messagebox.showerror(
+                    self._translate("dialog.error"),
+                    self._translate("validation.unexpected_error"),
+                    parent=self._root,
+                )
+            return False
         self._active_project = project
         MainWindow._refresh_family_selector(self)
         MainWindow._clear_pdf_snapshots(self)
@@ -1057,6 +1077,19 @@ class MainWindow:
         self._status_bar.set_message(
             message or self._text("message.project_opened")
         )
+        settings = getattr(self, "_session_settings", None)
+        if settings is not None:
+            tabs = settings.session().get("tabs", {})
+            key = tabs.get(str(project.id)) if isinstance(tabs, dict) else None
+            if isinstance(key, str) and key in MODULES[self._family]:
+                host = self._page_host if self._family in ('fuel', 'seawater') else self._fire_workspace.host
+                tab = host._page_keys.get(key)
+                if tab is not None and host.tab(tab, 'state') == 'normal':
+                    self._navigation.last_active_module_by_family[self._family] = key
+                    self._show_family(self._family, dirty=False, remember=False)
+            settings.remember(project.id)
+        self._session_loading = False
+        return True
 
     def _close_project(self) -> None:
         """Close the optional project without disabling calculations."""
@@ -1596,6 +1629,11 @@ class MainWindow:
         host = self._page_host if family in ('fuel','seawater') else self._fire_workspace.host
         selected = host.select()
         key = next((key for key, tab in host._page_keys.items() if str(tab) == selected), None)
+        settings = getattr(self, '_session_settings', None)
+        if (settings is not None and self._active_project is not None
+                and not getattr(self, '_session_loading', False) and key in MODULES[family]):
+            settings.remember(self._active_project.id, key)
+            dirty = False  # Tab preference is local, independent of project saves.
         if key in MODULES[family] and self._navigation.last_active_module_by_family[family] != key:
             self._navigation.last_active_module_by_family[family] = key
             if dirty:

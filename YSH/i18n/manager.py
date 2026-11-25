@@ -34,13 +34,8 @@ class LanguagePreferenceStore:
 
     def save(self, language: str) -> None:
         """Persist one normalized language code without touching project data."""
-        self._path.parent.mkdir(parents=True, exist_ok=True)
-        temporary_path = self._path.with_suffix(".tmp")
-        temporary_path.write_text(
-            json.dumps({"language": language}, ensure_ascii=False),
-            encoding="utf-8",
-        )
-        temporary_path.replace(self._path)
+        from core.user_settings import UserSettings
+        UserSettings(self._path).update(language=language)
 
 
 class LocalizationManager:
