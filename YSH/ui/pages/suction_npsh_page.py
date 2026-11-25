@@ -6,6 +6,7 @@ from ui.widgets.module_visuals import apply_module_visuals
 import tkinter as tk
 from ui.widgets.input_guidance import localize_guidance
 from ui.widgets.numeric_input import numeric_entry
+from ui.widgets.local_loss_toolbar import layout_local_loss_toolbar
 import logging
 from collections.abc import Callable
 from tkinter import messagebox, ttk
@@ -187,17 +188,18 @@ class SuctionNPSHPage(ttk.Frame):
         self._tree.bind("<Double-1>", self._edit_loss)
         self._tree.bind("<Return>", self._edit_loss)
         self._tree.bind("<Delete>", self._delete_loss)
+        self._loss_actions=ttk.Frame(losses)
+        self._loss_actions.grid(row=1,column=0,columnspan=4,sticky='ew',pady=(8,0))
         self._loss_buttons = []
         for column, text_key, command, style, palette in ((0, "common.add", self._add_loss, "RoundedAdd.TButton", ADD_BUTTON_PALETTE), (1, "common.edit", self._edit_loss, "RoundedEdit.TButton", EDIT_BUTTON_PALETTE), (2, "common.delete", self._delete_loss, "RoundedDelete.TButton", DELETE_BUTTON_PALETTE), (3, "action.clear_all", self._clear_losses, "RoundedClearAll.TButton", CLEAR_ALL_BUTTON_PALETTE)):
-            button = create_rounded_button(losses, self._translate(text_key), command, style=style, palette=palette)
-            button.grid(row=1, column=column, padx=(0, 8), pady=(8, 0), sticky="w")
+            button = create_rounded_button(self._loss_actions, self._translate(text_key), command, style=style, palette=palette)
             self._loss_buttons.append((button, text_key))
-        ttk.Label(losses, text="ΣK", style="ResultMetricLabel.TLabel").grid(
-            row=2, column=0, sticky="w", pady=(8, 0)
-        )
-        ttk.Label(losses, textvariable=self._k_total_summary, style="ResultMetricValue.TLabel").grid(
-            row=2, column=1, sticky="w", pady=(8, 0)
-        )
+        self._k_total_context=ttk.Frame(self._loss_actions)
+        self._k_total_context_label=ttk.Label(self._k_total_context,text="ΣK:",style="ResultMetricLabel.TLabel")
+        self._k_total_context_label.grid(row=0,column=0,sticky='w')
+        self._k_total_context_value=ttk.Label(self._k_total_context,textvariable=self._k_total_summary,style="ResultMetricValue.TLabel")
+        self._k_total_context_value.grid(row=0,column=1,sticky='w',padx=(8,0))
+        layout_local_loss_toolbar(self._loss_actions,tuple(b for b,_ in self._loss_buttons),self._k_total_context)
 
         self._enpy_card = InputCard(self, self._translate("section.enpy_inputs"))
         enpy = self._enpy_card

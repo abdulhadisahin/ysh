@@ -60,7 +60,8 @@ def test_discharge_initial_metrics_and_sigma_k_use_page_owned_result_state() -> 
 
     assert 'self._k_total_summary=tk.StringVar(value="—")' in source
     assert '"result.local_loss_coefficient",self._k_total_summary' in source
-    assert 'self._k_total_context_label=ttk.Label(self._k_total_context,text="ΣK"' in source
+    assert 'self._k_total_context_label=ttk.Label(self._k_total_context,text="ΣK:"' in source
+    assert 'layout_local_loss_toolbar(self._loss_actions,self._loss_action_buttons,self._k_total_context)' in source
     assert "result.local_loss_coefficient_total" in source
     assert "def _clear_result_metrics" in source
 

@@ -4,6 +4,7 @@ from ui.widgets.module_visuals import apply_module_visuals
 import tkinter as tk
 from ui.widgets.input_guidance import localize_guidance
 from ui.widgets.numeric_input import numeric_entry
+from ui.widgets.local_loss_toolbar import layout_local_loss_toolbar
 import logging
 from collections.abc import Callable
 from uuid import UUID, uuid4
@@ -69,16 +70,17 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         self._tree.column("name",width=150,anchor="w");self._tree.column("quantity",width=72,anchor="e");self._tree.column("k",width=72,anchor="e");self._tree.column("total",width=82,anchor="e")
         self._tree_container.grid(row=0,column=0,sticky="nsew");self._tree.bind("<Double-1>",self._edit);self._tree.bind("<Return>",self._edit);self._tree.bind("<Delete>",self._delete)
         self._local_loss_empty_state=EmptyState(losses,"local_loss","Lokal kayıp elemanı eklenmedi","Dirsek, vana, süzgeç veya diğer elemanları ekleyerek lokal kayıp hesabını oluşturabilirsiniz.","Ekle komutunu kullanın.",image_size=150);self._local_loss_empty_state.grid(row=0,column=0,sticky="nsew");self._local_loss_empty_state.grid_remove()
-        self._loss_actions=ttk.Frame(losses);self._loss_actions.grid(row=1,column=0,sticky="w",pady=(8,0))
+        self._loss_actions=ttk.Frame(losses);self._loss_actions.grid(row=1,column=0,sticky="ew",pady=(8,0))
         self._add_button=create_rounded_button(self._loss_actions,self._translate("common.add"),self._add,style="RoundedAdd.TButton",palette=ADD_BUTTON_PALETTE,icon_name="add",icon_only=True,tooltip_text=self._translate("common.add"),icon_size=30,square_size=38)
         self._edit_button=create_rounded_button(self._loss_actions,self._translate("common.edit"),self._edit,style="RoundedEdit.TButton",palette=EDIT_BUTTON_PALETTE,icon_name="edit",icon_only=True,tooltip_text=self._translate("common.edit"),icon_size=30,square_size=38)
         self._delete_button=create_rounded_button(self._loss_actions,self._translate("common.delete"),self._delete,style="RoundedDelete.TButton",palette=DELETE_BUTTON_PALETTE,icon_name="delete",icon_only=True,tooltip_text=self._translate("common.delete"),icon_size=30,square_size=38)
         self._clear_all_button=create_rounded_button(self._loss_actions,self._translate("action.clear_all"),self._clear_all,style="RoundedClearAll.TButton",palette=CLEAR_ALL_BUTTON_PALETTE,icon_name="clear",icon_size=28)
         self._loss_action_buttons=(self._add_button,self._edit_button,self._delete_button,self._clear_all_button)
         for column,button in enumerate(self._loss_action_buttons):button.grid(row=0,column=column,sticky="w",padx=(0 if column==0 else 8,0))
-        self._k_total_context=ttk.Frame(losses);self._k_total_context.grid(row=2,column=0,sticky="w",pady=(6,0))
-        self._k_total_context_label=ttk.Label(self._k_total_context,text="ΣK",style="TechnicalReference.TLabel");self._k_total_context_label.grid(row=0,column=0,sticky="w")
+        self._k_total_context=ttk.Frame(self._loss_actions)
+        self._k_total_context_label=ttk.Label(self._k_total_context,text="ΣK:",style="TechnicalReference.TLabel");self._k_total_context_label.grid(row=0,column=0,sticky="w")
         self._k_total_context_value=ttk.Label(self._k_total_context,textvariable=self._k_total_summary,style="TechnicalReferenceValue.TLabel");self._k_total_context_value.grid(row=0,column=1,sticky="w",padx=(8,0))
+        layout_local_loss_toolbar(self._loss_actions,self._loss_action_buttons,self._k_total_context)
         self._results_card=ResultCard(workspace,self._translate("section.calculation_results"));results=self._results_card;results.grid(row=0,column=2,sticky="new",padx=(6,0));results.columnconfigure(0,weight=1)
         self._result_actions=ttk.Frame(results);self._result_actions.grid(row=0,column=0,columnspan=2,sticky="w")
         self._calculate_button=create_rounded_button(self._result_actions,self._translate("calculation.calculate"),self._calculate,style="DischargeRoundedPrimary.TButton",palette=DISCHARGE_PRIMARY_PALETTE,primary=True,icon_name="calculate",icon_size=36)
@@ -110,7 +112,6 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         self._formula_panel=FormulaReferencePanel(self,self._formula_sections,self._translate,self._create_formula_toggle,lambda:hasattr(self,"_last_result"),step_provider=self._formula_steps, separate_window=True, module_key="discharge_head_loss");self._formula_panel.grid(row=4,column=0,sticky="ew",pady=(10,0))
         self._responsive_layout_mode=""
         self._workspace.bind("<Configure>",self._on_workspace_configure,add="+")
-        self._loss_actions.bind("<Configure>",self._on_action_configure,add="+")
         self._result_actions.bind("<Configure>",self._on_action_configure,add="+")
         self._results_card.bind("<Configure>",self._on_results_configure,add="+")
         self.after_idle(self._reflow_layout)
@@ -181,12 +182,11 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         self.after_idle(self._reflow_supporting_metrics)
 
     def _on_action_configure(self,_event:tk.Event[tk.Misc])->None:
-        """Keep local-loss and result actions fully visible at narrow widths."""
+        """Keep result actions fully visible at narrow widths."""
         self._reflow_action_buttons()
 
     def _reflow_action_buttons(self)->None:
-        """Use compact rows until translated button text needs a vertical stack."""
-        self._reflow_button_group(self._loss_actions,self._loss_action_buttons)
+        """Local-loss actions stay horizontal; result actions retain their existing reflow."""
         self._reflow_button_group(self._result_actions,self._result_action_buttons)
 
     @staticmethod
