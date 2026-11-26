@@ -43,15 +43,22 @@ def test_unresolved_marine_grades_and_surface_conditions(catalog):
     for code in ('DMA','DMZ','DMB','RMA_20','RME_180','RMG_380','RMK_500'):
         context=chosen(catalog,fuel=code)
         refs=catalog.references(context)
-        assert refs['density']['default_value'] is None and refs['kinematic_viscosity']['default_method']=='SOURCE_REQUIRED'
-        assert refs['density']['source_document']=='ISO 8217:2024'
+        assert refs['density']['default_value'] is None and refs['density']['source_document']=='ISO 8217:2024'
+        distillate=code in ('DMA','DMZ','DMB')
+        assert (refs['kinematic_viscosity']['default_method']=='DERIVED_MIDPOINT')==distillate
+    low,high={'DMA':(2.,6.),'DMZ':(2.,6.),'DMB':(2.,11.)}['DMB']
+    dmb=catalog.references(chosen(catalog,fuel='DMB'))
+    assert (dmb['kinematic_viscosity']['source_min'],dmb['kinematic_viscosity']['source_max'])==(low,high)
+    assert dmb['kinematic_viscosity']['default_value']==6.5 and dmb['density']['source_max']==900.
     surfaces={r.code:r for r in catalog.surface_records}
     assert surfaces['CARBON_NEW'].roughness_mm==.045 and surfaces['STAINLESS_NEW'].roughness_mm==.015
     assert surfaces['HDPE_NEW'].roughness_mm==.00152
     assert surfaces['CARBON_CORRODED'].roughness_mm is None
     assert surfaces['CARBON_CORRODED'].material_name==surfaces['CARBON_NEW'].material_name
     assert surfaces['CARBON_CORRODED'].surface_condition!=surfaces['CARBON_NEW'].surface_condition
-    for code in ('GRE_NEW','PVC_NEW','CAST_IRON_NEW'):assert surfaces[code].verification=='SOURCE_REQUIRED'
+    assert surfaces['GRE_NEW'].verification=='SOURCE_REQUIRED'
+    assert surfaces['PVC_NEW'].roughness_mm==.00152 and surfaces['CAST_IRON_NEW'].roughness_mm==.122
+    assert surfaces['CAST_IRON_UNCOATED'].roughness_mm==.26 and 'Table 3.A.1' in surfaces['CAST_IRON_UNCOATED'].source_document
 
 
 @pytest.mark.parametrize('value,status',[(1.8,'OK'),(2.1,'WARNING'),(3,'OUT_OF_RANGE'),(15,'CRITICAL'),(99,'CRITICAL')])
@@ -145,7 +152,7 @@ def test_v5_migration_preserves_existing_rows_and_is_atomic(tmp_path,monkeypatch
         for name,rows in before.items():assert c.execute('SELECT * FROM '+name).fetchall()==rows
     database=LibraryDatabase(path);database.initialize();database.initialize()
     with database.connection() as c:
-        assert c.execute('SELECT version FROM schema_version').fetchone()[0]==8
+        assert c.execute('SELECT version FROM schema_version').fetchone()[0]==9
         for name,rows in before.items():assert [tuple(row) for row in c.execute('SELECT * FROM '+name)]==rows
         assert c.execute('SELECT name_tr FROM fluids WHERE id=?',(fluid_id,)).fetchone()[0]=='User fluid'
         assert not c.execute('PRAGMA foreign_key_check').fetchall()

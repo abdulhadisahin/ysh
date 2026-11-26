@@ -6,6 +6,13 @@ from engineering.catalog import FluidSpecification,MaterialSurface,EngineeringRu
 def identity(code): return uuid5(NAMESPACE_URL,'d243:engineering:'+code)
 PROFILES=('D243','EVERLLENCE','TL_FFS','TL_LT500','CUNI_REFERENCE','WARTSILA')
 
+# ISO 8217:2017 Table 1 (distillates) as printed in a supplier table (Monjasa, 2020); the licensed
+# standard text itself was not read. Viscosity bounds are kinematic viscosity at 40 °C in mm²/s (= cSt).
+ISO_8217_2017_DISTILLATE={'DMA':{'viscosity_40c':(2.0,6.0),'density_15c_max':890.0},
+    'DMZ':{'viscosity_40c':(2.0,6.0),'density_15c_max':890.0},
+    'DMB':{'viscosity_40c':(2.0,11.0),'density_15c_max':900.0}}
+ISO_SUPPLIER_NOTE='ISO 8217:2017 kinematic viscosity at 40 °C as printed in a supplier table (Monjasa, 2020); licensed standard not read.'
+
 @lru_cache(maxsize=1)
 def fluid_seeds():
     definitions=[('F76','NATO F-76 Naval Distillate','DIESEL_FUEL','MIL-DTL-16884R',800,876,838,1.7,4.3,3.,40),
@@ -26,11 +33,32 @@ def fluid_seeds():
         ('WATER','Fresh Water','FRESH_WATER','',''),('SEAWATER','Seawater','SEA_WATER','',''),
         ('LUBE_OIL','Lubricating Oil','LUBE_OIL','',''),('CONTROL_AIR','Control Air','CONTROL_AIR','',''),('STARTING_AIR','Starting Air','STARTING_AIR','','')]:
         for parameter,unit in (('density','kg/m³'),('kinematic_viscosity','cSt')):
+            limits=ISO_8217_2017_DISTILLATE.get(code)
+            if limits and parameter=='kinematic_viscosity':
+                lo,hi=limits['viscosity_40c']
+                result.append(FluidSpecification(code=code+'_'+parameter.upper(),fluid_id=identity('fluid:'+code),name=name,fluid_group=group,
+                    property_name=parameter,unit=unit,source_min=lo,source_max=hi,default_value=(lo+hi)/2,default_method='DERIVED_MIDPOINT',
+                    reference_temperature_c=40,source_authority='ISO (via supplier table)',source_document='ISO 8217:2017',source_edition='2017',
+                    source_note=ISO_SUPPLIER_NOTE+' Midpoint is a D243 derived default (average), not a source nominal; enter a measured or contract value to override.',
+                    verification='LIMITED_APPLICABILITY',is_factory=True,id=identity('property:'+code+':'+parameter)))
+                continue
+            note='Exact applicable property and reference temperature require source verification.'
+            maximum=None
+            if limits and parameter=='density':
+                maximum=limits['density_15c_max']
+                note=('Maximum density at 15 °C per ISO 8217:2017 as printed in a supplier table ('+str(maximum)+' kg/m³); a limit, not a typical value. '
+                      'The standard gives no minimum, so no average is offered. Enter the supplier or lab value.')
             result.append(FluidSpecification(code=code+'_'+parameter.upper(),fluid_id=identity('fluid:'+code),name=name,fluid_group=group,
-                property_name=parameter,unit=unit,source_authority=authority,source_document=document,
-                source_note='Exact applicable property and reference temperature require source verification.',
+                property_name=parameter,unit=unit,source_max=maximum,reference_temperature_c=15 if maximum else None,
+                source_authority=authority,source_document=document,source_note=note,
                 is_factory=True,id=identity('property:'+code+':'+parameter)))
     return tuple(result)
+
+HI_DOCUMENT='Hydraulic Institute Data Tool, Fluid Flow - Pipe Frictional Losses, Table 3.A.1 (updated 2024-07-19)'
+HI_SURFACE_NOTES={
+    'PVC_NEW':'Absolute roughness epsilon. The table has no PVC row; 0.00152 mm is its plastic drawn-tubing value. Confirm for the actual pipe.',
+    'CAST_IRON_NEW':'Absolute roughness epsilon. 0.122 mm is the table value for asphalt-dipped cast iron (the lower of the two cast iron rows). Uncoated cast iron is 0.26 mm (see Cast Iron / Uncoated). The table says to add 15 % for commercial installations.',
+    'CAST_IRON_UNCOATED':'Absolute roughness epsilon. 0.26 mm is the table value for uncoated cast iron. The table says to add 15 % for commercial installations.'}
 
 @lru_cache(maxsize=1)
 def surface_seeds():
@@ -40,14 +68,18 @@ def surface_seeds():
         ('CUNI_9010_NEW','Cu-Ni 90/10 / New Drawn','Cu-Ni 90/10','NEW_DRAWN',.0015),
         ('COPPER_DRAWN','Copper / Drawn','Copper','DRAWN',.0015),
         ('HDPE_NEW','PE100 / HDPE','HDPE','NEW',.00152),
-        ('PVC_NEW','PVC / Smooth','PVC','SMOOTH',None),('GRE_NEW','GRP / GRE','GRP / GRE','NEW',None),
-        ('CAST_IRON_NEW','Cast Iron / New','Cast Iron','NEW',None),
+        ('PVC_NEW','PVC / Smooth','PVC','SMOOTH',.00152),('GRE_NEW','GRP / GRE','GRP / GRE','NEW',None),
+        ('CAST_IRON_NEW','Cast Iron / New','Cast Iron','NEW',.122),
+        ('CAST_IRON_UNCOATED','Cast Iron / Uncoated','Cast Iron','UNCOATED',.26),
         ('CARBON_CORRODED','Carbon Steel / Corroded','Carbon Steel','CORRODED',None))
-    return tuple(MaterialSurface(code=code,name=name,material_name=material,surface_condition=condition,roughness_mm=value,
-        source_authority='D243 user-approved engineering reference' if value is not None else '',
-        source_note='Absolute roughness epsilon, not Darcy f. Exact surface condition applies; source edition not supplied.',
-        verification='RECOMMENDATION' if value is not None else 'SOURCE_REQUIRED',is_factory=True,id=identity('surface:'+code))
-        for code,name,material,condition,value in definitions)
+    def build(code,name,material,condition,value):
+        reference=HI_SURFACE_NOTES.get(code)
+        return MaterialSurface(code=code,name=name,material_name=material,surface_condition=condition,roughness_mm=value,
+            source_authority=('Hydraulic Institute' if reference else 'D243 user-approved engineering reference') if value is not None else '',
+            source_document=HI_DOCUMENT if reference else '',
+            source_note=reference or 'Absolute roughness epsilon, not Darcy f. Exact surface condition applies; source edition not supplied.',
+            verification='RECOMMENDATION' if value is not None else 'SOURCE_REQUIRED',is_factory=True,id=identity('surface:'+code))
+    return tuple(build(*row) for row in definitions)
 
 @lru_cache(maxsize=1)
 def rule_seeds():

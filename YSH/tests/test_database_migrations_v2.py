@@ -162,12 +162,12 @@ def test_fresh_library_reaches_v6_with_explicit_engineering_catalog_seeds(tmp_pa
     db = LibraryDatabase(tmp_path / "fresh.db")
     db.initialize()
     with db.connection() as c:
-        assert _version(c) == 8
+        assert _version(c) == 9
         assert set(LIBRARY_TABLES) | {"schema_version","fluid_aliases"} | set(TABLES) | set(MODELS) | set(COMPLETION_MODELS) == _tables(c)
         assert all(c.execute(f"SELECT count(*) FROM {name}").fetchone()[0] == 0 for name in TABLES if name not in ("fluids","rule_sets"))
         assert c.execute("SELECT count(*) FROM fluids").fetchone()[0] == 20
         assert c.execute("SELECT count(*) FROM rule_sets").fetchone()[0] == 6
-        assert [c.execute(f"SELECT count(*) FROM {name}").fetchone()[0] for name in MODELS] == [28,10,23]
+        assert [c.execute(f"SELECT count(*) FROM {name}").fetchone()[0] for name in MODELS] == [28,11,23]
         assert c.execute("PRAGMA foreign_keys").fetchone()[0] == 1
         assert not c.execute("PRAGMA foreign_key_check").fetchall()
 
@@ -181,7 +181,7 @@ def test_v4_upgrade_preserves_every_existing_row_and_column(tmp_path):
     db.initialize()
     with db.connection() as c:
         assert _rows(c, LIBRARY_TABLES) == before
-        assert _version(c) == 8
+        assert _version(c) == 9
         ddl_after = dict(c.execute("SELECT name, sql FROM sqlite_master WHERE type='table'"))
         assert all(ddl_after[name] == ddl for name, ddl in ddl_before.items())
         assert not c.execute("PRAGMA foreign_key_check").fetchall()
@@ -215,7 +215,7 @@ def test_library_failure_rolls_back_ddl_data_and_version(tmp_path, monkeypatch):
     monkeypatch.setitem(migration_globals, "create_v5_schema", original)
     db.initialize()
     with db.connection() as c:
-        assert _version(c) == 8
+        assert _version(c) == 9
         assert _rows(c, LIBRARY_TABLES) == before
 
 

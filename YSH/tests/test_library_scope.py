@@ -47,3 +47,26 @@ def test_controller_row_filter_applies_before_other_filters():
     controller.records = (NS(n=1), NS(n=2)); controller.category = 'x'; controller.service = None
     controller.row_filter = lambda category, row: row.n == 2
     assert controller.filtered() == (NS(n=2),)
+
+
+def test_v9_fills_blank_factory_rows_but_keeps_user_edits(tmp_path):
+    from database.library_database import LibraryDatabase
+    path = tmp_path / 'lib.db'
+
+    class V8(LibraryDatabase):
+        SCHEMA_VERSION = 8
+    V8(path).initialize()
+    import sqlite3
+    raw = sqlite3.connect(path)
+    raw.execute("UPDATE material_surfaces SET roughness_mm=0.5 WHERE code='PVC_NEW'")
+    raw.execute("DELETE FROM material_surfaces WHERE code='CAST_IRON_UNCOATED'")
+    raw.execute("UPDATE fluid_specifications SET default_value=NULL,source_min=NULL,source_max=NULL,default_method='SOURCE_REQUIRED' "
+                "WHERE code='DMB_KINEMATIC_VISCOSITY'")
+    raw.execute("UPDATE schema_version SET version=8")
+    raw.commit(); raw.close()
+    LibraryDatabase(path).initialize()
+    raw = sqlite3.connect(path)
+    assert raw.execute("SELECT version FROM schema_version").fetchone()[0] == 9
+    assert raw.execute("SELECT default_value,source_min,source_max FROM fluid_specifications WHERE code='DMB_KINEMATIC_VISCOSITY'").fetchone() == (6.5, 2.0, 11.0)
+    assert raw.execute("SELECT roughness_mm FROM material_surfaces WHERE code='PVC_NEW'").fetchone()[0] == 0.5
+    assert raw.execute("SELECT roughness_mm FROM material_surfaces WHERE code='CAST_IRON_UNCOATED'").fetchone()[0] == 0.26
