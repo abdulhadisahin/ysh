@@ -25,6 +25,12 @@ from engineering.catalog_completion import OperatingFluidProperty, MechanicalGra
 
 
 from i18n.catalog_text import catalog_text
+from services.library_scope import scoped, visible_categories, allowed_fluid_ids, row_visible, category_visible
+
+
+def _scope_categories(window):
+    family=getattr(window,'_family',None);show=getattr(window,'_show_all',None)
+    return CATEGORIES if not family or (show is not None and show.get()) else visible_categories(family,CATEGORIES)
 
 
 def localized_library_value(key: str, value: object, translate: Callable[[str], str]) -> object:
@@ -104,7 +110,7 @@ def visible_detail(value: object) -> bool:
 class EngineeringLibraryWorkspace(tk.Toplevel):
     """Browse first; an explicit editor draft never autosaves or modifies project data."""
     def __init__(self, parent: tk.Misc, service: EngineeringLibraryService,
-                 translate: Callable[[str], str], owner: object, category: str = 'systems') -> None:
+                 translate: Callable[[str], str], owner: object, category: str = 'systems', family: str | None = None) -> None:
         """Load only the initial category after the user opens Libraries."""
         super().__init__(parent)
         self.transient(parent)
@@ -112,6 +118,9 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         configure_library_visuals(ttk.Style(self))
         self.configure(background=colors.WORKSPACE_SURFACE)
         self._controller=LibraryController(service)
+        self._family=family if scoped(family) else None
+        self._show_all=tk.BooleanVar(value=False);self._fluid_ids=None
+        self._controller.row_filter=self._row_in_scope
         self._translate=translate;self._owner=owner
         self._group=tk.StringVar();self._category=tk.StringVar();self._parent=tk.StringVar()
         self._search=tk.StringVar();self._active=tk.StringVar();self._ownership=tk.StringVar();self._verification=tk.StringVar()
@@ -121,6 +130,9 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         header=ttk.Frame(self,style='Library.Header.TFrame');header.grid(row=0,column=0,sticky='ew',padx=MD,pady=(MD,SM))
         self._header_title=ttk.Label(header,style='Library.Title.TLabel');self._header_title.grid(row=0,column=0,sticky='w')
         self._header_subtitle=ttk.Label(header,style='Library.Subtitle.TLabel');self._header_subtitle.grid(row=1,column=0,sticky='w',pady=(SM//2,0))
+        header.columnconfigure(0,weight=1)
+        self._scope_check=ttk.Checkbutton(header,variable=self._show_all,command=self._scope_changed)
+        if self._family:self._scope_check.grid(row=0,column=1,rowspan=2,sticky='e')
         top=ttk.Frame(self,padding=SM,style='Library.Card.TFrame');top.grid(row=1,column=0,sticky='ew',padx=MD,pady=(0,SM))
         for column in range(3): top.columnconfigure(column, weight=1 if column==1 else 0)
         self._group_box=ttk.Combobox(top,textvariable=self._group,state='readonly',width=28)
@@ -200,10 +212,36 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
             owner.unregister_localizable(self);self.destroy()
             raise
 
+    def _categories_in_scope(self):
+        return _scope_categories(self)
+
+    def _row_in_scope(self,category,row):
+        if self._show_all.get() or not self._family:return True
+        if self._fluid_ids is None:
+            try:self._fluid_ids=allowed_fluid_ids(self._family,self._controller.service.list_display_records('fluid_specifications'))
+            except Exception:self._fluid_ids=None
+        return row_visible(self._family,category,row,self._fluid_ids)
+
+    def set_family(self,family):
+        family=family if scoped(family) else None
+        if family==self._family:return
+        self._family=family;self._fluid_ids=None;self._show_all.set(False)
+        (self._scope_check.grid if family else self._scope_check.grid_remove)()
+        self._scope_changed()
+
+    def _scope_changed(self):
+        self._choice_cache.clear()
+        current=CATEGORY_BY_CODE[self._controller.category]
+        if not self._show_all.get() and not category_visible(self._family,current):
+            self.show_category(next(c.code for c in self._categories_in_scope()))
+            return
+        self.refresh_texts();self._render_rows()
+
     def show_category(self, category: str) -> None:
         """Reuse the existing window, retaining an unfinished draft until canceled."""
         if category in HIDDEN_LIBRARY_CATEGORIES:
             category = CATEGORY_BY_CODE[category].parent
+        if self._family and not category_visible(self._family,CATEGORY_BY_CODE[category]):self._show_all.set(True)
         try:
             self._controller.browse(category)
             self._choice_cache.clear()
@@ -228,12 +266,13 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         self._table_empty.configure(text=tr('library2.no_records'))
         for label,key in zip(self._filter_labels,('library2.active','library2.ownership','formula2.source.verification_status')):
             label.configure(text=tr(key))
+        self._scope_check.configure(text=tr('library2.show_all'))
         self._refresh_navigation()
-        self._groups={tr(f'library2.group.{c.group}'):c.group for c in CATEGORIES}
+        self._groups={tr(f'library2.group.{c.group}'):c.group for c in self._categories_in_scope()}
         self._group_box.configure(values=tuple(self._groups))
         current=CATEGORY_BY_CODE[self._controller.category]
         self._group.set(tr(f'library2.group.{current.group}'))
-        self._categories={tr(f'library2.category.{c.code}'):c.code for c in CATEGORIES if c.group==current.group}
+        self._categories={tr(f'library2.category.{c.code}'):c.code for c in self._categories_in_scope() if c.group==current.group}
         self._category_box.configure(values=tuple(self._categories));self._category.set(tr(f'library2.category.{current.code}'))
         (self._parent_label.grid if current.parent else self._parent_label.grid_remove)()
         (self._parent_box.grid if current.parent else self._parent_box.grid_remove)()
@@ -400,9 +439,10 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         (self._advanced_filters.grid_remove if self._advanced_filters.winfo_manager() else self._advanced_filters.grid)()
 
     def _refresh_navigation(self) -> None:
+        categories=_scope_categories(self)
         for item in self._navigation.get_children(): self._navigation.delete(item)
         priority=('materials','fluids','pipes','engineering_rules','constants','corrosion')
-        groups=tuple(g for g in priority if any(c.group==g for c in CATEGORIES))+tuple(g for g in dict.fromkeys(c.group for c in CATEGORIES) if g not in priority)
+        groups=tuple(g for g in priority if any(c.group==g for c in categories))+tuple(g for g in dict.fromkeys(c.group for c in categories) if g not in priority)
         for group in groups:
             parent='group:'+group
             self._navigation.insert('', 'end',iid=parent,text=self._translate(f'library2.group.{group}'),open=group==CATEGORY_BY_CODE[self._controller.category].group,tags=('group',))
@@ -410,7 +450,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
                 for subgroup in ('foam','hw'):
                     self._navigation.insert(parent,'end',iid='group:fire:'+subgroup,
                         text=self._translate('fire.library.group.'+subgroup),open=True,tags=('group',))
-            for category in CATEGORIES:
+            for category in categories:
                 if category.group==group:
                     branch='group:fire:'+('hw' if category.code=='fire_hw' else 'foam') if group=='fire' else parent
                     key='fire.library.nav.'+category.code if group=='fire' else f'library2.category.{category.code}'
@@ -424,7 +464,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         target=selected[0]
         if target.startswith('group:'):
             group=target.split(':',1)[1]
-            target=next((c.code for c in CATEGORIES if c.group==group),target)
+            target=next((c.code for c in _scope_categories(self) if c.group==group),target)
         if target not in CATEGORY_BY_CODE or target==self._controller.category:return
         self.show_category(target)
         if self._controller.category!=selected[0]: self._navigation.selection_set(self._controller.category)
@@ -534,7 +574,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
 
     def _choose_group(self, _event: object = None) -> None:
         group=self._groups[self._group.get()]
-        self.show_category(next(c.code for c in CATEGORIES if c.group==group))
+        self.show_category(next(c.code for c in self._categories_in_scope() if c.group==group))
 
     def _choose_category(self, _event: object = None) -> None:
         self.show_category(self._categories[self._category.get()])

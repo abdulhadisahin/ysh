@@ -29,6 +29,7 @@ class LibraryController:
         self.mode = EditMode.BROWSE
         self.draft: dict[str, object] = {}
         self.error_key: str | None = None
+        self.row_filter = None  # optional presentation scope: callable(category, row) -> bool
 
     def browse(self, category: str, parent_id: UUID | None = None) -> None:
         """Load one category; unsaved edits must first be saved or canceled."""
@@ -43,6 +44,8 @@ class LibraryController:
         """Filter loaded rows without per-cell source or property queries."""
         result = []
         for row in self.records:
+            if self.row_filter is not None and not self.row_filter(self.category, row):
+                continue
             if active is not None and getattr(row,"is_active",None) is not active:
                 continue
             if ownership and self.service.ownership(self.category,row) != ownership:

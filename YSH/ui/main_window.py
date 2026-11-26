@@ -1696,17 +1696,23 @@ class MainWindow:
                 messagebox.showerror(self._translate("library2.title"),
                                      self._translate("library2.error.storage"), parent=self._root)
 
+    def _library_family(self):
+        try:return self._locked_project_family()
+        except AttributeError:return None
+
     def _open_engineering_library(self, category: str) -> None:
         """Reuse a single modeless workspace behind the existing Library commands."""
         from ui.dialogs.engineering_library_workspace import EngineeringLibraryWorkspace
         from services.engineering_library_service import LibraryError
         window = getattr(self, "_library_window", None)
         if window is not None and window.winfo_exists():
+            if hasattr(window,'set_family'):window.set_family(MainWindow._library_family(self))
             window.show_category(category)
             return
         try:
             self._library_window = EngineeringLibraryWorkspace(
-                self._root, self._library_service_factory(), self._translate, self, category)
+                self._root, self._library_service_factory(), self._translate, self, category,
+                family=MainWindow._library_family(self))
         except LibraryError as error:
             messagebox.showerror(self._translate("library2.title"), self._translate(error.key), parent=self._root)
 

@@ -1180,5 +1180,6 @@ MESSAGES.update({
     'transfer.scenario115.time': 'Tahmini Boşaltma Süresi (saat)',
 })
 
+MESSAGES.update({'library2.show_all':'Tümünü göster','library2.show_all_hint':'Seçili sistem dışındaki kayıtları da göster'})
 from i18n.catalog_text import turkish_messages as _catalog_text_messages
 MESSAGES.update(_catalog_text_messages())
