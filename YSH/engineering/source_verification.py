@@ -144,6 +144,9 @@ def record_evidence(record):
     return None
 
 
+from i18n.catalog_text import catalog_text
+
+
 def evidence_rows(evidence, translate):
     """Render only recorded/frozen metadata; never look up a historical source."""
     if not evidence:return ()
@@ -152,7 +155,7 @@ def evidence_rows(evidence, translate):
           (tr('sourceaudit.verification_date'),evidence['verification_date']),
           (tr('sourceaudit.scope'),tr('sourceaudit.scope.'+evidence['scope']))]
     for key in ('document_number','edition','adoption_date','revision_date','effective_date','amendments','clause','applicability','url'):
-        if evidence.get(key):rows.append((tr('sourceaudit.'+key),evidence[key]))
+        if evidence.get(key):rows.append((tr('sourceaudit.'+key),evidence[key] if key=='url' else catalog_text(tr,evidence[key])))
     return tuple(rows)
 
 
