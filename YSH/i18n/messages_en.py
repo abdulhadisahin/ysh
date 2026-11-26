@@ -1167,3 +1167,6 @@ MESSAGES.update({
     'transfer.scenario115.flow': '115% Scenario Flow (m³/h)',
     'transfer.scenario115.time': 'Estimated Discharge Time (hours)',
 })
+
+from i18n.catalog_text import english_messages as _catalog_text_messages
+MESSAGES.update(_catalog_text_messages())

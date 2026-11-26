@@ -1179,3 +1179,6 @@ MESSAGES.update({
     'transfer.scenario115.flow': '%115 Senaryo Debisi (m³/h)',
     'transfer.scenario115.time': 'Tahmini Boşaltma Süresi (saat)',
 })
+
+from i18n.catalog_text import turkish_messages as _catalog_text_messages
+MESSAGES.update(_catalog_text_messages())

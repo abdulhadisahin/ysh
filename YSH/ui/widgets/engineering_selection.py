@@ -1,6 +1,7 @@
 """Shared catalog selectors. Material identity and surface condition are separate."""
 import tkinter as tk
 from tkinter import ttk
+from i18n.catalog_text import catalog_text
 from engineering.system_context import SystemContext,ContextReference
 
 SERVICES=('', 'DIESEL_FUEL_DELIVERY','DIESEL_FUEL_SUCTION','SEA_WATER_COOLING','FRESH_WATER_COOLING','LUBE_OIL','BALLAST','BILGE')
@@ -32,7 +33,7 @@ class EngineeringSelectionForm(ttk.Frame):
         fluid_choices={none:None}
         seawater=context.system is not None and context.system.code=='SEA_WATER'
         for fluid in (self.catalog.project_fluids(self.family) if self.family else self.catalog.project_fluids('seawater') if seawater else self.catalog.fluid_records):
-            label=fluid.name_tr
+            label=catalog_text(self.tr,fluid.name_tr)
             if label in fluid_choices:label+=' · '+fluid.code
             fluid_choices[label]=fluid.id
         self._set('fluid',fluid_choices,context.fluid_id)

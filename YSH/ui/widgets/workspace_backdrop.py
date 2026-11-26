@@ -20,6 +20,10 @@ from ui.widgets.cards import ResultCard
 PROTECTED = ('warning','critical','error','success','verified','status','source','info','unavailable')
 _SURFACE_IDS = count(1)
 OUTSIDE_INPUT_OPACITY_FACTOR = .72
+FIRST_PAINT_DELAY_MS = 40
+# Scroll/resize storms are coalesced: the cheap background re-anchor is immediate,
+# the expensive tree walk and panel composites run at most about ten times a second.
+SETTLE_PAINT_DELAY_MS = 100
 
 
 def input_surface(widget):
@@ -138,11 +142,21 @@ class WorkspaceBackdrop:
         self.host.scrollbar.set(first,last)
         position=(first,last)
         if position!=self.scroll_position:
-            self.scroll_position=position;self.request()
+            self.scroll_position=position
+            self._anchor_background()
+            self.request()
+
+    def _anchor_background(self):
+        """Keep the viewport-fixed image still while content scrolls, without waiting for a paint."""
+        if self.size is None or self._destroyed:return
+        position=(self.canvas.canvasx(0),self.canvas.canvasy(0))
+        if position!=self.background_position:
+            self.canvas.coords(self.item,*position);self.background_position=position
 
     def request(self,event=None):
         if self._destroyed or self.painting or self.pending is not None:return
-        self.pending=self.host.after(40,self.paint)
+        delay=FIRST_PAINT_DELAY_MS if self.size is None else SETTLE_PAINT_DELAY_MS
+        self.pending=self.host.after(delay,self.paint)
 
     def paint(self):
         # Explicit paints must consume the queued paint too, otherwise its id

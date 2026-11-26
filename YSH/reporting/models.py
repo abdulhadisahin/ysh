@@ -14,6 +14,7 @@ from reporting.transfer_graph import TransferGraph, frozen_transfer_graph
 from engineering.validation import ValidationIssue
 from i18n.validation import render_validation_issue
 from i18n.translator import Translator
+from i18n.catalog_text import fluid_display_name
 
 Scalar: TypeAlias = str | float | int | bool
 _TR = Translator('tr').translate
@@ -112,7 +113,7 @@ def adapt_snapshot(snapshot: CalculationSnapshot, language: str = 'tr') -> Engin
     for label, reference in zip(('Sistem', 'Devre', 'Akışkan'),
                                 (snapshot.context.system, snapshot.context.circuit, snapshot.context.fluid)):
         if reference:
-            identification.append(ReportField(label, '', (reference.name_en or reference.name_tr) if language == 'en' else reference.name_tr))
+            identification.append(ReportField(label, '', (reference.name_en or reference.name_tr) if language == 'en' else fluid_display_name(getattr(reference,'code',None), reference.name_tr)))
     for step in steps:
         for variable in step.variables + step.reference_variables:
             row = ReportField((variable.context + ' · ' if variable.context else '') + tr(variable.terminology_key), variable.symbol, variable.value, variable.unit)

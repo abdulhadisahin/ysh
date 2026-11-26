@@ -24,6 +24,9 @@ from ui.theme.spacing import SM, MD
 from engineering.catalog_completion import OperatingFluidProperty, MechanicalGradeProperty
 
 
+from i18n.catalog_text import catalog_text
+
+
 def localized_library_value(key: str, value: object, translate: Callable[[str], str]) -> object:
     """Translate known display terms while leaving stored identifiers and source facts intact."""
     if isinstance(value,str) and value.startswith('catalog.'):
@@ -43,7 +46,8 @@ def localized_library_value(key: str, value: object, translate: Callable[[str], 
     if key == 'property_name':
         label = translate('engineering.property.'+str(value))
         return value if label == 'engineering.property.'+str(value) else label
-    return value
+    if key in ('code','id','designation'):return value
+    return catalog_text(translate,value)
 
 
 def record_label(record: object, translate: Callable[[str], str] | None = None) -> str:
@@ -70,16 +74,16 @@ def record_label(record: object, translate: Callable[[str], str] | None = None) 
         if hasattr(record,'property_name'):
             value=str(record.default_value)+' '+record.unit if record.default_value is not None else translate('engineering.status.SOURCE_REQUIRED')
             temperature=' @ '+str(record.reference_temperature_c)+' °C' if record.reference_temperature_c is not None else ''
-            return record.name+' / '+translate('engineering.property.'+record.property_name)+': '+value+temperature+' · '+source
+            return catalog_text(translate,record.name)+' / '+translate('engineering.property.'+record.property_name)+': '+value+temperature+' · '+source
         if hasattr(record,'roughness_mm'):
             value=str(record.roughness_mm)+' mm' if record.roughness_mm is not None else translate('engineering.status.SOURCE_REQUIRED')
-            return record.name+': ε = '+value+' · '+source
+            return catalog_text(translate,record.name)+': ε = '+value+' · '+source
         low,high=(record.hard_min,record.hard_max) if record.rule_nature=='HARD_LIMIT' else (record.recommended_min,record.recommended_max)
         limits=('≥ '+str(low) if low is not None else '')+(' … ' if low is not None and high is not None else '')+('≤ '+str(high) if high is not None else '')
-        return record.name+': '+(limits+' '+record.unit if limits else source)+' · '+record.source_authority
+        return catalog_text(translate,record.name)+': '+(limits+' '+record.unit if limits else source)+' · '+record.source_authority
     if hasattr(record,'property_name'):
         name=localized_library_value('property_name',record.property_name,translate) if translate else record.property_name
-        label=' · '.join(str(v) for v in (getattr(record,'name_tr',None),name,f'{record.value} {record.unit}') if v)
+        label=' · '.join(str(v) for v in (catalog_text(translate,getattr(record,'name_tr',None)),name,f'{record.value} {record.unit}') if v)
         if getattr(record,'reference_temperature_c',None) is not None: label+=f' · {record.reference_temperature_c} °C'
         return label
     return ' · '.join(str(localized_library_value(key,getattr(record,key),translate) if translate else getattr(record,key)) for key in

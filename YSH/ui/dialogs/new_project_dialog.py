@@ -6,6 +6,7 @@ import tkinter as tk
 from collections.abc import Callable
 from tkinter import messagebox, ttk
 
+from i18n.catalog_text import catalog_text
 from i18n.translator import Translator
 from ui.widgets.project_family_choice import ProjectFamilyChoice
 from ui.theme.spacing import LG, MD, SM
@@ -97,7 +98,7 @@ class NewProjectDialog:
         records=self._catalog.project_fluids(family) if self._catalog is not None else ()
         self._fluid_records={self._translate('engineering.none'):None}
         for fluid in records:
-            label=self._translate('engineering.fluid.seawater') if family=='seawater' else fluid.name_tr
+            label=self._translate('engineering.fluid.seawater') if family=='seawater' else catalog_text(self._translate,fluid.name_tr)
             if label in self._fluid_records:label+=' · '+fluid.code
             self._fluid_records[label]=fluid
         if family == 'seawater':

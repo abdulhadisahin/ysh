@@ -1,6 +1,7 @@
 """Compact project-linked engineering identity; overrides require an explicit action."""
 import tkinter as tk
 from tkinter import ttk, messagebox
+from i18n.catalog_text import catalog_text
 
 def rule_summary(rule,tr):
     """Present recorded limits and sources without inferring missing metadata."""
@@ -104,7 +105,7 @@ class EngineeringPageContext(ttk.Frame):
         self.fluid_label.configure(text=tr('engineering.select.fluid'))
         self.material_label.configure(text=tr('engineering.select.material'))
         fluids=c.catalog.project_fluids(c.family()) if hasattr(self,'operating') else c.catalog.fluid_records
-        self.fluid_choices={r.name_tr+' · '+r.code:r.id for r in fluids}
+        self.fluid_choices={catalog_text(tr,r.name_tr)+' · '+r.code:r.id for r in fluids}
         self.fluid_box.configure(values=tuple(self.fluid_choices),state='readonly' if hasattr(self,'operating') and c.family() else 'disabled')
         self.material_box.configure(values=tuple(dict.fromkeys(r.material_name for r in c.catalog.surface_records)))
         changed=not hasattr(self,'operating') or self._shown_context!=context
