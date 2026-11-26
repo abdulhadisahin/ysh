@@ -54,6 +54,15 @@ PAIRS: tuple[tuple[str, str], ...] = (
     ("90/10 Cu-Ni source-specific maximum", "90/10 Cu-Ni kaynağa özgü azami değer"),
     ("70/30 Cu-Ni source-specific maximum", "70/30 Cu-Ni kaynağa özgü azami değer"),
     ("Wärtsilä applicable profile", "Wärtsilä geçerli profil"),
+    # Calculation-record notes shown in reports
+    ("Existing Rp0.2 / B compatibility calculation; not a verified current TL rule.",
+     "Mevcut Rp0,2 / B uyumluluk hesabı; doğrulanmış güncel bir TL kuralı değildir."),
+    ("D243 V2 project fuel design maximum; not a TL rule.",
+     "D243 V2 proje yakıt tasarım azami değeri; bir TL kuralı değildir."),
+    ("Phase 0 S03 practical units; limited water straight-pipe scope; not a C-value source or compliance approval.",
+     "Faz 0 S03 pratik birimler; sınırlı su düz boru kapsamı; C değeri kaynağı veya uygunluk onayı değildir."),
+    ("Derived relation under explicit mixture basis; not a source for input defaults or compliance.",
+     "Açık karışım esasına göre türetilmiş bağıntı; girdi varsayılanları veya uygunluk için kaynak değildir."),
     # Sources, documents and clauses
     ("US Department of Defense", "ABD Savunma Bakanlığı"),
     ("D243 user-approved engineering reference", "D243 kullanıcı onaylı mühendislik referansı"),
@@ -146,6 +155,9 @@ EXTRA_EN = {
 }
 
 
+_KNOWN = frozenset(en for en, _ in PAIRS)
+
+
 def text_key(text: str) -> str:
     """Stable message key for one stored text."""
     return "catalogtext." + hashlib.sha1(text.encode("utf-8")).hexdigest()[:10]
@@ -162,6 +174,8 @@ def english_messages() -> dict[str, str]:
 def catalog_text(translate: Callable[[str], str] | None, text: object) -> object:
     """Display text for a stored factory string; anything unknown is returned unchanged."""
     if not isinstance(text, str) or not text or translate is None:
+        return text
+    if text not in _KNOWN:
         return text
     key = text_key(text)
     try:

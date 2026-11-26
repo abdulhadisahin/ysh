@@ -1168,6 +1168,7 @@ MESSAGES.update({
     'transfer.scenario115.time': 'Estimated Discharge Time (hours)',
 })
 
+MESSAGES.update({'word.status.success':'Success'})
 MESSAGES.update({'library2.show_all':'Show everything','library2.show_all_hint':'Also show records outside the selected system'})
 from i18n.catalog_text import english_messages as _catalog_text_messages
 MESSAGES.update(_catalog_text_messages())

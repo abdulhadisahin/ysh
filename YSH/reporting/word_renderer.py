@@ -13,6 +13,7 @@ from docx.oxml.ns import qn
 
 from reporting.word_presentation import ReportLanguage, basis_explanations
 
+SOURCE_LABEL = "Kaynak / doğrulama"
 NAVY = "163047"
 CYAN = "119EAD"
 
@@ -45,6 +46,16 @@ def _symbol(value: str) -> str:
     return f"{match.group(1)}_{match.group(2)}" if match else value
 
 
+WIDTHS = {2: (6.5, 10.5), 3: (3.2, 8.3, 5.5), 4: (6.6, 2.4, 4.2, 3.8), 5: (4.8, 2.0, 2.8, 2.0, 5.4)}
+
+
+def _fix_widths(table, widths):
+    layout = OxmlElement("w:tblLayout"); layout.set(qn("w:type"), "fixed"); table._tbl.tblPr.append(layout)
+    for row in table.rows:
+        for cell, width in zip(row.cells, widths):
+            cell.width = Cm(width)
+
+
 def _table(document, headers, rows, widths=None):
     table = document.add_table(rows=1, cols=len(headers)); table.style = "Table Grid"
     table.autofit = True; _repeat_header(table.rows[0])
@@ -68,6 +79,8 @@ def _table(document, headers, rows, widths=None):
             pad(cells[index])
             if row_index%2:_cell_shading(cells[index],"F3F7FA")
             for paragraph in cells[index].paragraphs:paragraph.paragraph_format.space_after=Pt(2)
+    widths = widths or WIDTHS.get(len(headers))
+    if widths and len(widths) == len(headers): _fix_widths(table, widths)
     return table
 
 
@@ -99,12 +112,12 @@ def render_word(report) -> bytes:
     if input_rows:
         doc.add_heading(tr("report.inputs"),1)
         _table(doc,(tr("report.parameter"),tr("word.symbol"),tr("report.value"),tr("report.unit"),tr("report.source")),
-            [(ui.label(f.label,f.symbol,f.unit),_symbol(f.symbol),ui.number(f.value),ui.text(f.unit),ui.text(f.source) if f.source else "—") for f in input_rows])
+            [(ui.label(f.label,f.symbol,f.unit),_symbol(f.symbol),ui.number(f.value),ui.text(f.unit),ui.source(f.source)) for f in input_rows])
     if report.selections:
         doc.add_heading(tr("report.selections"),1)
         safe_selections=[f for f in report.selections if not any(token in f.label.casefold() for token in ("uuid","kimliği","identity","revision","schema","model"))]
         if safe_selections:
-            _table(doc,(tr("report.parameter"),tr("report.value")),[(ui.label(f.label,f.symbol,f.unit),ui.text(ui.number(f.value))) for f in safe_selections])
+            _table(doc,(tr("report.parameter"),tr("report.value")),[(ui.label(f.label,f.symbol,f.unit),ui.source(f.value) if f.label==SOURCE_LABEL else ui.text(ui.number(f.value))) for f in safe_selections])
     if report.engineering_basis_json:
         import json
         try: explanations=basis_explanations(json.loads(report.engineering_basis_json),report.language)

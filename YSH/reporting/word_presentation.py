@@ -2,6 +2,10 @@
 import re
 from i18n.translator import Translator
 from i18n.messages_tr import MESSAGES as TR
+from i18n.catalog_text import catalog_text
+
+USER_SOURCE_KEYS=('report.not_recorded','source.state.manual','library2.manual_user','formula2.source_type.USER_INPUT',
+ 'formula2.verification_status.USER_SUPPLIED','formula2.reason.USER_INPUT','formula2.override.USER_INPUT','message.manual_source')
 
 LABELS={'Vfuel':'field.fuel_capacity','Qpump':'field.pump_capacity','Vtransfer':'transfer.design.volume',
  'tdef':'transfer.design.target_time','Qgerekli':'word.transfer.average','Qtulumba':'transfer.design.pump_capacity',
@@ -19,7 +23,7 @@ STATUS_KEYS.update({'MANUAL':'source.state.manual','LINKED':'source.state.linked
  'EMPIRICAL':'word.transfer.empirical','VOLUME':'word.volume_mode','MASS':'word.mass_mode',
  'RULE_NOT_CONFIGURED':'formula2.check.NOT_CONFIGURED','BLOCKED_APPLICABILITY':'center.status.BLOCKED',
  'WARNING':'word.status.warning','ERROR':'word.status.error','BLOCKED':'word.status.blocked',
- 'CRITICAL':'word.status.critical','OUT_OF_RANGE':'word.status.out_of_range','SOURCE_REQUIRED':'word.source_required',
+ 'CRITICAL':'word.status.critical','SUCCESS':'word.status.success','OUT_OF_RANGE':'word.status.out_of_range','SOURCE_REQUIRED':'word.source_required',
  'VERIFIED':'formula2.verification_status.VERIFIED','UNVERIFIED':'formula2.verification_status.UNVERIFIED',
  'PARTIALLY_VERIFIED':'formula2.verification_status.PARTIALLY_VERIFIED',
  'PROJECT':'engineering.status.LINKED','PROJECT_LINKED':'engineering.status.LINKED',
@@ -44,6 +48,7 @@ class ReportLanguage:
             text=re.sub(r'(?<!\w)'+re.escape(symbol)+r'(?!\w)',lambda match,label=label:label,text)
         text=text.replace('Calculation-only manual override',self.tr('word.manual_override'))
         # SourceReference rows previously printed code + translated text. Keep one human label.
+        text=' · '.join(catalog_text(self.tr,part) for part in text.split(' · '))
         for separator in (' · ',' - '):
             parts=text.split(separator);seen=set();result=[]
             for part in parts:
@@ -63,6 +68,12 @@ class ReportLanguage:
                 while places>2 and text.endswith('0'):text=text[:-1];places-=1
             return text.replace('.',',') if self.language=='tr' else text
         return self.text(value)
+    def source(self,value):
+        """A value the user entered, or one with no recorded origin, shows '-' (the user knows it is theirs)."""
+        text=self.text(value) if value not in (None,'') else ''
+        own={self.tr(key).casefold() for key in USER_SOURCE_KEYS}
+        parts=[part.strip() for part in text.split(' · ') if part.strip()]
+        return '-' if not parts or all(part.casefold() in own for part in parts) else text
     def plain(self,value):
         """User-entered or catalog names: never rewritten as status codes."""
         return str(value)
