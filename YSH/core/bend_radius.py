@@ -33,6 +33,7 @@ class BendRadiusMode:
 
 BEND_RADIUS_MODES: tuple[BendRadiusMode, ...] = (
     BendRadiusMode("NO_BEND", "Bükme yok", None),
+    BendRadiusMode("D1", "1D", 1.0),
     BendRadiusMode("D1_5", "1.5D", 1.5),
     BendRadiusMode("D2", "2D", 2.0),
     BendRadiusMode("D3", "3D", 3.0),
@@ -67,6 +68,14 @@ def automatic_bend_radius_mm(mode_code: str, outside_diameter_mm: float) -> floa
         raise ValueError("Outside diameter must be a finite positive number.")
     assert mode.multiplier is not None
     return mode.multiplier * float(outside_diameter_mm)
+
+
+def bend_radius_ratio(radius_mm: float | None, outside_diameter_mm: float | None) -> float | None:
+    """Return R/da for display, or None when either value is missing or unusable."""
+    for value in (radius_mm, outside_diameter_mm):
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+            return None
+    return float(radius_mm) / float(outside_diameter_mm)
 
 
 def bend_mode_from_state(mode_code: str | None, enabled: bool, *, radius_present: bool = False) -> str:

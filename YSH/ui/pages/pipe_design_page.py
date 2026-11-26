@@ -16,6 +16,7 @@ from core.bend_radius import (
     automatic_bend_radius_mm,
     bend_radius_mode,
     bend_mode_from_state,
+    bend_radius_ratio,
 )
 from core.engineering_context import LINE_ROLES, warning_fluid_for_circuit
 from engineering.warning_rules import evaluate_velocity, MAN_EVERLLENCE_SOURCE_ID
@@ -107,6 +108,7 @@ class PipeDesignPage(ttk.Frame):
         self._wall_allowable = tk.StringVar(value="—")
         self._wall_base = tk.StringVar(value="—")
         self._wall_bend = tk.StringVar(value="—")
+        self._bend_ratio = tk.StringVar(value="")
         self._wall_corrosion = tk.StringVar(value="—")
         self._wall_standard_basis = {}
         self._wall_stress_basis = {}
@@ -210,11 +212,30 @@ class PipeDesignPage(ttk.Frame):
         if not self._suppress_dirty:
             self._manual_da_override = True
             self._refresh_automatic_bend_radius()
+        self._update_bend_ratio()
 
     def _on_bend_radius_change(self, *_args: object) -> None:
         """Retain only a Manual R entry as a manual bend-radius value."""
         if not self._suppress_dirty and self._selected_bend_mode_code() == "MANUAL":
             self._manual_bend_radius_mm = self._fields["r"].get()
+        self._update_bend_ratio()
+
+    def _update_bend_ratio(self) -> None:
+        """Show R/da beside R; informational only, it never changes a result."""
+        variable = self.__dict__.get("_bend_ratio")
+        if variable is None:
+            return
+        text = ""
+        if self._selected_bend_mode_code() != "NO_BEND":
+            try:
+                ratio = bend_radius_ratio(self._number("r"), self._number("da"))
+            except (ValidationError, ValueError):
+                ratio = None
+            if ratio is not None:
+                text = self._translate("pipe.bend_ratio", ratio=format_user_number(ratio))
+                if ratio < 1.0:
+                    text += "\n" + self._translate("pipe.bend_ratio_tight")
+        variable.set(text)
 
     def _on_corrosion_allowance_change(self, *_args: object) -> None:
         """Keep a manual c entry local to the current calculation."""
@@ -624,6 +645,9 @@ class PipeDesignPage(ttk.Frame):
         self._no_bend_note = ttk.Label(bend_group, text=self._translate("pipe.no_bend_note"),
                                       wraplength=270, style="PipeInfo.TLabel")
         self._no_bend_note.grid(row=5, column=0, columnspan=2, sticky="w", pady=2)
+        self._bend_ratio_label = ttk.Label(bend_group, textvariable=self._bend_ratio,
+                                           wraplength=270, style="PipeInfo.TLabel")
+        self._bend_ratio_label.grid(row=6, column=0, columnspan=2, sticky="w", pady=2)
 
         self._circuit_label = ttk.Label(
             diameter_form, text=self._translate("pipe.project_context"), style="PipeField.TLabel"
@@ -975,6 +999,7 @@ class PipeDesignPage(ttk.Frame):
             label.configure(text=f"{self._translate(key)}{suffix}")
         self._bend_mode_label.configure(text=self._translate("field.bend_radius"))
         self._bend_convention_label.configure(text=self._translate("pipe.bend_radius_convention"))
+        self._update_bend_ratio()
         self._diameter_button.configure(text=self._translate("calculation.calculate_diameter"))
         self._wall_button.configure(text=self._translate("calculation.calculate_wall_thickness"))
         self._clear_button.configure(text=self._translate("common.clear"))
