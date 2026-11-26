@@ -106,8 +106,8 @@ class ScrollablePageHost(ttk.Notebook):
         active = self._active_host()
         for host in self._hosts.values():
             host.set_wheel_active(host is active)
-        from product import WORKSPACE_WATERMARK_ENABLED
-        if WORKSPACE_WATERMARK_ENABLED and active is not None and hasattr(active,'tk'):
+        from product import WORKSPACE_BACKDROP_ENABLED
+        if WORKSPACE_BACKDROP_ENABLED and active is not None and hasattr(active,'tk'):
             from ui.widgets.workspace_backdrop import WorkspaceBackdrop
             if not hasattr(active,'_workspace_backdrop'):
                 active._workspace_backdrop=WorkspaceBackdrop(active)
