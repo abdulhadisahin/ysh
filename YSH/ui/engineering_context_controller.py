@@ -19,11 +19,12 @@ class EngineeringContextController:
     def __init__(self,window,catalog):
         self.window=window;self.catalog=catalog;self.links={};self.step_cache={};self.suppress=False;self.module_contexts={};self._module_dialogs={};self.hydraulic_modules=set()
         for module,page in window._pages.items():
+            if module=='pipe_design':page._wall_project_family=self.family
             if module=='discharge_head_loss':
                 import tkinter as tk
                 page._fields.setdefault('fluid_density',tk.StringVar(master=page))
                 page._fields['fluid_density'].trace_add('write',page._mark_dirty)
-                page._fields['fluid_density'].trace_add('write',page._invalidate_result)
+                page._fields['fluid_density'].trace_add('write',page._pressure_density_changed)
             original=page._formula_steps
             page._formula_steps=lambda original=original,module=module:self.explain(module,original())
             if hasattr(page,'_formula_panel'):page._formula_panel._step_provider=page._formula_steps
@@ -81,8 +82,12 @@ class EngineeringContextController:
         try:
             if name=='kinematic_viscosity':page._viscosity_unit.set('cSt')
             if name=='absolute_roughness':
-                if module=='discharge_head_loss':page._source_mode='manual';page._source.set(self.window._translate('message.manual_source'));page._set_source_mode(reset_value=False)
-                else:page._roughness_source_mode='manual';page._roughness_source.set(self.window._translate('message.manual_source'));page._set_roughness_source(reset_value=False)
+                mode=page._source_mode if module=='discharge_head_loss' else page._roughness_source_mode
+                material_id=page._material_ids.get(page._material.get())
+                material=page._materials.get_material(material_id) if mode=='material' and material_id else None
+                if material is None or (value is not None and material.roughness_mm!=value):
+                    if module=='discharge_head_loss':page._source_mode='manual';page._source.set(self.window._translate('message.manual_source'));page._set_source_mode(reset_value=False)
+                    else:page._roughness_source_mode='manual';page._roughness_source.set(self.window._translate('message.manual_source'));page._set_roughness_source(reset_value=False)
             if value is not None:page._fields[FIELD_MAP[module][name]].set(str(value))
         finally:self.suppress=False
     def edited(self,module,name):
@@ -258,6 +263,7 @@ class EngineeringContextController:
     def refresh_labels(self):
         tr=self.window._translate
         for module,page in self.window._pages.items():
+            if module=='pipe_design' and getattr(page,'_wall_material_family',None)!=self.family():page._load_materials()
             label=getattr(page,'_engineering_context_label',None)
             if label is None:continue
             context=self.context_for(module)
@@ -297,7 +303,7 @@ class EngineeringContextController:
                 if module in FIELD_MAP:
                     for name in ('_source_label','_source_box','_roughness_source_label','_roughness_source_box','_material_label','_material_box'):
                         widget=getattr(page,name,None)
-                        if widget is not None:widget.grid_remove()
+                        if widget is not None:widget.grid()
                 elif module=='pipe_design':page._material_label.configure(text=tr('engineering.strength_material'))
             else:(label.grid if text else label.grid_remove)()
     def service_label(self,code):

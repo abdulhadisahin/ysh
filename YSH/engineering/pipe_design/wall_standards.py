@@ -1,0 +1,128 @@
+"""Explicit, scope-limited wall rules. Minimums are never nominal stock sizes."""
+from dataclasses import dataclass
+import re
+from uuid import UUID
+
+from engineering.pipe_design.validation import _positive
+from engineering.validation import ValidationError, ValidationIssue
+
+TL_DOCUMENT = 'Türk Loydu Kısım 107, Bölüm 8 (Ocak 2022)'
+TL_URL = 'https://www.turkloydu.org/pdf-files/turk-loydu-kurallari/cilt-e/chapter-107-naval-ship-technology-ship-operation-installations-and-auxiliary-systems-2022-JAN.pdf'
+ISO_URL = 'https://cdn.standards.iteh.ai/samples/9985/a31e6a223a8f4108810f38151c202552/ISO-4200-1991.pdf'
+
+
+@dataclass(frozen=True)
+class ScopedWallMaterial:
+    """Wall-only reference identity; no invented yield strength or roughness."""
+    name: str
+    designation: str
+    standard: str
+    source: str
+    id: UUID
+    yield_strength_mpa: float | None = None
+
+
+def cuni_wall_material():
+    from uuid import NAMESPACE_URL, uuid5
+    return ScopedWallMaterial('CuNiFe10 / CuNi10Fe', 'CuNi10Fe',
+        TL_DOCUMENT+' / Tablo 8.8', TL_URL,
+        uuid5(NAMESPACE_URL,'d243:wall-reference:tl107:2022:CuNi10Fe'))
+
+
+def material_code(designation):
+    return re.sub(r'[^A-Z0-9]', '', designation.upper())
+
+
+def is_cuni10(designation):
+    return material_code(designation) in {'CUNIFE10', 'CUNI10FE'}
+
+
+def auxiliary_cuni_stress(designation, family, temperature_c):
+    """68 is already allowable stress, not a strength to divide by B.
+
+    The user confirms that this application's seawater family is auxiliary
+    seawater. TL Table 8.8 (annealed CuNi10Fe) records 68 at 50 and 75 °C.
+    Missing/lower temperatures retain the user's criterion, explicitly NOT a
+    verified TL temperature selection. Higher temperatures need another rule.
+    """
+    if family != 'seawater' or not is_cuni10(designation):
+        return None
+    if temperature_c is not None:
+        import math
+        if isinstance(temperature_c, bool) or not math.isfinite(temperature_c):
+            raise ValidationError(ValidationIssue('valid_number', 'pipe.design_temperature'))
+        if temperature_c > 75:
+            raise ValidationError(ValidationIssue('pipe.cuni_temperature_scope'))
+    verified = temperature_c in (50, 75)
+    return {'value_mpa': 68.0, 'mode': 'DIRECT_ALLOWABLE',
+            'source': TL_DOCUMENT if verified else 'DPO Standardı',
+            'table': '8.8', 'publication_date': '2022-01' if verified else None,
+            'verification_date': '2026-11-25' if verified else None,
+            'url': TL_URL, 'tl_temperature_verified': verified,
+            'temperature_c': temperature_c,
+            'scope': 'Annealed CuNi10Fe; Table 8.8: 50 °C / 75 °C; auxiliary seawater only'}
+
+
+def minimum_wall(designation, outside_mm):
+    """Exact recorded diameter intervals; no interpolation across missing rows."""
+    _positive(outside_mm, 'field.pipe_outside_diameter')
+    if is_cuni10(designation):
+        rows = ((8,10,.8),(12,20,1.),(25,44.5,1.2),(50,76.1,1.5),
+                (88.9,108,2.),(133,159,2.5),(193.7,267,3.),
+                (273,457.2,3.5),(470,470,3.5),(508,508,4.))
+        value = next((v for lo,hi,v in rows if lo <= outside_mm <= hi), None)
+        return value, '8.7'
+    if material_code(designation) in {'316L','AISI316L','14404','304L','AISI304L','14307'}:
+        rows = ((17.2,1.),(48.3,1.6),(88.9,2.),(168.3,2.3),(219.1,2.6),
+                (273,2.9),(406,3.6),(float('inf'),4.))
+        return next(v for hi,v in rows if outside_mm <= hi), '8.6'
+    return None, None  # Steel needs the installation group in Tables 8.4/8.5.
+
+
+@dataclass(frozen=True)
+class NominalWall:
+    """A verified material/OD/service-specific nominal table entry."""
+    material: str
+    outside_mm: float
+    family: str
+    thickness_mm: float
+    standard: str
+    table: str
+
+
+def recommend_wall(required_mm, designation, outside_mm, family, records=()):
+    _positive(required_mm, 'result.required_wall_thickness')
+    minimum, table = minimum_wall(designation, outside_mm)
+    eligible = [r for r in records if material_code(r.material)==material_code(designation)
+                and r.outside_mm==outside_mm and r.family==family
+                and r.thickness_mm > required_mm
+                and (minimum is None or r.thickness_mm >= minimum)]
+    selected = min(eligible, key=lambda r:r.thickness_mm) if eligible and minimum is not None else None
+    return {'minimum_wall_mm': minimum, 'minimum_standard': TL_DOCUMENT if table else None,
+            'minimum_table': table, 'nominal_wall_mm': selected.thickness_mm if selected else None,
+            'nominal_standard': selected.standard if selected else None,
+            'nominal_table': selected.table if selected else None,
+            'minimum_publication_date': '2022-01' if table else None,
+            'nominal_publication_date': '1991-02' if selected else None,
+            'verification_date': '2026-11-25',
+            'minimum_url': TL_URL if table else None,
+            'nominal_url': ISO_URL if selected else None,
+            'status': 'MATCH' if selected else 'SOURCE_REQUIRED'}
+
+
+def verified_nominal_walls(designation, outside_mm, family):
+    """ISO 4200:1991 Table 1, stainless ranges A/B/C/E/F/G only.
+
+    Explicitly scoped subset of series-1 ODs. Never use this steel table for
+    CuNi. Missing dimensions are unresolved, not rounded to another OD.
+    Publication: February 1991; verification: 2026-11-25.
+    """
+    if family not in {'fuel','fire','seawater'} or material_code(designation) not in {'316L','AISI316L','14404','304L','AISI304L','14307'}:
+        return ()
+    rows = {48.3:(1.6,2.,2.6,3.6,5.),60.3:(1.6,2.,2.3,2.9,4.,5.6),
+            76.1:(1.6,2.3,2.6,2.9,5.,7.1),88.9:(2.,2.3,2.9,3.2,5.6,8.),
+            114.3:(2.,2.6,2.9,3.6,6.3,8.8),139.7:(2.,2.6,3.2,4.,6.3,10.),
+            168.3:(2.,2.6,3.2,4.5,7.1,11.),219.1:(2.,2.6,3.6,6.3,8.,12.5),
+            273.:(2.,3.6,4.,6.3,10.,14.2)}
+    return tuple(NominalWall(designation,outside_mm,family,t,'ISO 4200:1991','1')
+                 for t in rows.get(outside_mm, ()))

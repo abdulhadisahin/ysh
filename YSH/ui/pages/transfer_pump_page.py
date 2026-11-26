@@ -287,8 +287,11 @@ class TransferPumpPage(ttk.LabelFrame):
             self._chart_card, textvariable=self._message, wraplength=680, style="Info.TLabel"
         )
         self._model_message.grid(row=1, column=0, sticky="w", pady=(8, 0))
+        from ui.widgets.transfer_discharge_scenario import TransferDischargeScenario
+        self._discharge_115=TransferDischargeScenario(self,self._translate,self._mark_dirty)
+        self._discharge_115.grid(row=3,column=0,sticky='ew',pady=(12,0))
         self._formula_panel = FormulaReferencePanel(self, self._formula_sections, self._translate, self._create_formula_toggle, self._has_active_result, step_provider=self._formula_steps, separate_window=True, module_key="transfer_pump")
-        self._formula_panel.grid(row=3, column=0, sticky="ew", pady=(8, 0))
+        self._formula_panel.grid(row=4, column=0, sticky="ew", pady=(8, 0))
         self._responsive_layout_mode = ""
         self._upper.bind("<Configure>", self._on_upper_configure, add="+")
         self._analysis.bind("<Configure>", self._on_upper_configure, add="+")
@@ -305,6 +308,7 @@ class TransferPumpPage(ttk.LabelFrame):
 
     def refresh_texts(self) -> None:
         """Refresh Transfer Pump text while retaining references and regression state."""
+        self._discharge_115.refresh_texts()
         localize_guidance(self, 'transfer_empirical', self._translate)
         mode = self._selected_capacity_mode()
         self._suppress_dirty = True
@@ -543,6 +547,7 @@ class TransferPumpPage(ttk.LabelFrame):
     def export_state(self) -> dict[str, object]:
         """Return project-specific input state without rendered status text."""
         return {
+            "discharge_115": self._discharge_115.export_state(),
             "capacity": self._capacity.get(),
             "capacity_input_mode": self._selected_capacity_mode(),
             "transfer_v2": replace(self._design_panel.form_state(), mode=self._calculation_mode).to_payload(),
@@ -553,6 +558,7 @@ class TransferPumpPage(ttk.LabelFrame):
         method_state = TransferPumpPageState.from_page_payload(state)
         self._suppress_dirty = True
         try:
+            self._discharge_115.load_state(state.get("discharge_115",{}))
             self._calculation_mode = method_state.mode
             self._design_panel.load(method_state)
             saved_mode = state.get("capacity_input_mode")
@@ -575,6 +581,7 @@ class TransferPumpPage(ttk.LabelFrame):
         """Clear both project-owned modes while preserving reference ships."""
         self._suppress_dirty = True
         try:
+            self._discharge_115.load_state({})
             self._clear()
             self._design_panel.load(TransferPumpPageState())
             self._calculation_mode = TransferPumpMode.DESIGN

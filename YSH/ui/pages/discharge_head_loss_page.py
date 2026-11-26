@@ -40,7 +40,7 @@ class DischargeHeadLossPage(ttk.LabelFrame):
     """Collects discharge inputs and delegates all results to its service."""
     def __init__(self,parent:tk.Misc,service:object,constants:object,materials:object,translate:Callable[[str],str]|None=None)->None:
         """Build the enabled page without project dependencies."""
-        self._translate=translate or Translator().translate;super().__init__(parent,text=self._translate("page.discharge.tab"),padding=12);self._service=service;self._constants=constants;self._materials=materials;self._items:dict[str,LocalLossItem]={};self._fields={key:tk.StringVar() for key in ("d","q","nu","l","k","h")};self._viscosity_unit=tk.StringVar(value="cSt");self._warning_fluid=tk.StringVar(value=self._translate("message.select"));self._warning_fluid_codes:dict[str,str]={};self._status_messages:list[ValidationIssue]=[];self._message=tk.StringVar(value="");self._result_summary=tk.StringVar(value=self._translate("message.no_current_calculation"));self._system_head_summary=tk.StringVar(value="—");self._local_loss_summary=tk.StringVar(value="—");self._pipe_loss_summary=tk.StringVar(value="—");self._total_loss_summary=tk.StringVar(value="—");self._reynolds_summary=tk.StringVar(value="—");self._relative_roughness_summary=tk.StringVar(value="—");self._friction_factor_summary=tk.StringVar(value="—");self._k_total_summary=tk.StringVar(value="—");self._source_mode="material";self._source=tk.StringVar(value=self._translate("message.material_source"));self._material=tk.StringVar();self._material_ids:dict[str,object]={};self._dirty_callback=None;self._suppress_dirty=True;self._velocity_summary=tk.StringVar(value="—");self._workflow=DischargeWorkflow();self._entries={};self._build();self._load_warning_fluids();self._load_materials();self._set_source_mode();self._suppress_dirty=False
+        self._translate=translate or Translator().translate;super().__init__(parent,text=self._translate("page.discharge.tab"),padding=12);self._service=service;self._constants=constants;self._materials=materials;self._items:dict[str,LocalLossItem]={};self._fields={key:tk.StringVar() for key in ("d","q","nu","l","k","h")};self._viscosity_unit=tk.StringVar(value="cSt");self._warning_fluid=tk.StringVar(value=self._translate("message.select"));self._warning_fluid_codes:dict[str,str]={};self._status_messages:list[ValidationIssue]=[];self._message=tk.StringVar(value="");self._result_summary=tk.StringVar(value=self._translate("message.no_current_calculation"));self._system_head_summary=tk.StringVar(value="—");self._local_loss_summary=tk.StringVar(value="—");self._pipe_loss_summary=tk.StringVar(value="—");self._total_loss_summary=tk.StringVar(value="—");self._reynolds_summary=tk.StringVar(value="—");self._relative_roughness_summary=tk.StringVar(value="—");self._friction_factor_summary=tk.StringVar(value="—");self._k_total_summary=tk.StringVar(value="—");self._source_mode="material";self._source=tk.StringVar(value=self._translate("selection.standard"));self._material=tk.StringVar();self._material_ids:dict[str,object]={};self._dirty_callback=None;self._suppress_dirty=True;self._velocity_summary=tk.StringVar(value="—");self._workflow=DischargeWorkflow();self._entries={};self._build();self._load_warning_fluids();self._load_materials();self._set_source_mode();self._suppress_dirty=False
         for variable in (*self._fields.values(),self._viscosity_unit,self._source,self._material):variable.trace_add("write",self._mark_dirty);variable.trace_add("write",self._invalidate_result)
         self._warning_fluid.trace_add("write",self._on_warning_context_changed)
     def _build(self)->None:
@@ -59,9 +59,9 @@ class DischargeHeadLossPage(ttk.LabelFrame):
             localized={"d":"field.pipe_inside_diameter","q":"field.flow_rate","nu":"field.kinematic_viscosity","l":"field.pipe_length","h":"field.geodetic_head"}[key];widget=ttk.Label(pipe,text=f"{self._translate(localized)}");widget.grid(row=row,column=0,sticky="w",pady=3);setattr(self,f"_field_label_{key}",widget);entry=numeric_entry(pipe,textvariable=self._fields[key]);entry.grid(row=row,column=1,sticky="e",padx=(8,0),pady=3);self._entries[key]=entry
             if unit: ttk.Label(pipe,text=unit).grid(row=row,column=2,sticky="w",padx=(8,0))
         ttk.Combobox(pipe,textvariable=self._viscosity_unit,values=("cSt","m²/s"),state="readonly",width=7).grid(row=2,column=2,sticky="w",padx=(8,0))
-        self._source_label=ttk.Label(pipe,text=self._translate("field.roughness_source"));self._source_label.grid(row=5,column=0,sticky="w",pady=3);self._source_box=ttk.Combobox(pipe,textvariable=self._source,values=(self._translate("message.material_source"),self._translate("message.manual_source")),state="readonly",width=16);self._source_box.grid(row=5,column=1,columnspan=2,sticky="w",padx=(8,0));self._source_box.bind("<<ComboboxSelected>>",lambda _:self._select_source_mode())
-        self._material_label=ttk.Label(pipe,text=self._translate("field.material"));self._material_label.grid(row=6,column=0,sticky="w",pady=3);self._material_box=ttk.Combobox(pipe,textvariable=self._material,state="readonly",width=22);self._material_box.grid(row=6,column=1,columnspan=2,sticky="ew",padx=(8,0));self._material_box.bind("<<ComboboxSelected>>",lambda _:self._load_selected_roughness())
-        self._active_roughness_label=ttk.Label(pipe,text=self._translate("field.active_roughness"));self._active_roughness_label.grid(row=7,column=0,sticky="w",pady=3);self._roughness_entry=numeric_entry(pipe,textvariable=self._fields["k"]);self._roughness_entry.grid(row=7,column=1,sticky="e",padx=(8,0),pady=3)
+        self._source_label=ttk.Label(pipe,text=self._translate("field.roughness_source"));self._source_label.grid(row=5,column=0,sticky="w",pady=3);self._source_box=ttk.Combobox(pipe,textvariable=self._source,values=(self._translate("selection.standard"),self._translate("message.manual_source")),state="readonly",width=16);self._source_box.grid(row=5,column=1,columnspan=2,sticky="w",padx=(8,0));self._source_box.bind("<<ComboboxSelected>>",lambda _:self._select_source_mode())
+        self._material_label=ttk.Label(pipe,text=self._translate("selection.pipe_material"));self._material_label.grid(row=6,column=0,sticky="w",pady=3);self._material_box=ttk.Combobox(pipe,textvariable=self._material,state="readonly",width=22);self._material_box.grid(row=6,column=1,columnspan=2,sticky="ew",padx=(8,0));self._material_box.bind("<<ComboboxSelected>>",lambda _:self._load_selected_roughness())
+        self._active_roughness_label=ttk.Label(pipe,text=self._translate("selection.absolute_roughness"));self._active_roughness_label.grid(row=7,column=0,sticky="w",pady=3);self._roughness_entry=numeric_entry(pipe,textvariable=self._fields["k"]);self._roughness_entry.grid(row=7,column=1,sticky="e",padx=(8,0),pady=3)
         ttk.Label(pipe,text="mm").grid(row=7,column=2,sticky="w",padx=(8,0))
         self._warning_fluid_label=ttk.Label(pipe,text=self._translate("field.system_fluid"));self._warning_fluid_label.grid(row=8,column=0,sticky="w",pady=3);self._warning_fluid_box=ttk.Combobox(pipe,textvariable=self._warning_fluid,state="readonly",width=22);self._warning_fluid_box.grid(row=8,column=1,columnspan=2,sticky="w",padx=(8,0),pady=3)
         self._losses_card=InputCard(workspace,self._translate("section.local_losses"));losses=self._losses_card;losses.grid(row=0,column=1,sticky="nsew",padx=6);losses.columnconfigure(0,weight=1)
@@ -87,7 +87,10 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         self._clear_button=create_rounded_button(self._result_actions,self._translate("common.clear"),self._clear,style="RoundedNeutral.TButton",palette=NEUTRAL_BUTTON_PALETTE,icon_name="clear",icon_size=28)
         self._result_action_buttons=(self._calculate_button,self._clear_button)
         for column,button in enumerate(self._result_action_buttons):button.grid(row=0,column=column,sticky="w",padx=(0 if column==0 else 8,0))
-        self._system_metric=ResultMetric(results,self._translate("result.pump_discharge_head"),self._system_head_summary,"m",normal_style_prefix="DischargeResultMetric");self._system_metric.grid(row=1,column=0,columnspan=2,sticky="ew",pady=(10,0))
+        self._head_pair=ttk.Frame(results);self._head_pair.grid(row=1,column=0,columnspan=2,sticky='ew',pady=(10,0));self._head_pair.columnconfigure(0,weight=1);self._head_pair.columnconfigure(1,weight=1)
+        from ui.widgets.discharge_pressure import DischargePressurePanel
+        self._pressure_panel=DischargePressurePanel(self._head_pair,self._translate,lambda:self._fields['fluid_density'].get() if 'fluid_density' in self._fields else '');self._pressure_panel.grid(row=0,column=1,sticky='nw',padx=(10,0))
+        self._system_metric=ResultMetric(self._head_pair,self._translate("result.pump_discharge_head"),self._system_head_summary,"m",normal_style_prefix="DischargeResultMetric");self._system_metric.grid(row=0,column=0,sticky="nw")
         self._total_loss_metric=ResultMetric(results,self._translate("result.total_hydraulic_loss"),self._total_loss_summary,"m",normal_style_prefix="DischargeLossMetric");self._total_loss_metric.grid(row=2,column=0,columnspan=2,sticky="ew",pady=(6,0))
         self._system_relation_summary=tk.StringVar(value="—")
         self._system_relation=ttk.Label(results,textvariable=self._system_relation_summary,style="TechnicalReference.TLabel")
@@ -106,7 +109,7 @@ class DischargeHeadLossPage(ttk.LabelFrame):
             metric.columnconfigure(1,weight=1)
             self._supporting_metric_widgets.append((metric,label_widget,label))
         self._reflow_supporting_metrics()
-        self._result_empty_state=EmptyState(results,"result",self._translate("guidance.empty.title"),self._translate("guidance.empty.discharge"),image_size=145);self._result_empty_state.grid(row=1,column=0,columnspan=2,sticky="nsew");self._result_metrics=(self._total_loss_metric,self._system_metric,self._system_relation,losses_metrics,self._supporting_metrics)
+        self._result_empty_state=EmptyState(results,"result",self._translate("guidance.empty.title"),self._translate("guidance.empty.discharge"),image_size=145);self._result_empty_state.grid(row=1,column=0,columnspan=2,sticky="nsew");self._result_metrics=(self._total_loss_metric,self._head_pair,self._system_relation,losses_metrics,self._supporting_metrics)
         self._warning_panel=EngineeringWarningPanel(results,self._translate);self._warning_panel.grid(row=6,column=0,columnspan=2,sticky="ew",pady=(8,0));self._warning_panel.set_findings(())
         ttk.Label(self,textvariable=self._message,wraplength=1000).grid(row=3,column=0,sticky="w",pady=(8,0))
         self._formula_panel=FormulaReferencePanel(self,self._formula_sections,self._translate,self._create_formula_toggle,lambda:hasattr(self,"_last_result"),step_provider=self._formula_steps, separate_window=True, module_key="discharge_head_loss");self._formula_panel.grid(row=4,column=0,sticky="ew",pady=(10,0))
@@ -124,8 +127,9 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         return create_rounded_button(parent,text,command,style="RoundedFormula.TButton",palette=FORMULA_BUTTON_PALETTE,icon_name="formula",icon_size=36)
     def refresh_texts(self)->None:
         """Refresh discharge labels without changing hydraulic inputs or results."""
+        self._pressure_panel.refresh_texts()
         localize_guidance(self, 'discharge', self._translate)
-        manual=self._source_mode=="manual";self._suppress_dirty=True;self._source.set(self._translate("message.manual_source") if manual else self._translate("message.material_source"));self._suppress_dirty=False;self.configure(text=self._translate("page.discharge.tab"));self._header.set_content(self._translate("page.discharge.title"),self._translate("page.discharge.description"));self._pipe_card.configure(text=self._translate("section.hydraulic_inputs"));self._losses_card.configure(text=self._translate("section.local_losses"));self._results_card.configure(text=self._translate("section.calculation_results"));self._calculate_button.configure(text=self._translate("calculation.calculate"));self._clear_button.configure(text=self._translate("common.clear"));self._system_metric.set_label(self._translate("result.pump_discharge_head"));self._total_loss_metric.set_label(self._translate("result.total_hydraulic_loss"));self._local_loss_metric.set_label(self._translate("result.local_loss"));self._pipe_loss_metric.set_label(self._translate("result.pipe_friction_loss"));self._field_label_d.configure(text=self._translate("field.pipe_inside_diameter"));self._field_label_q.configure(text=self._translate("field.flow_rate"));self._field_label_nu.configure(text=self._translate("field.kinematic_viscosity"));self._field_label_l.configure(text=self._translate("field.pipe_length"));self._field_label_h.configure(text=self._translate("field.geodetic_head"));self._source_label.configure(text=self._translate("field.roughness_source"));self._material_label.configure(text=self._translate("field.material"));self._active_roughness_label.configure(text=self._translate("field.active_roughness"));self._source_box.configure(values=(self._translate("message.material_source"),self._translate("message.manual_source")));self._tree.heading("name",text=self._translate("table.component"));self._tree.heading("quantity",text=self._translate("table.quantity"));self._tree.heading("total",text=self._translate("table.quantity_times_k"));self._add_button.configure(text=self._translate("common.add"));self._edit_button.configure(text=self._translate("common.edit"));self._delete_button.configure(text=self._translate("common.delete"));self._clear_all_button.configure(text=self._translate("action.clear_all"));
+        manual=self._source_mode=="manual";self._suppress_dirty=True;self._source.set(self._translate("message.manual_source") if manual else self._translate("selection.standard"));self._suppress_dirty=False;self.configure(text=self._translate("page.discharge.tab"));self._header.set_content(self._translate("page.discharge.title"),self._translate("page.discharge.description"));self._pipe_card.configure(text=self._translate("section.hydraulic_inputs"));self._losses_card.configure(text=self._translate("section.local_losses"));self._results_card.configure(text=self._translate("section.calculation_results"));self._calculate_button.configure(text=self._translate("calculation.calculate"));self._clear_button.configure(text=self._translate("common.clear"));self._system_metric.set_label(self._translate("result.pump_discharge_head"));self._total_loss_metric.set_label(self._translate("result.total_hydraulic_loss"));self._local_loss_metric.set_label(self._translate("result.local_loss"));self._pipe_loss_metric.set_label(self._translate("result.pipe_friction_loss"));self._field_label_d.configure(text=self._translate("field.pipe_inside_diameter"));self._field_label_q.configure(text=self._translate("field.flow_rate"));self._field_label_nu.configure(text=self._translate("field.kinematic_viscosity"));self._field_label_l.configure(text=self._translate("field.pipe_length"));self._field_label_h.configure(text=self._translate("field.geodetic_head"));self._source_label.configure(text=self._translate("field.roughness_source"));self._material_label.configure(text=self._translate("selection.pipe_material"));self._active_roughness_label.configure(text=self._translate("selection.absolute_roughness"));self._source_box.configure(values=(self._translate("selection.standard"),self._translate("message.manual_source")));self._tree.heading("name",text=self._translate("table.component"));self._tree.heading("quantity",text=self._translate("table.quantity"));self._tree.heading("total",text=self._translate("table.quantity_times_k"));self._add_button.configure(text=self._translate("common.add"));self._edit_button.configure(text=self._translate("common.edit"));self._delete_button.configure(text=self._translate("common.delete"));self._clear_all_button.configure(text=self._translate("action.clear_all"));
         self._warning_fluid_label.configure(text=self._translate("field.system_fluid"));self._load_warning_fluids();self._warning_panel.refresh_texts()
         for _metric,label,key in self._supporting_metric_widgets:
             label.configure(text=self._translate(key))
@@ -234,6 +238,9 @@ class DischargeHeadLossPage(ttk.LabelFrame):
             if hasattr(self,"_warning_panel"):self._warning_panel.set_findings(())
             self._refresh_formula_panel()
 
+    def _pressure_density_changed(self,*_args):
+        if not self._suppress_dirty:self._pressure_panel.render()
+
     def _clear_result_metrics(self)->None:
         """Reset visual result values without changing hydraulic inputs or items."""
         for value in (
@@ -246,6 +253,7 @@ class DischargeHeadLossPage(ttk.LabelFrame):
             self._friction_factor_summary,
             self._k_total_summary,
         ):value.set("—")
+        if hasattr(self,'_pressure_panel'):self._pressure_panel.clear()
         if hasattr(self, "_velocity_summary"):
             self._velocity_summary.set("—")
         if hasattr(self,"_system_relation_summary"):self._system_relation_summary.set("—")
@@ -285,16 +293,19 @@ class DischargeHeadLossPage(ttk.LabelFrame):
 
     def export_state(self)->dict[str,object]:
         """Serialize editable fields, selectors, local losses, and message."""
-        return {"fields":{k:v.get() for k,v in self._fields.items()},"source":self._source_mode,"material":self._material.get(),"viscosity_unit":self._viscosity_unit.get(),"warning_fluid":self._selected_warning_fluid(),"items":[{"name":x.name,"quantity":x.quantity,"k":x.k_coefficient} for x in self._items.values()]}
+        return {"fields":{k:v.get() for k,v in self._fields.items()},"pressure":dict(getattr(self,"_legacy_pressure_preferences",{})),"source":self._source_mode,"material":self._material.get(),"viscosity_unit":self._viscosity_unit.get(),"warning_fluid":self._selected_warning_fluid(),"items":[{"name":x.name,"quantity":x.quantity,"k":x.k_coefficient} for x in self._items.values()]}
     def load_state(self,state:dict[str,object])->None:
         """Restore state without touching material library records."""
         self._suppress_dirty=True
         try:
+            legacy=state.get('pressure',{})
+            self._legacy_pressure_preferences=dict(legacy) if isinstance(legacy,dict) else {}
+            self._pressure_panel.clear()
             for field in self._fields.values():
                 field.set("")
             for key,value in dict(state.get("fields",{})).items():
                 if key in self._fields:self._fields[key].set(str(value))
-            saved_source=str(state.get("source","material"));self._source_mode="manual" if saved_source in {"manual","Manual"} else "material";self._source.set(self._translate("message.manual_source") if self._source_mode=="manual" else self._translate("message.material_source"));self._material.set(str(state.get("material","")));self._viscosity_unit.set(str(state.get("viscosity_unit","cSt")));self._set_warning_fluid(state.get("warning_fluid") if isinstance(state.get("warning_fluid"),str) else None);self._items={str(uuid4()):LocalLossItem(str(x["name"]),int(x["quantity"]),float(x["k"])) for x in state.get("items",[]) if isinstance(x,dict)};self._refresh();self._set_source_mode(reset_value=False);self._set_semantic_messages([])
+            saved_source=str(state.get("source","material"));self._source_mode="manual" if saved_source in {"manual","Manual"} else "material";self._source.set(self._translate("message.manual_source") if self._source_mode=="manual" else self._translate("selection.standard"));self._material.set(str(state.get("material","")));self._viscosity_unit.set(str(state.get("viscosity_unit","cSt")));self._set_warning_fluid(state.get("warning_fluid") if isinstance(state.get("warning_fluid"),str) else None);self._items={str(uuid4()):LocalLossItem(str(x["name"]),int(x["quantity"]),float(x["k"])) for x in state.get("items",[]) if isinstance(x,dict)};self._refresh();self._set_source_mode(reset_value=False);self._set_semantic_messages([])
             self.__dict__.pop("_last_result", None)
             self._clear_result_metrics()
             self._result_summary.set(self._translate("message.no_current_calculation"))
@@ -360,11 +371,13 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         if self._items and messagebox.askyesno(self._translate("dialog.clear_local_losses"),self._translate("confirm.clear_local_losses"),parent=self):self._items.clear();self._refresh();self._invalidate_result();self._mark_dirty()
     def _clear(self)->None:
         """Clear only current calculation state and restore source defaults."""
+        self._legacy_pressure_preferences={}
+        self._pressure_panel.clear()
         if hasattr(self, "_workflow"):
             self._workflow.manual()
         for field in self._fields.values():field.set("")
         self._set_warning_fluid(None)
-        self._items.clear();self._refresh();self._viscosity_unit.set("cSt");self._source_mode="material";self._source.set(self._translate("message.material_source"));self._material.set("");self._set_source_mode();self._set_semantic_messages([]);self.__dict__.pop("_last_result",None);self._result_summary.set(self._translate("message.no_current_calculation"));self._clear_result_metrics();self._mark_dirty();self._refresh_formula_panel()
+        self._items.clear();self._refresh();self._viscosity_unit.set("cSt");self._source_mode="material";self._source.set(self._translate("selection.standard"));self._material.set("");self._set_source_mode();self._set_semantic_messages([]);self.__dict__.pop("_last_result",None);self._result_summary.set(self._translate("message.no_current_calculation"));self._clear_result_metrics();self._mark_dirty();self._refresh_formula_panel()
         if hasattr(self, "_pipe_source_panel"):
             if hasattr(self._pipe_source_panel, "reset_choice"):
                 self._pipe_source_panel.reset_choice()
@@ -410,7 +423,7 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         if hasattr(self,'_fluid_preflight') and not self._fluid_preflight():return
         try:
             labels={"d":"Pipe Inside Diameter (mm)","q":"Flow Rate","nu":"Kinematic Viscosity","l":"Pipe Length","k":"Roughness (mm)","h":"Geodetic Head"};field_keys={"d":"field.pipe_inside_diameter","q":"field.flow_rate","nu":"field.kinematic_viscosity","l":"field.pipe_length","k":"field.roughness","h":"field.geodetic_head"};n=lambda key:parse_engineering_float(self._fields[key].get(),field_name=labels[key],field_key=field_keys[key]);viscosity=n("nu")*1e-6 if self._viscosity_unit.get()=="cSt" else n("nu");material_id=self._material_ids.get(self._material.get()) if self._using_library_source() else None
-            if self._using_library_source() and material_id is None:raise ValidationError(ValidationIssue("selection_required","field.material"))
+            if self._using_library_source() and material_id is None:raise ValidationError(ValidationIssue("selection_required","selection.pipe_material"))
             workflow = self._workflow if hasattr(self, "_workflow") else DischargeWorkflow()
             if not workflow.pipe_fields_readonly:
                 workflow.edit_manual(diameter_mm=n("d"), flow_m3_h=n("q"))
@@ -425,6 +438,7 @@ class DischargeHeadLossPage(ttk.LabelFrame):
             )
             result = self._service.calculate_v2(value)
             self._last_result = result
+            if hasattr(self,'_pressure_panel'):self._pressure_panel.set_head(result.system_head_m)
             self._render_result()
             self._mark_dirty()
             self._refresh_formula_panel()

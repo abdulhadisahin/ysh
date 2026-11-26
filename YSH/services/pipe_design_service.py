@@ -14,6 +14,7 @@ from services.corrosion_allowance_circuit_service import CorrosionAllowanceCircu
 from core.corrosion_allowance_circuit import CorrosionAllowanceCircuit
 from engineering.validation import ValidationError
 if TYPE_CHECKING:
+    from engineering.pipe_design.wall_standards import ScopedWallMaterial
     from engineering.pipe_design.v2_models import PipeDesignV2Input, PipeSelection
     from engineering.provenance import SourceReference
     from repositories.v2_models import PipeSizeMetadata
@@ -42,24 +43,47 @@ class PipeDesignService:
                     f"Required engineering constant '{key}' is missing."
                 ) from error
         return values
-    def get_all_materials(self) -> Sequence[Material]:
+    def get_all_materials(self, *, system_family: str | None = None) -> Sequence[Material | ScopedWallMaterial]:
         """Return library materials for the wall-thickness source selector."""
-        return self._materials.get_all_materials()
-    def get_material(self, material_id: UUID) -> Material:
+        records=self._materials.get_all_materials()
+        if system_family=='seawater':
+            from engineering.pipe_design.wall_standards import cuni_wall_material,is_cuni10
+            if not any(is_cuni10(r.designation) for r in records):return (*records,cuni_wall_material())
+        return records
+    def get_material(self, material_id: UUID) -> Material | ScopedWallMaterial:
         """Return a full material record for current-calculation use."""
+        from engineering.pipe_design.wall_standards import cuni_wall_material
+        reference=cuni_wall_material()
+        if material_id==reference.id:return reference
         return self._materials.get_material(material_id)
     def get_available_pipe_standards(self) -> Sequence[PipeStandard]:
         """Return active pipe standards for the current calculation selection."""
         return self._pipe_sizes.get_available_standards()
+
+    def calculate_batch_diameter(self, diameter: PipeDiameterInput, standard_code: str):
+        """Reuse single sizing/catalog selection, checking the actual speed strictly."""
+        result=self._calculator.calculate_diameter(diameter)
+        sizes=self._pipe_sizes.get_pipe_sizes_for_standard(standard_code)
+        self._calculator.recommend_dn(result,sizes,flow_rate_m3h=diameter.flow_rate_m3h,
+                                      maximum_velocity_mps=diameter.design_velocity_mps)
+        if not sizes:result.warnings=['selected_standard_empty']
+        return result
     def get_active_corrosion_allowance_circuits(self) -> Sequence[CorrosionAllowanceCircuit]:
         """Return circuit defaults for the Pipe Design current calculation."""
         return () if self._circuits is None else self._circuits.get_active_circuits()
-    def calculate(self, diameter: PipeDiameterInput|None=None, wall: WallThicknessInput|None=None, material_id: UUID|None=None, manual_input: bool=True, standard_code: str | None = None) -> PipeDesignCalculationResult:
+    def calculate(self, diameter: PipeDiameterInput|None=None, wall: WallThicknessInput|None=None, material_id: UUID|None=None, manual_input: bool=True, standard_code: str | None = None, *, system_family: str | None = None, design_temperature_c: float | None = None) -> PipeDesignCalculationResult:
         """Calculate provided sections while retaining errors and traceability."""
         result=PipeDesignCalculationResult(trace={"module_identifier":"pipe_design","module_version":"1","manual_input":manual_input,"constants":self.get_current_constants()})
+        material = None
+        direct_stress = None
         try:
             if material_id is not None and wall is not None:
-                material=self._materials.get_material(material_id);self._materials.validate_required_properties(material,"yield_strength_mpa");wall.yield_strength_mpa=material.yield_strength_mpa;result.trace["material"]={"id":str(material.id),"designation":material.designation,"standard":material.standard,"source":material.source,"yield_strength_mpa":material.yield_strength_mpa}
+                from engineering.pipe_design.wall_standards import auxiliary_cuni_stress
+                material=self.get_material(material_id)
+                direct_stress=auxiliary_cuni_stress(material.designation,system_family,design_temperature_c)
+                if direct_stress is None:self._materials.validate_required_properties(material,"yield_strength_mpa")
+                wall.yield_strength_mpa=material.yield_strength_mpa
+                result.trace["material"]={"id":str(material.id),"designation":material.designation,"standard":material.standard,"source":material.source,"yield_strength_mpa":material.yield_strength_mpa}
             if diameter is not None:
                 selected_standard = standard_code or PipeSizeService.DEFAULT_STANDARD_CODE
                 sizes = self._pipe_sizes.get_pipe_sizes_for_standard(
@@ -76,7 +100,24 @@ class PipeDesignService:
             if wall is not None:
                 result.trace["wall_input"] = asdict(wall)
                 result.trace["bend_state"] = wall.bend_state.value
-                result.wall_thickness=self._calculator.calculate_wall_thickness(wall)
+                if direct_stress is None:
+                    result.wall_thickness=self._calculator.calculate_wall_thickness(wall)
+                else:
+                    from dataclasses import replace
+                    from engineering.pipe_design.validation import validate_wall_input, _positive
+                    from engineering.pipe_design.calculator import wall_from_stress
+                    _positive(wall.safety_factor,'field.safety_factor')
+                    validate_wall_input(replace(wall,yield_strength_mpa=68.,safety_factor=1.))
+                    result.wall_thickness=wall_from_stress(wall.outside_diameter_mm,wall.design_pressure_bar,
+                        direct_stress['value_mpa'],wall.weld_factor,wall.corrosion_allowance_mm,
+                        wall.bend_allowance_enabled,wall.bend_radius_mm)
+                    result.trace['allowable_stress_rule']=direct_stress
+                if material is not None:
+                    from engineering.pipe_design.wall_standards import recommend_wall, verified_nominal_walls
+                    result.trace['wall_standard']=recommend_wall(result.wall_thickness.final_wall_thickness_mm,
+                        material.designation,wall.outside_diameter_mm,system_family,
+                        verified_nominal_walls(material.designation,wall.outside_diameter_mm,system_family))
+                    result.wall_thickness.selected_standard_wall_thickness_mm=result.trace['wall_standard']['nominal_wall_mm']
         except ValidationError:
             raise
         except (ValueError, LookupError):

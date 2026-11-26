@@ -54,7 +54,7 @@ def test_only_valid_circuit_from_locked_system_is_displayed(shell):
     assert 'Yardımcı Deniz Suyu' in w._pipe_design_page._project_circuit_display.get()
     fuel=next(s for s in DEFAULT_SYSTEMS if s.code=='FUEL')
     w._apply_system_context(SystemContext(system=reference(fuel),circuit=reference(circuit)))
-    assert w._pipe_design_page._project_circuit_display.get()=='Deniz Suyu Sistemi'
+    assert w._pipe_design_page._project_circuit_display.get()=='Yardımcı Deniz Suyu'
 
 
 @pytest.mark.parametrize('module',[None,'pipe_design','discharge_head_loss','suction_npsh'])

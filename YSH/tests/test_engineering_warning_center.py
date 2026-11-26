@@ -103,7 +103,7 @@ def test_real_project_center_is_readonly_localized_and_family_isolated(shell, fa
     dirty = w._project_persistence_service.is_dirty
     w._open_warning_center()
     dialog = w._warning_center_dialog
-    settle_geometry(w._root, w._project_family_indicator, w._warning_center_button)
+    settle_geometry(w._root, w._project_family_indicator)
     summary = w._refresh_warning_center()
     if family == 'fuel':
         assert summary.items == ()
@@ -124,8 +124,10 @@ def test_real_project_center_is_readonly_localized_and_family_isolated(shell, fa
     finally:
         w._translate = original
         w._refresh_family_selector()
-    button = w._warning_center_button
-    assert button.winfo_rootx()+button.winfo_width() <= w._root.winfo_rootx()+w._root.winfo_width()
+    assert not hasattr(w,'_warning_center_button')
+    assert not hasattr(w,'_warning_center_alert')
+    assert w._project_status_strip.grid_slaves(row=0,column=1)==[]
+    assert w._project_status_strip.grid_slaves(row=0,column=2)==[]
     other = 'fire' if family == 'fuel' else 'fuel'
     w._show_family(other)
     assert w._family == family

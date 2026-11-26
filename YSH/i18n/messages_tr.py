@@ -10,11 +10,11 @@ MESSAGES = {
     "hydro.fluid.apply": "Akışkanı Uygula",
     "hydro.fluid.atmosphere": "Atmosfer basıncını seç",
     "hydro.fluid.notice": "Tam eşleşme yoksa yoğunluk ve viskoziteyi manuel girin. Girdiler korunur; kaynak değişikliklerini Güncelle / Mevcut Değeri Koru ile inceleyin.",
-    "hydro.fluid.density_reference": "Yoğunluk [kg/m³] — bilgi amaçlı",
+    "hydro.fluid.density_reference": "Yoğunluk [kg/m³]",
     "hydro.condition.temperature_c": "İşletme sıcaklığı [°C]",
     "hydro.condition.salinity_g_kg": "Tuzluluk [g/kg]",
     "hydro.condition.pressure_mpa": "Özellik referans basıncı [MPa mutlak]",
-    "hydro.reference_only": "Bilgi amaçlı; bu denklemde kullanılmaz",
+    "hydro.reference_only": "Yoğunluk, hidrolik yük kaybı denkleminde kullanılmaz",
     "engineering.method.PUBLISHED_POINT": "Yayımlanmış özellik noktası",
     'library2.field.data_role': 'Veri Türü',
     'catalog.kind.operating': 'Koşula bağlı yayımlanmış özellik noktası; otomatik hesap varsayılanı değildir.',
@@ -89,13 +89,13 @@ MESSAGES = {
     'library2.field.source_url': 'Resmî Kaynak Bağlantısı',
     'library2.field.audit_scope': 'Doğrulama Kapsamı',
     'pipe.project_context': 'Sistem / Devre',
-    'project.family.seawater': 'Deniz Suyu Sistemi',
+    'project.family.seawater': 'Yardımcı Deniz Suyu',
     'engineering.fluid.seawater': 'Deniz Suyu',
     'engineering.select.fluid_temperature_c': 'Akışkan Sıcaklığı [°C] (isteğe bağlı)',
     'engineering.select.fluid_salinity_g_kg': 'Tuzluluk [g/kg] (isteğe bağlı)',
     'engineering.select.strength_material': 'Dayanım Malzemesi',
     'library2.field.reference_salinity_g_kg': 'Referans Tuzluluk [g/kg]',
-    'word.family.seawater': 'Deniz Suyu Sistemi',
+    'word.family.seawater': 'Yardımcı Deniz Suyu',
     'seawater.fluid_required': 'Deniz suyu akışkan kaydı gerekli. Kütüphaneyi kontrol edin.',
     'seawater.conditions_required': 'Deniz suyu özellikleri için sıcaklık, tuzluluk ve doğrulanmış kaynak gerekli.',
     'seawater.material_required': 'Malzeme dayanımı ve korozyon artımı için malzeme/servis kapsamına uygun doğrulanmış kaynak gerekli.',
@@ -1126,7 +1126,7 @@ MESSAGES.update({'engineering.scope.TL_FFS': 'Yangın Söndürme Gemileri (seçi
 
 MESSAGES.update({'library2.group.fluids': 'Akışkanlar / Yakıtlar', 'library2.category.fluids': 'Akışkanlar / Yakıtlar', 'library2.group.engineering_rules': 'Mühendislik Kuralları', 'library2.catalog.no_properties': 'Bu akışkan için özellik referansı kaydedilmemiştir.'})
 
-MESSAGES.update({'engineering.select.fluid': 'Akışkan / Yakıt', 'engineering.select.material': 'Boru Malzemesi', 'engineering.select.surface': 'Yüzey Durumu', 'engineering.select.service': 'Servis / Sistem', 'engineering.select.line_type': 'Hat Tipi', 'engineering.select.profile': 'Kural Profili', 'engineering.strength_material': 'Rp0.2 malzemesi', 'engineering.edit_project': 'Proje bağlamı', 'engineering.edit_module': 'Bu hesap için değiştir', 'engineering.use_project': 'Proje bağlamını kullan', 'engineering.module_notice': 'Bu seçim yalnızca bu hesabı etkiler. Proje akışkanı ve varsayılanları değişmez. Manuel değerler korunur.', 'engineering.density_reference': 'Referans yoğunluk (Basma hesabında kullanılmaz)', 'field.system_fluid': 'Servis / Sistem (hız referansı)', 'engineering.service.DIESEL_FUEL_DELIVERY': 'Yakıt Basma', 'engineering.service.DIESEL_FUEL_SUCTION': 'Yakıt Emme', 'engineering.service.SEA_WATER_COOLING': 'Deniz Suyu Soğutma', 'engineering.service.FRESH_WATER_COOLING': 'Tatlı Su Soğutma', 'engineering.service.LUBE_OIL': 'Yağlama Yağı', 'engineering.service.BALLAST': 'Balast', 'engineering.service.BILGE': 'Sintine'})
+MESSAGES.update({'engineering.select.fluid': 'Akışkan / Yakıt', 'engineering.select.material': 'Boru Malzemesi', 'engineering.select.surface': 'Yüzey Durumu', 'engineering.select.service': 'Servis / Sistem', 'engineering.select.line_type': 'Hat Tipi', 'engineering.select.profile': 'Kural Profili', 'engineering.strength_material': 'Rp0.2 malzemesi', 'engineering.edit_project': 'Proje bağlamı', 'engineering.edit_module': 'Bu hesap için değiştir', 'engineering.use_project': 'Proje bağlamını kullan', 'engineering.module_notice': 'Bu seçim yalnızca bu hesabı etkiler. Proje akışkanı ve varsayılanları değişmez. Manuel değerler korunur.', 'engineering.density_reference': 'Katalog yoğunluğu', 'field.system_fluid': 'Servis / Sistem (hız referansı)', 'engineering.service.DIESEL_FUEL_DELIVERY': 'Yakıt Basma', 'engineering.service.DIESEL_FUEL_SUCTION': 'Yakıt Emme', 'engineering.service.SEA_WATER_COOLING': 'Deniz Suyu Soğutma', 'engineering.service.FRESH_WATER_COOLING': 'Tatlı Su Soğutma', 'engineering.service.LUBE_OIL': 'Yağlama Yağı', 'engineering.service.BALLAST': 'Balast', 'engineering.service.BILGE': 'Sintine'})
 
 MESSAGES["engineering.project_fluid"] = 'Proje akışkanı (değiştirilmedi)'
 MESSAGES['project.system'] = 'Sistem'
@@ -1136,3 +1136,42 @@ MESSAGES['engineering.scope_unrecorded'] = 'Uygulanabilirlik kaydedilmemiş'
 
 MESSAGES.update({'word.export_title': 'Word Raporu Oluştur', 'word.export_success': 'Word raporu oluşturuldu:\n{path}', 'word.export_error': 'Word raporu kaydedilemedi. Klasörü, yazma iznini ve disk alanını kontrol edin.', 'action.word_current_result': 'Word Raporu', 'history.visual.word': 'Word Raporu', 'word.manual_override': 'Manuel Değişiklik', 'word.unknown_status': 'Kayıtlı durumun açıklaması mevcut değil', 'word.source_required': 'Kaynak Gerekli', 'word.page': 'Sayfa', 'word.family.fuel': 'Yakıt Sistemi', 'word.family.fire': 'Yangın Söndürme Sistemi', 'word.transfer.design': 'Hacim ve süre temelli tasarım hesabı', 'word.transfer.empirical': 'Ampirik referans gemi tahmini', 'word.volume_mode': 'Hacim girişi', 'word.mass_mode': 'Kütle girişi', 'word.graph.title': 'Referans Gemi Verileri ve Tulumba Kapasitesi İlişkisi', 'word.graph.x': 'Yakıt Kapasitesi (m³)', 'word.graph.y': 'Tulumba Kapasitesi (m³/h)', 'word.graph.references': 'Referans Gemiler', 'word.graph.line': 'Regresyon Doğrusu', 'word.graph.project': 'Hesaplanan Proje Noktası', 'word.reference_vessel': 'Referans Gemi', 'word.transfer.equation': 'Regresyon Denklemi', 'word.transfer.r2': 'Belirlilik Katsayısı (R²)', 'word.transfer.predicted': 'Tahmini Tulumba Kapasitesi', 'word.transfer.average': 'Gerekli Ortalama Kapasite', 'word.transfer.time': 'Tahmini Transfer Süresi', 'word.transfer.no_graph': 'Bu hesap kaydında regresyon grafiği için gerekli donmuş referans verileri bulunmuyor. Güncel kütüphaneden veri eklenmedi.', 'word.transfer.design_note': 'Bu tasarım hesabı hacim ve hedef süreyi kullanır; referans gemi regresyonu uygulanmaz.', 'word.symbol': 'Sembol', 'word.intro': 'Bu rapor {module} hesabının kaydedilmiş girişlerini, sonuçlarını ve mühendislik dayanağını içerir. Ana sonuç aşağıda verilmiştir; uyarı ve kaynak koşullarıyla birlikte değerlendirilmelidir.', 'word.color.yellow': 'SARI', 'word.color.red': 'KIRMIZI', 'word.color.black': 'SİYAH', 'word.explain.range': '{name} için referans {property} aralığı {temperature}{low}–{high} {unit} olarak kaydedilmiştir.', 'word.explain.temperature': '{value} °C sıcaklıkta ', 'word.explain.midpoint': 'Kaynakta ayrı bir nominal değer kaydedilmediğinden D243 varsayılanı, aralığın orta değeri olan {default} {unit} olarak türetilmiştir.', 'word.explain.default': 'Bu referans için kaydedilmiş varsayılan {default} {unit} değeridir.', 'word.explain.used': 'Bu hesapta kullanılan değer {used} {unit} olarak kaydedilmiştir.', 'word.explain.override': 'Bu hesapta kullanıcı tarafından {used} {unit} kullanılmıştır; bu manuel değişiklik proje varsayılanını değiştirmez.', 'word.graph.note': 'Grafik, hesap anında kaydedilmiş referans noktalarını ve regresyon katsayılarını kullanır. Güncel kütüphaneden veri okunmaz.', 'word.filename_project': 'Proje', 'word.frozen': 'Bu belge, hesap anında kaydedilmiş verilerden üretilmiştir. Sonradan yapılan belge düzenlemeleri hesap kaydını değiştirmez.'})
 MESSAGES.update({'report.source_required':'Kaynak Gerekli','word.status.warning':'Uyarı','word.status.error':'Hata','word.status.blocked':'Bloke','word.status.critical':'Kritik Sapma','word.status.out_of_range':'Referans Aralığı Dışında','word.transfer.source_capacity':'Kapasite Girişi','word.transfer.resolved_volume':'Hesapta Kullanılan Yakıt Hacmi'})
+
+MESSAGES["selection.standard"] = 'Standart'
+
+MESSAGES.update({'pipe.design_temperature': 'Tasarım sıcaklığı (°C, isteğe bağlı)', 'pipe.standard_wall': 'Önerilen Standart Et Kalınlığı', 'pipe.table': 'Tablo', 'pipe.nominal_unverified': 'Doğrulanmış malzeme / boyut için nominal et eşleşmesi yok.', 'pipe.minimum_basis': 'TL Kısım 107 (Ocak 2022), Tablo {table}: minimum {value} mm.', 'pipe.minimum_unverified': 'Uygulanabilir TL minimumu / montaj grubu doğrulaması gerekli.', 'pipe.cuni_temperature_scope': 'CuNi10Fe için 68 MPa kuralı 75 °C üzerinde uygulanamaz. Sıcaklığa uygun gerilme kuralı gerekli.', 'pipe.cuni_direct_verified': 'σmüs = 68 MPa doğrudan; TL 107 / 8.8, tavlanmış CuNi10Fe, 50 veya 75 °C. B uygulanmaz.', 'pipe.cuni_direct_user': 'σmüs = 68 MPa doğrudan kullanıcı kriteri (DPO Standardı). TL 107 / 8.8 değeri yalnızca 50 ve 75 °C için doğrulandı; tasarım sıcaklığı / tavlanmış durum doğrulanmalı.', 'selection.pipe_material': 'Boru Malzemesi', 'selection.absolute_roughness': 'Mutlak Pürüzlülük ε'})
+
+MESSAGES["validation.pipe.cuni_temperature_scope"] = MESSAGES["pipe.cuni_temperature_scope"]
+
+# Batch pipe diameter table.
+MESSAGES.update({
+    'batch.title': 'Toplu Boru Çapı Hesabı',
+    'batch.name': 'Boru Adı / Hat Adı',
+    'batch.flow': 'Debi (m³/h)',
+    'batch.velocity': 'Hız (m/s)',
+    'batch.diameter': 'Hesaplanan İç Çap (mm)',
+    'batch.dn': 'Önerilen DN',
+    'batch.calculate': 'Tüm Satırları Hesapla',
+    'batch.no_dn': 'Uygun DN bulunamadı',
+    'batch.guidance': 'İlk üç sütunu düzenleyin. Tab / Shift+Tab: hücreler; Enter: alt satır. Üstte seçili boru kataloğu kullanılır.',
+    'batch.complete': '{count} satır hesaplandı; {errors} satırda giriş hatası var.',
+})
+
+# Pressure equivalent of total discharge head.
+MESSAGES.update({
+    'discharge.pressure.title': 'Toplam Basma Yüksekliğinin Basınç Karşılığı (bar)',
+    'discharge.pressure.density': 'Basınç hesabında kullanılan yoğunluk',
+    'discharge.pressure.missing': 'Seçili akışkan koşullarında doğrulanmış yoğunluk yok; Manuel yoğunluk girin.',
+    'discharge.pressure.recalculate': 'Güncel Hs için Basma hesabını çalıştırın.',
+    'discharge.pressure.used': 'Kullanılan ρ: {density} kg/m³ · g: 9,81 m/s²',
+})
+
+# Independent constant-flow 115 percent scenario.
+MESSAGES.update({
+    'transfer.scenario115.title': '%115 Debide Depo Boşaltma Süresi',
+    'transfer.scenario115.notice': 'Sabit debi senaryosu: Q₁₁₅ = 1,15 × Qnominal. Boşaltılacak hacmi ve nominal debiyi belirtin.',
+    'transfer.scenario115.volume': 'Boşaltılacak Hacim',
+    'transfer.scenario115.nominal': 'Nominal Tulumba Debisi',
+    'transfer.scenario115.flow': '%115 Senaryo Debisi (m³/h)',
+    'transfer.scenario115.time': 'Tahmini Boşaltma Süresi (saat)',
+})

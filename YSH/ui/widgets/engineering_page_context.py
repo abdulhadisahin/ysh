@@ -91,6 +91,8 @@ class EngineeringPageContext(ttk.Frame):
     def _draft_changed(self,*_args):
         if self._loading_conditions:return
         page=self.controller.window._pages[self.module]
+        pressure=getattr(page,'_pressure_panel',None)
+        if pressure is not None:pressure.clear()
         page._engineering_context_stale=True
         if hasattr(page,'_formula_panel'):page._formula_panel.refresh_post_tools()
         self.controller.window._mark_workspace_dirty()
@@ -133,6 +135,9 @@ class EngineeringPageContext(ttk.Frame):
         self.surface.configure(text=surface_text+state)
         if self.module=='discharge_head_loss':
             density=c.catalog.hydraulic_references(context).get('density')
+            pressure=getattr(c.window._pages[self.module],'_pressure_panel',None)
+            if pressure is not None:
+                pressure.observe_fluid((context.fluid_id,context.fluid_temperature_c,context.fluid_salinity_g_kg,context.fluid_reference_pressure_mpa))
             if density:
                 value=density.get('default_value')
                 shown=str(value)+' '+density['unit'] if value is not None else tr('engineering.status.SOURCE_REQUIRED')

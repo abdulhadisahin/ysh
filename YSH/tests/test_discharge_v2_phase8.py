@@ -246,10 +246,27 @@ class Widget:
         return self.index
 
 
+
+class PressurePanelStub:
+    """Display-free counterpart of the new pressure preference interface."""
+    def __init__(self):
+        self.load_state({})
+    def export_state(self):
+        return dict(self.state)
+    def load_state(self,state):
+        self.state={'mode':state.get('mode','standard'),'manual_density':state.get('manual_density','')}
+        self.head=None
+    def set_head(self,head):
+        self.head=head
+    def clear(self):
+        self.head=None
+
+
 def page_stub() -> DischargeHeadLossPage:
     """Exercise page callbacks with real service/domain objects and no Tk interpreter."""
     page=DischargeHeadLossPage.__new__(DischargeHeadLossPage)
     page._workflow=DischargeWorkflow()
+    page._pressure_panel=PressurePanelStub()
     page._translate=Translator('tr').translate
     page._fields={key:Var(value) for key,value in dict(d='101',q='20',nu='2',l='20',k='0.015',h='2').items()}
     page._entries={key:Widget() for key in ('d','q')}

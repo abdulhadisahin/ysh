@@ -10,13 +10,18 @@ class PipeDesignCalculator:
     def calculate_diameter(self,value:PipeDiameterInput)->PipeDiameterResult:
         """Calculate D = sqrt(4Q/(V*pi)) using SI flow rate."""
         validate_diameter_input(value);flow_m3s=value.flow_rate_m3h/3600;diameter=math.sqrt((4*flow_m3s)/(value.design_velocity_mps*math.pi));return PipeDiameterResult(diameter,diameter*1000)
-    def recommend_dn(self,result:PipeDiameterResult,pipe_sizes:Sequence[PipeSize])->PipeDiameterResult:
+    def recommend_dn(self,result:PipeDiameterResult,pipe_sizes:Sequence[PipeSize], *, flow_rate_m3h: float | None = None, maximum_velocity_mps: float | None = None)->PipeDiameterResult:
         """Recommend the first suitable distinct nominal DN.
 
         A DN can have many EN 10220 wall-thickness rows.  The row with the
         largest inside diameter represents the nominal size for this selection;
         actual wall selection remains a separate engineering decision.
+
+        Batch callers may additionally check actual velocity at full precision.
+        The existing single-calculation call and its formula remain unchanged.
         """
+        if maximum_velocity_mps is not None:
+            validate_diameter_input(PipeDiameterInput(flow_rate_m3h,maximum_velocity_mps))
         representatives: dict[str, PipeSize] = {}
         for item in pipe_sizes:
             existing = representatives.get(item.nominal_diameter.casefold())
@@ -26,7 +31,9 @@ class PipeDesignCalculator:
         if not ordered:
             result.warnings.append("pipe_size_library_empty")
             return result
-        matching=[item for item in ordered if item.inside_diameter_mm>=result.diameter_mm]
+        from engineering.pipe_design.selection import actual_velocity
+        matching=[item for item in ordered if item.inside_diameter_mm>=result.diameter_mm
+                  and (maximum_velocity_mps is None or actual_velocity(flow_rate_m3h,item.inside_diameter_mm)<=maximum_velocity_mps)]
         if not matching:
             result.warnings.append("no_suitable_dn")
             return result

@@ -108,14 +108,18 @@ class PipeDesignPage(ttk.Frame):
         self._wall_base = tk.StringVar(value="—")
         self._wall_bend = tk.StringVar(value="—")
         self._wall_corrosion = tk.StringVar(value="—")
-        self._fields = {key: tk.StringVar() for key in ("q","v","da","pc","rp","sf","wf","c","r")}
+        self._wall_standard_basis = {}
+        self._wall_stress_basis = {}
+        self._wall_standard_text = tk.StringVar(value="—")
+        self._wall_nominal_value = tk.StringVar(value="—")
+        self._fields = {key: tk.StringVar() for key in ("q","v","da","pc","rp","sf","wf","c","r","temperature")}
         self._bend = tk.BooleanVar()
         self._bend_mode = tk.StringVar(value="NO_BEND")
         self._bend_mode_labels: dict[str, str] = {}
         self._bend_mode_codes: dict[str, str] = {}
         self._manual_bend_radius_mm = ""
         self._last_bend_mode = DEFAULT_BEND_RADIUS_MODE
-        self._source = tk.StringVar(value=self._t("message.material_source"))
+        self._source = tk.StringVar(value=self._t("selection.standard"))
         self._material = tk.StringVar()
         self._circuit = tk.StringVar()
         self._project_circuit_display = tk.StringVar(value=self._t('context.none.system'))
@@ -162,7 +166,7 @@ class PipeDesignPage(ttk.Frame):
             self._fields["da"], self._fields["pc"], self._fields["rp"],
             self._fields["sf"], self._fields["wf"], self._fields["c"],
             self._fields["r"], self._bend, self._source, self._material,
-            self._circuit, self._bend_mode,
+            self._circuit, self._bend_mode, self._fields['temperature'],
         ):
             variable.trace_add("write", self._on_part2_change)
         self._fields["da"].trace_add("write", self._on_outside_diameter_change)
@@ -248,16 +252,19 @@ class PipeDesignPage(ttk.Frame):
             "bend_enabled": self._bend.get(),
             "bend_mode": self._selected_bend_mode_code(),
             "manual_bend_radius_mm": self._manual_bend_radius_mm,
-            "source_mode": self._source.get(),
+            "source_mode": self._t("message.material_source") if self._using_library_source() else self._t("message.manual_source"),
             "material_id": None if material_id is None else str(material_id),
             "material_label": self._material.get(),
             "manual_outside_diameter_override": self._manual_da_override,
             "diameter_result": dict(self._diameter_result),
             "diameter_warning_velocity_m_s": self._diameter_warning_velocity_m_s,
             "wall_result": dict(self._wall_result),
+            "wall_standard_basis": dict(self._wall_standard_basis),
+            "wall_stress_basis": dict(self._wall_stress_basis),
             "message": self._message.get(),
             "formula_text": self._formula_text,
             "display_decimal_places": self._display_places,
+            "batch_diameter_rows": self._batch_diameter.export_inputs(),
         }
     def load_state(self,state:dict[str,object])->None:
         """Restore saved page state without marking the workspace dirty."""
@@ -272,7 +279,9 @@ class PipeDesignPage(ttk.Frame):
         circuit_missing = False
         self._suppress_dirty=True
         try:
+            self._load_materials()
             fields=state.get("fields",{})
+            self._fields['temperature'].set(str(fields.get('temperature','')) if isinstance(fields,dict) else '')
             if isinstance(fields,dict):
                 for key,value in fields.items():
                     if key in self._fields:self._fields[key].set(str(value))
@@ -301,12 +310,14 @@ class PipeDesignPage(ttk.Frame):
             self._corrosion_allowance_override = bool(state.get("corrosion_allowance_manual_override", False))
             stored_source = str(state.get("source_mode", "Material Library"))
             manual_source = stored_source in {"Manual", "manual", "Manuel", self._t("message.manual_source")}
-            self._source.set(self._t("message.manual_source" if manual_source else "message.material_source"))
+            self._source.set(self._t("message.manual_source" if manual_source else "selection.standard"))
             self._diameter_result = dict(state.get("diameter_result", {}))
             saved_velocity = state.get("diameter_warning_velocity_m_s")
             self._diameter_warning_velocity_m_s = float(saved_velocity) if isinstance(saved_velocity, (int, float)) and not isinstance(saved_velocity, bool) else None
             self._diameter_warning_codes = self._warning_codes_from_result()
             self._wall_result = dict(state.get("wall_result", {}))
+            self._wall_standard_basis = dict(state.get("wall_standard_basis", {}))
+            self._wall_stress_basis = dict(state.get("wall_stress_basis", {}))
             self._manual_da_override = bool(state.get("manual_outside_diameter_override", False))
             self._display_places = 2
             saved_id = state.get("material_id")
@@ -325,6 +336,7 @@ class PipeDesignPage(ttk.Frame):
                 else self._t("message.ready") if state.get("message", "Ready") == "Ready"
                 else str(state["message"])
             )
+            self._batch_diameter.load_inputs(state.get('batch_diameter_rows',[]))
         finally:self._suppress_dirty=False
         self._update_diameter_summary()
         self._update_wall_summary()
@@ -334,13 +346,16 @@ class PipeDesignPage(ttk.Frame):
     def clear_state(self)->None:
         """Clear project-specific values and reload saved engineering defaults."""
         self._source_selection_id = None
+        self._wall_standard_basis = {}
+        self._wall_stress_basis = {}
+        self._batch_diameter.load_inputs([])
         self._suppress_dirty=True
         try:
             for field in self._fields.values():field.set("")
             self._select_pipe_standard(None)
             self._select_circuit(None)
             self._select_line_role(None)
-            self._bend.set(False);self._select_bend_mode("NO_BEND", preserve_manual=False);self._manual_bend_radius_mm="";self._source.set(self._t("message.material_source"));self._material.set("");self._message.set(self._t("message.ready"));self._diameter_result={};self._diameter_warning_velocity_m_s=None;self._diameter_warning_codes=[];self._wall_result={};self._formula_text="";self._manual_da_override=False;self._corrosion_allowance_override=False;self._load_defaults();self._set_source_mode()
+            self._bend.set(False);self._select_bend_mode("NO_BEND", preserve_manual=False);self._manual_bend_radius_mm="";self._source.set(self._t("selection.standard"));self._material.set("");self._message.set(self._t("message.ready"));self._diameter_result={};self._diameter_warning_velocity_m_s=None;self._diameter_warning_codes=[];self._wall_result={};self._formula_text="";self._manual_da_override=False;self._corrosion_allowance_override=False;self._load_defaults();self._set_source_mode()
         finally:self._suppress_dirty=False
         self._update_diameter_summary()
         self._update_wall_summary()
@@ -655,7 +670,7 @@ class PipeDesignPage(ttk.Frame):
             style="PipeField.TLabel",
         )
         self._source_label.grid(row=3, column=0, sticky="w", pady=3)
-        self._source_box = ttk.Combobox(strength_group, textvariable=self._source, values=(self._translate("message.material_source"), self._translate("message.manual_source")), state="readonly", width=16, style="Pipe.TCombobox")
+        self._source_box = ttk.Combobox(strength_group, textvariable=self._source, values=(self._translate("selection.standard"), self._translate("message.manual_source")), state="readonly", width=16, style="Pipe.TCombobox")
         self._source_box.grid(row=3, column=1, sticky="w", padx=(SM, 0), pady=3)
         self._source_box.bind("<<ComboboxSelected>>", lambda _: self._set_source_mode())
         self._material_label = ttk.Label(
@@ -681,6 +696,9 @@ class PipeDesignPage(ttk.Frame):
         self._ab_source_status = ttk.Label(design_group, text=self._translate("pipe.ab_source_required"),
                                            wraplength=250, style="PipeSourceWarning.TLabel")
         self._ab_source_status.grid(row=3, column=0, columnspan=2, sticky="w", pady=(SM, 0))
+        self._design_temperature_label=ttk.Label(design_group,text=self._t('pipe.design_temperature'),style='PipeField.TLabel')
+        self._design_temperature_label.grid(row=4,column=0,sticky='w',pady=(SM,0))
+        numeric_entry(design_group,textvariable=self._fields['temperature']).grid(row=4,column=1,sticky='w',pady=(SM,0))
         self._corrosion_source_note = ttk.Label(corrosion_group,
             text=self._translate("pipe.corrosion_source_note"), wraplength=270, style="PipeInfo.TLabel")
         self._corrosion_source_note.grid(row=4, column=0, columnspan=2, sticky="w", pady=(4, 0))
@@ -769,12 +787,23 @@ class PipeDesignPage(ttk.Frame):
             ttk.Label(wall_metrics, textvariable=value, style="PipeSupportingValue.TLabel").grid(row=row, column=1, sticky="e", padx=(MD, 0))
             self._wall_supporting_labels.append(label)
 
+        self._standard_wall_label=ttk.Label(wall_metrics,text=self._t('pipe.standard_wall'),style='PipeMetricLabel.TLabel',wraplength=250)
+        self._standard_wall_label.configure(wraplength=190)
+        self._standard_wall_label.grid(row=0,column=2,sticky='w',padx=(MD,0))
+        self._standard_wall_value=ttk.Label(wall_metrics,textvariable=self._wall_nominal_value,style='PipeMetricValue.TLabel')
+        self._standard_wall_value.grid(row=1,column=2,sticky='w',padx=(MD,0))
+        self._standard_wall_details=ttk.Label(wall_metrics,textvariable=self._wall_standard_text,style='PipeSupportingValue.TLabel',wraplength=380)
+        self._standard_wall_details.grid(row=6,column=0,columnspan=3,sticky='w',pady=(SM,0))
         self._wall_metric_widgets=tuple(wall_metrics.winfo_children())
         self._wall_empty_result=ttk.Label(wall_metrics,text=self._t('guidance.empty.pipe_wall'),style='PipeMetricLabel.TLabel',wraplength=250)
-        self._wall_empty_result.grid(row=0,column=0,columnspan=2,sticky='w',pady=8)
+        self._wall_empty_result.grid(row=0,column=0,columnspan=3,sticky='w',pady=8)
 
+        from ui.widgets.batch_pipe_diameter import BatchPipeDiameterTable
+        self._batch_diameter=BatchPipeDiameterTable(self,self._service,self._selected_pipe_standard_code,self._translate,self._mark_dirty)
+        self._batch_diameter.grid(row=2,column=0,sticky='ew',pady=(12,0))
+        self._pipe_standard.trace_add('write',self._batch_diameter.invalidate_results)
         message_label = ttk.Label(self, textvariable=self._message, wraplength=650)
-        message_label.grid(row=2, column=0, sticky="w", pady=(8, 0))
+        message_label.grid(row=3, column=0, sticky="w", pady=(8, 0))
         self._widgets.append(message_label)
         self._warning_panel = EngineeringWarningPanel(inputs, self._translate)
         self._warning_panel.grid(row=2, column=1, sticky="ew", padx=(SM // 2, 0), pady=(SM, 0))
@@ -789,7 +818,7 @@ class PipeDesignPage(ttk.Frame):
             separate_window=True,
             module_key="pipe_design",
         )
-        self._formula_panel.grid(row=3, column=0, sticky="ew", pady=(10, 0))
+        self._formula_panel.grid(row=4, column=0, sticky="ew", pady=(10, 0))
         self._responsive_layout_mode = ""
         self._layout_container.bind("<Configure>", self._on_layout_configure, add="+")
         self.after_idle(self._reflow_layout)
@@ -926,6 +955,7 @@ class PipeDesignPage(ttk.Frame):
 
     def refresh_texts(self) -> None:
         """Refresh Pipe Design labels without recreating inputs or result state."""
+        self._batch_diameter.refresh_texts()
         localize_guidance(self, 'pipe', self._translate)
         self._table_89_button.configure(text=self._translate("pipe.source_notes"))
         self._header.set_content(self._translate("page.pipe.title"), self._translate("page.pipe.description"))
@@ -936,6 +966,8 @@ class PipeDesignPage(ttk.Frame):
         for label, key in zip(self._wall_group_labels, self._wall_group_keys):
             label.configure(text=self._translate(key))
         self._ab_source_status.configure(text=self._translate("pipe.ab_source_required"))
+        self._design_temperature_label.configure(text=self._t('pipe.design_temperature'))
+        self._standard_wall_label.configure(text=self._t('pipe.standard_wall'))
         self._corrosion_source_note.configure(text=self._translate("pipe.corrosion_source_note"))
         self._bend_result_label.configure(text=self._translate("result.bend_allowance"))
         self._no_bend_note.configure(text=self._translate("pipe.no_bend_note"))
@@ -974,14 +1006,14 @@ class PipeDesignPage(ttk.Frame):
         self._circuit_label.configure(text=self._translate("pipe.project_context"))
         self._circuit_default_label.configure(text=self._translate("result.default_corrosion_allowance"))
         self._source_box.configure(values=(
-            self._translate("message.material_source"),
+            self._translate("selection.standard"),
             self._translate("message.manual_source"),
         ))
         was_manual = self._source.get() in {"Manual", "Manuel", self._translate("message.manual_source")}
         self._suppress_dirty = True
         try:
             self._source.set(self._translate(
-                "message.manual_source" if was_manual else "message.material_source"
+                "message.manual_source" if was_manual else "selection.standard"
             ))
         finally:
             self._suppress_dirty = False
@@ -1216,7 +1248,11 @@ class PipeDesignPage(ttk.Frame):
     def _load_materials(self) -> None:
         """Load material labels while retaining UUID identity separately."""
         labels=[]
-        for material in self._service.get_all_materials():
+        family=getattr(self,'_wall_project_family',lambda:None)()
+        self._wall_material_family=family
+        self._material_ids.clear()
+        options={'system_family':family} if family=='seawater' else {}
+        for material in self._service.get_all_materials(**options):
             label=f"{material.name} ({material.designation})"
             labels.append(label);self._material_ids[label]=material.id
         self._material_box.configure(values=labels)
@@ -1234,6 +1270,9 @@ class PipeDesignPage(ttk.Frame):
         if material_id is None:return
         material=self._service.get_material(material_id)
         if material.yield_strength_mpa is None:
+            from engineering.pipe_design.wall_standards import is_cuni10
+            if is_cuni10(material.designation) and getattr(self,'_wall_project_family',lambda:None)()=='seawater':
+                self._fields['rp'].set('');self._message.set(self._t('message.ready'));return
             self._fields["rp"].set("");self._message.set(self._translate("validation.material_yield_missing"));return
         self._fields["rp"].set(str(material.yield_strength_mpa));self._message.set(self._translate("message.ready"))
     def _number(self, key: str) -> float:
@@ -1320,13 +1359,21 @@ class PipeDesignPage(ttk.Frame):
         try:
             material_id=self._material_ids.get(self._material.get()) if self._using_library_source() else None
             if self._using_library_source() and material_id is None:raise ValidationError(ValidationIssue("selection_required", "field.material"))
-            result=self._service.calculate(wall=WallThicknessInput(self._number("da"),self._number("pc"),self._number("rp"),self._number("sf"),self._number("wf"),self._number("c"),self._bend.get(),self._number("r") if self._bend.get() else None),material_id=material_id)
+            options={}
+            family=getattr(self,'_wall_project_family',lambda:None)()
+            if family is not None:options['system_family']=family
+            temperature=self._fields['temperature'].get().strip()
+            if temperature:options['design_temperature_c']=parse_engineering_float(temperature,field_name='Design temperature',field_key='pipe.design_temperature')
+            strength=self._number('rp') if self._fields['rp'].get().strip() else None
+            result=self._service.calculate(wall=WallThicknessInput(self._number("da"),self._number("pc"),strength,self._number("sf"),self._number("wf"),self._number("c"),self._bend.get(),self._number("r") if self._bend.get() else None),material_id=material_id,**options)
             if result.errors:
                 self._message.set(self._t("validation.unexpected_error"))
                 self._center_error_text = self._message.get()
                 return
             assert result.wall_thickness is not None
             self._wall_result = result.wall_thickness.to_dict()
+            self._wall_standard_basis = result.trace.get('wall_standard',{})
+            self._wall_stress_basis = result.trace.get('allowable_stress_rule',{})
             self._wall_formula_result = result
             self._notify_pipe_selection()
             self._update_wall_summary()
@@ -1373,6 +1420,8 @@ class PipeDesignPage(ttk.Frame):
             cached = getattr(self, "_wall_formula_result", None)
             if cached is None or cached.wall_thickness.to_dict() != self._wall_result:
                 cached = PipeDesignCalculationResult(wall_thickness=WallThicknessResult.from_dict(self._wall_result))
+                cached.trace['allowable_stress_rule']=getattr(self,'_wall_stress_basis',{})
+                cached.trace['wall_standard']=getattr(self,'_wall_standard_basis',{})
             steps.extend(legacy_pipe_steps(cached))
         selection = getattr(self, "_formula_selection", None)
         if self._diameter_result and selection is not None:
@@ -1418,6 +1467,9 @@ class PipeDesignPage(ttk.Frame):
                 sections.append(FormulaSection("PIPE SIZE RECOMMENDATION", f"{self._translate('field.pipe_standard')} = {self._selected_pipe_standard_name()}\n{self._translate('result.recommended_nominal_size')} = {result['recommended_dn']}\n{self._translate('formula.pipe_size_recommendation_note')}\n{self._translate('field.pipe_outside_diameter')} = {result.get('recommended_outside_diameter_mm')} mm", "PIPE SIZE RECOMMENDATION", "note"))
         if self._wall_result:
             result = self._wall_result
+            if getattr(self,'_wall_stress_basis',{}):
+                sections[4]=FormulaSection('FORMULA','σallow = 68 MPa',stress_stage,'formula')
+                sections[5]=FormulaSection('NOT',self._t('pipe.cuni_direct_verified' if self._wall_stress_basis.get('tl_temperature_verified') else 'pipe.cuni_direct_user'),stress_stage,'note')
             circuit_context = f"{self._translate('field.circuit')} = {self._selected_circuit_name()}\n{self._translate('result.default_corrosion_allowance')} = {self._circuit_default_c.get()}\n{self._translate('result.used_corrosion_allowance')} = {self._circuit_used_c.get()}"
             weld_factor = format_user_number(self._number("wf"))
             safety_factor = format_user_number(self._number("sf"))
@@ -1455,6 +1507,8 @@ class PipeDesignPage(ttk.Frame):
             for widget in self._wall_metric_widgets:(widget.grid if self._wall_result else widget.grid_remove)()
             (self._wall_empty_result.grid_remove if self._wall_result else self._wall_empty_result.grid)()
         if not self._wall_result:
+            if hasattr(self,'_wall_standard_text'):self._wall_standard_text.set('—')
+            if hasattr(self,'_wall_nominal_value'):self._wall_nominal_value.set('—')
             self._wall_summary.set("—")
             self._wall_value.set("—")
             self._wall_supporting.set("—")
@@ -1465,6 +1519,19 @@ class PipeDesignPage(ttk.Frame):
                 self._wall_corrosion.set("—")
             return
         result = self._wall_result
+        basis=getattr(self,'_wall_standard_basis',{})
+        nominal=basis.get('nominal_wall_mm')
+        if hasattr(self,'_wall_nominal_value'):self._wall_nominal_value.set('—' if nominal is None else format_user_number(nominal)+' mm')
+        summary=(f"{format_user_number(nominal)} mm · {basis['nominal_standard']} · {self._t('pipe.table')} {basis['nominal_table']}"
+                 if nominal is not None else self._t('pipe.nominal_unverified'))
+        minimum=basis.get('minimum_wall_mm')
+        if minimum is not None:
+            summary+='\n'+self._t('pipe.minimum_basis',value=format_user_number(minimum),table=basis['minimum_table'])
+        else:summary+='\n'+self._t('pipe.minimum_unverified')
+        stress_basis=getattr(self,'_wall_stress_basis',{})
+        if stress_basis:
+            summary+='\n'+self._t('pipe.cuni_direct_verified' if stress_basis.get('tl_temperature_verified') else 'pipe.cuni_direct_user')
+        if hasattr(self,'_wall_standard_text'):self._wall_standard_text.set(summary)
         if hasattr(self, "_wall_corrosion"):
             value = result.get("corrosion_allowance_mm")
             self._wall_corrosion.set("—" if value is None else f"{format_user_number(value)} mm")

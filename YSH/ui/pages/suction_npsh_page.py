@@ -70,7 +70,7 @@ class SuctionNPSHPage(ttk.Frame):
         self._warning_fluid = tk.StringVar(value=self._translate("message.select"))
         self._warning_fluid_codes: dict[str, str] = {}
         self._roughness_source_mode = "material"
-        self._roughness_source = tk.StringVar(value=self._translate("message.material_source"))
+        self._roughness_source = tk.StringVar(value=self._translate("selection.standard"))
         self._material = tk.StringVar()
         self._pressure_unit = tk.StringVar(value="bar")
         self._vapour_unit = tk.StringVar(value="bar")
@@ -152,16 +152,16 @@ class SuctionNPSHPage(ttk.Frame):
         self._roughness_source_label.grid(row=4, column=0, sticky="w", pady=(10, 3))
         self._roughness_source_box = ttk.Combobox(
             fluid, textvariable=self._roughness_source,
-            values=(self._translate("message.material_source"), self._translate("message.manual_source")), state="readonly", width=18,
+            values=(self._translate("selection.standard"), self._translate("message.manual_source")), state="readonly", width=18,
         )
         self._roughness_source_box.grid(row=4, column=1, columnspan=2, sticky="w", padx=(12, 0), pady=(10, 3))
         self._roughness_source_box.bind("<<ComboboxSelected>>", self._select_roughness_source)
-        self._material_label = ttk.Label(fluid, text=self._translate("field.material"))
+        self._material_label = ttk.Label(fluid, text=self._translate("selection.pipe_material"))
         self._material_label.grid(row=5, column=0, sticky="w", pady=3)
         self._material_box = ttk.Combobox(fluid, textvariable=self._material, state="readonly", width=34)
         self._material_box.grid(row=5, column=1, columnspan=2, sticky="w", padx=(12, 0), pady=3)
         self._material_box.bind("<<ComboboxSelected>>", self._load_selected_roughness)
-        self._active_roughness_label = ttk.Label(fluid, text=self._translate("field.active_roughness"))
+        self._active_roughness_label = ttk.Label(fluid, text=self._translate("selection.absolute_roughness"))
         self._active_roughness_label.grid(row=6, column=0, sticky="w", pady=3)
         self._roughness_entry = numeric_entry(fluid, textvariable=self._fields["roughness"])
         self._roughness_entry.grid(row=6, column=1, sticky="e", padx=(12, 0), pady=3)
@@ -392,7 +392,7 @@ class SuctionNPSHPage(ttk.Frame):
         self._suppress_dirty = True
         try:
             self._roughness_source.set(self._translate(
-                "message.manual_source" if manual else "message.material_source"
+                "message.manual_source" if manual else "selection.standard"
             ))
         finally:
             self._suppress_dirty = False
@@ -409,14 +409,14 @@ class SuctionNPSHPage(ttk.Frame):
         self._suction_metric.set_label(self._translate("result.suction_head_loss"))
         self._enpy_metric.set_label(self._translate("result.available_npsh"))
         self._roughness_source_label.configure(text=self._translate("field.roughness_source"))
-        self._material_label.configure(text=self._translate("field.material"))
-        self._active_roughness_label.configure(text=self._translate("field.active_roughness"))
+        self._material_label.configure(text=self._translate("selection.pipe_material"))
+        self._active_roughness_label.configure(text=self._translate("selection.absolute_roughness"))
         self._warning_fluid_label.configure(text=self._translate("field.system_fluid"))
         self._load_warning_fluids()
         self._warning_panel.refresh_texts()
         self._pressure_note.configure(text=self._translate("suction.pressure_note"))
         self._roughness_source_box.configure(values=(
-            self._translate("message.material_source"),
+            self._translate("selection.standard"),
             self._translate("message.manual_source"),
         ))
         self._tree.heading("component", text=self._translate("table.component"))
@@ -491,7 +491,7 @@ class SuctionNPSHPage(ttk.Frame):
                 field.set("")
             for key, value in dict(state.get("fields", {})).items():
                 if key in self._fields: self._fields[key].set(str(value))
-            self._viscosity_unit.set(str(state.get("viscosity_unit", "cSt")));saved_source=str(state.get("roughness_source", "material"));self._roughness_source_mode="manual" if saved_source in {"manual","Manual"} else "material";self._roughness_source.set(self._translate("message.manual_source") if self._roughness_source_mode=="manual" else self._translate("message.material_source"));self._material.set(str(state.get("material", "")));self._pressure_unit.set(str(state.get("pressure_unit", "bar")));self._vapour_unit.set(str(state.get("vapour_unit", "bar")));self._set_warning_fluid(state.get("warning_fluid") if isinstance(state.get("warning_fluid"),str) else None)
+            self._viscosity_unit.set(str(state.get("viscosity_unit", "cSt")));saved_source=str(state.get("roughness_source", "material"));self._roughness_source_mode="manual" if saved_source in {"manual","Manual"} else "material";self._roughness_source.set(self._translate("message.manual_source") if self._roughness_source_mode=="manual" else self._translate("selection.standard"));self._material.set(str(state.get("material", "")));self._pressure_unit.set(str(state.get("pressure_unit", "bar")));self._vapour_unit.set(str(state.get("vapour_unit", "bar")));self._set_warning_fluid(state.get("warning_fluid") if isinstance(state.get("warning_fluid"),str) else None)
             self._items={str(item["id"]):LocalLossItem(str(item["name"]),int(item["quantity"]),float(item["k"])) for item in state.get("items", []) if isinstance(item,dict)};self._refresh_losses();self._set_roughness_source(reset_value=False);self._invalidate_hydraulics(force=True);self._set_status("loss",[]);self._set_status("enpy",[]);self._result.set(str(state.get("result", "")));self._formula.set(str(state.get("formula", "")));self._sync_detail_presentation()
             manual = transfer_from_workspace({"suction_npsh": state}).suction
             self._workflow.discovery.set_input("suction", manual)
@@ -601,7 +601,7 @@ class SuctionNPSHPage(ttk.Frame):
             number = lambda name: parse_engineering_float(self._fields[name].get(), field_name=labels[name], field_key=field_keys[name])
             material_id = self._material_ids.get(self._material.get()) if self._using_library_source() else None
             if self._using_library_source() and material_id is None:
-                raise ValidationError(ValidationIssue("selection_required", "field.material"))
+                raise ValidationError(ValidationIssue("selection_required", "selection.pipe_material"))
             if self._using_library_source() and not self._fields["roughness"].get().strip():
                 raise ValidationError(ValidationIssue("material_roughness_missing"))
             if not self._workflow.pipe_fields_readonly:
@@ -841,7 +841,7 @@ class SuctionNPSHPage(ttk.Frame):
         self._set_warning_fluid(None)
         self._viscosity_unit.set("cSt")
         self._roughness_source_mode = "material"
-        self._roughness_source.set(self._translate("message.material_source"))
+        self._roughness_source.set(self._translate("selection.standard"))
         self._pressure_unit.set("bar")
         self._vapour_unit.set("bar")
         self._set_roughness_source()

@@ -170,7 +170,7 @@ def test_seawater_report_and_history_identity_are_frozen(index):
     data=render_word(report)
     doc=Document(BytesIO(data))
     text='\n'.join(p.text for p in doc.paragraphs)+'\n'+'\n'.join(c.text for t in doc.tables for r in t.rows for c in r.cells)
-    assert 'Deniz Suyu Sistemi' in text
+    assert 'Yardımcı Deniz Suyu' in text
     with pytest.raises(ValueError):freeze_report_context(representative_snapshots()[1],system_family='seawater')
 
 

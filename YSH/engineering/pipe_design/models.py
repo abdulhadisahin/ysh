@@ -63,7 +63,7 @@ class WallThicknessResult:
     selected_standard_wall_thickness_mm: float | None = None
     def to_dict(self)->dict[str,object]: """Serialize this result.""";return asdict(self)
     @classmethod
-    def from_dict(cls,data:dict[str,object])->"WallThicknessResult": """Deserialize this result.""";return cls(**{key:float(value) for key,value in data.items()})
+    def from_dict(cls,data:dict[str,object])->"WallThicknessResult": """Deserialize this result.""";return cls(**{key:None if key=="selected_standard_wall_thickness_mm" and value is None else float(value) for key,value in data.items()})
 @dataclass(slots=True)
 class PipeDesignCalculationResult:
     """Combined pipe-design result with trace metadata and messages."""

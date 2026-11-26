@@ -210,11 +210,21 @@ def design_panel() -> TransferPumpDesignPanel:
     return panel
 
 
+
+class ScenarioPreferenceStub:
+    """Display-free input persistence interface for the independent scenario."""
+    def __init__(self):self.load_state({})
+    def export_state(self):return dict(self.state)
+    def load_state(self,state):
+        self.state={key:state.get(key,'') for key in ('volume','nominal')}
+
+
 def transfer_page() -> TransferPumpPage:
     """Real parent handlers keep both modes' independent variables and result caches."""
     page=TransferPumpPage.__new__(TransferPumpPage)
     page._service=service();page._translate=Translator('tr').translate
     page._calculation_mode=TransferPumpMode.DESIGN
+    page._discharge_115=ScenarioPreferenceStub()
     page._design_panel=design_panel();page._method_box=Group();page._method_explanation=Var()
     page._upper=Group();page._analysis=Group()
     page._capacity=Var('250');page._capacity_mode=Var('VOLUME')

@@ -4,7 +4,7 @@ from engineering.formula.models import CheckStatus, FormulaCheck, FormulaStep, S
 from engineering.pipe_design.models import PipeDesignCalculationResult
 from engineering.pipe_design.rules import StressMode
 from engineering.pipe_design.v2_models import PipeDesignV2Input, PipeSelection
-from engineering.provenance import SourceReference, SourceType
+from engineering.provenance import SourceReference, SourceType, VerificationStatus
 
 
 def legacy_pipe_steps(result: PipeDesignCalculationResult) -> tuple[FormulaStep, ...]:
@@ -33,9 +33,16 @@ def legacy_pipe_steps(result: PipeDesignCalculationResult) -> tuple[FormulaStep,
                          if key in raw and raw[key] is not None)
         stress = variable("σallow", wall.allowable_stress_mpa, "MPa")
         base = variable("s0", wall.base_wall_thickness_mm, "mm")
+        direct=result.trace.get('allowable_stress_rule',{})
+        direct_source=SourceReference(source_type=SourceType.TL_RULE if direct.get('tl_temperature_verified') else SourceType.PROJECT_CRITERION,
+            document=direct.get('source'),table='8.8' if direct.get('tl_temperature_verified') else None,
+            revision=direct.get('publication_date'),
+            verification_status=VerificationStatus.PARTIALLY_VERIFIED if direct.get('tl_temperature_verified') else VerificationStatus.USER_SUPPLIED,
+            notes=direct.get('scope')) if direct else None
         steps.extend((
-            step("pipe.stress", "σallow", wall.allowable_stress_mpa, "MPa", "σallow = Rp0.2 / B",
-                 values(("Rp0.2", "yield_strength_mpa", "MPa"), ("B", "safety_factor", "")), 1),
+            step("pipe.stress", "σallow", wall.allowable_stress_mpa, "MPa", "σallow = 68 MPa" if direct else "σallow = Rp0.2 / B",
+                 () if direct else values(("Rp0.2", "yield_strength_mpa", "MPa"), ("B", "safety_factor", "")), 1,
+                 sources=(direct_source,) if direct_source else ()),
             step("pipe.s0", "s0", wall.base_wall_thickness_mm, "mm",
                  "s0 = (da × pc) / ((20 × σallow × v) + pc)",
                  values(("da", "outside_diameter_mm", "mm"), ("pc", "design_pressure_bar", "bar"),

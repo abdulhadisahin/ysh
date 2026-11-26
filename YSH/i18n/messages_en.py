@@ -10,11 +10,11 @@ MESSAGES = {
     "hydro.fluid.apply": "Apply Fluid",
     "hydro.fluid.atmosphere": "Select atmospheric pressure",
     "hydro.fluid.notice": "Enter density and viscosity manually if no exact match exists. Inputs are preserved; review source changes using Update / Keep Current.",
-    "hydro.fluid.density_reference": "Density [kg/m³] — reference only",
+    "hydro.fluid.density_reference": "Density [kg/m³]",
     "hydro.condition.temperature_c": "Operating temperature [°C]",
     "hydro.condition.salinity_g_kg": "Salinity [g/kg]",
     "hydro.condition.pressure_mpa": "Property reference pressure [MPa absolute]",
-    "hydro.reference_only": "Reference only; not used in this equation",
+    "hydro.reference_only": "Density is not used in the hydraulic head-loss equation",
     "engineering.method.PUBLISHED_POINT": "Published property point",
     'library2.field.data_role': 'Data role',
     'catalog.kind.operating': 'Published condition-specific property point; not an automatic calculation default.',
@@ -89,13 +89,13 @@ MESSAGES = {
     'library2.field.source_url': 'Official Source URL',
     'library2.field.audit_scope': 'Verification Scope',
     'pipe.project_context': 'System / Circuit',
-    'project.family.seawater': 'Seawater System',
+    'project.family.seawater': 'Auxiliary Seawater',
     'engineering.fluid.seawater': 'Seawater',
     'engineering.select.fluid_temperature_c': 'Fluid Temperature [°C] (optional)',
     'engineering.select.fluid_salinity_g_kg': 'Salinity [g/kg] (optional)',
     'engineering.select.strength_material': 'Strength Material',
     'library2.field.reference_salinity_g_kg': 'Reference Salinity [g/kg]',
-    'word.family.seawater': 'Seawater System',
+    'word.family.seawater': 'Auxiliary Seawater',
     'seawater.fluid_required': 'A seawater fluid record is required. Check the Library.',
     'seawater.conditions_required': 'Seawater properties require temperature, salinity and a verified source.',
     'seawater.material_required': 'Material strength and corrosion allowance require a verified source applicable to the material and service.',
@@ -1112,7 +1112,7 @@ MESSAGES.update({'engineering.scope.TL_FFS': 'Fire Fighting Ships (explicit scop
 
 MESSAGES.update({'library2.group.fluids': 'Fluids / Fuels', 'library2.category.fluids': 'Fluids / Fuels', 'library2.group.engineering_rules': 'Engineering Rules', 'library2.catalog.no_properties': 'No property references are recorded for this fluid.'})
 
-MESSAGES.update({'engineering.select.fluid': 'Fluid / Fuel', 'engineering.select.material': 'Pipe Material', 'engineering.select.surface': 'Surface Condition', 'engineering.select.service': 'Service / System', 'engineering.select.line_type': 'Line Type', 'engineering.select.profile': 'Rule Profile', 'engineering.strength_material': 'Strength material', 'engineering.edit_project': 'Project context', 'engineering.edit_module': 'Override for this calculation', 'engineering.use_project': 'Use project context', 'engineering.module_notice': 'This selection affects only this calculation. Project fluid and defaults remain unchanged. Manual values are preserved.', 'engineering.density_reference': 'Reference density (not used in discharge arithmetic)', 'field.system_fluid': 'Service / System (velocity reference)', 'engineering.service.DIESEL_FUEL_DELIVERY': 'Fuel Delivery', 'engineering.service.DIESEL_FUEL_SUCTION': 'Fuel Suction', 'engineering.service.SEA_WATER_COOLING': 'Seawater Cooling', 'engineering.service.FRESH_WATER_COOLING': 'Fresh Water Cooling', 'engineering.service.LUBE_OIL': 'Lube Oil', 'engineering.service.BALLAST': 'Ballast', 'engineering.service.BILGE': 'Bilge'})
+MESSAGES.update({'engineering.select.fluid': 'Fluid / Fuel', 'engineering.select.material': 'Pipe Material', 'engineering.select.surface': 'Surface Condition', 'engineering.select.service': 'Service / System', 'engineering.select.line_type': 'Line Type', 'engineering.select.profile': 'Rule Profile', 'engineering.strength_material': 'Strength material', 'engineering.edit_project': 'Project context', 'engineering.edit_module': 'Override for this calculation', 'engineering.use_project': 'Use project context', 'engineering.module_notice': 'This selection affects only this calculation. Project fluid and defaults remain unchanged. Manual values are preserved.', 'engineering.density_reference': 'Catalog density', 'field.system_fluid': 'Service / System (velocity reference)', 'engineering.service.DIESEL_FUEL_DELIVERY': 'Fuel Delivery', 'engineering.service.DIESEL_FUEL_SUCTION': 'Fuel Suction', 'engineering.service.SEA_WATER_COOLING': 'Seawater Cooling', 'engineering.service.FRESH_WATER_COOLING': 'Fresh Water Cooling', 'engineering.service.LUBE_OIL': 'Lube Oil', 'engineering.service.BALLAST': 'Ballast', 'engineering.service.BILGE': 'Bilge'})
 
 MESSAGES["engineering.project_fluid"] = 'Project fluid (unchanged)'
 MESSAGES['project.system'] = 'System'
@@ -1124,3 +1124,42 @@ MESSAGES.update({'word.export_title': 'Create Word Report', 'word.export_success
 
 MESSAGES.update({'word.source_required':'Source Required','word.page':'Page','word.family.fuel':'Fuel System','word.family.fire':'Fire Suppression System'})
 MESSAGES.update({'report.source_required':'Source Required','word.status.warning':'Warning','word.status.error':'Error','word.status.blocked':'Blocked','word.status.critical':'Critical Deviation','word.status.out_of_range':'Outside Reference Range','word.transfer.source_capacity':'Capacity Input','word.transfer.resolved_volume':'Fuel Volume Used in Calculation'})
+
+MESSAGES["selection.standard"] = 'Standard'
+
+MESSAGES.update({'pipe.design_temperature': 'Design temperature (°C, optional)', 'pipe.standard_wall': 'Recommended Standard Wall Thickness', 'pipe.table': 'Table', 'pipe.nominal_unverified': 'No verified nominal wall match for this material / size.', 'pipe.minimum_basis': 'TL Chapter 107 (January 2022), Table {table}: minimum {value} mm.', 'pipe.minimum_unverified': 'Applicable TL minimum / installation group requires verification.', 'pipe.cuni_temperature_scope': 'The CuNi10Fe 68 MPa rule does not apply above 75 °C. A temperature-appropriate stress rule is required.', 'pipe.cuni_direct_verified': 'σallow = 68 MPa directly; TL 107 / 8.8, annealed CuNi10Fe, 50 or 75 °C. B is not applied.', 'pipe.cuni_direct_user': 'σallow = 68 MPa direct user criterion (DPO Standard). TL 107 / 8.8 verified only at 50 and 75 °C; verify design temperature / annealed condition.', 'selection.pipe_material': 'Pipe Material', 'selection.absolute_roughness': 'Absolute Roughness ε'})
+
+MESSAGES["validation.pipe.cuni_temperature_scope"] = MESSAGES["pipe.cuni_temperature_scope"]
+
+# Batch pipe diameter table.
+MESSAGES.update({
+    'batch.title': 'Batch Pipe Diameter Calculation',
+    'batch.name': 'Pipe / Line Name',
+    'batch.flow': 'Flow (m³/h)',
+    'batch.velocity': 'Velocity (m/s)',
+    'batch.diameter': 'Calculated Inside Diameter (mm)',
+    'batch.dn': 'Recommended DN',
+    'batch.calculate': 'Calculate All Rows',
+    'batch.no_dn': 'No suitable DN found',
+    'batch.guidance': 'Edit the first three columns. Tab / Shift+Tab: cells; Enter: next row. Uses the pipe catalog selected above.',
+    'batch.complete': '{count} rows calculated; {errors} rows have input errors.',
+})
+
+# Pressure equivalent of total discharge head.
+MESSAGES.update({
+    'discharge.pressure.title': 'Pressure Equivalent of Total Discharge Head (bar)',
+    'discharge.pressure.density': 'Density used for pressure calculation',
+    'discharge.pressure.missing': 'No verified density at the selected fluid conditions; enter a manual density.',
+    'discharge.pressure.recalculate': 'Run the discharge calculation for a current Hs.',
+    'discharge.pressure.used': 'Used ρ: {density} kg/m³ · g: 9.81 m/s²',
+})
+
+# Independent constant-flow 115 percent scenario.
+MESSAGES.update({
+    'transfer.scenario115.title': 'Tank Discharge Time at 115% Flow',
+    'transfer.scenario115.notice': 'Constant-flow scenario: Q115 = 1.15 × Qnominal. Enter the discharge volume and nominal flow.',
+    'transfer.scenario115.volume': 'Volume to Discharge',
+    'transfer.scenario115.nominal': 'Nominal Pump Flow',
+    'transfer.scenario115.flow': '115% Scenario Flow (m³/h)',
+    'transfer.scenario115.time': 'Estimated Discharge Time (hours)',
+})

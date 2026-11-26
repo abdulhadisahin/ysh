@@ -56,7 +56,6 @@ from ui.widgets.scrollable_page_host import ScrollablePageHost
 from ui.widgets.system_context_panel import SystemContextPanel
 from ui.workspace_navigation import WorkspaceNavigation, FAMILIES, MODULES
 from core.project_family import FAMILY_KEYS
-from ui.widgets.tooltip import Tooltip
 from engineering.system_context import SystemContext
 from services.system_context_service import SystemContextService
 from ui.widgets.scrollable_treeview import ScrollableTreeview
@@ -253,14 +252,6 @@ class MainWindow:
         self._project_status_strip.grid(row=0, column=0, sticky='ew')
         self._project_status_strip.columnconfigure(0, weight=1)
         self._project_family_indicator = ttk.Label(self._project_status_strip, style='Info.TLabel', wraplength=450)
-        self._warning_center_button = ttk.Button(self._project_status_strip,
-            command=self._open_warning_center, style='Neutral.TButton')
-        self._warning_center_button.grid(row=0, column=1, sticky='e', padx=SM)
-        self._warning_center_alert = ttk.Button(self._project_status_strip, text='⚠', width=4,
-            command=self._open_warning_center, style='WarningCenterAlert.TButton')
-        self._warning_center_alert.grid(row=0, column=2, sticky='e', padx=(0, SM))
-        self._warning_center_alert.grid_remove()
-        self._warning_center_alert_tooltip = Tooltip(self._warning_center_alert, '')
         self._warning_center_dialog = None
         self._warning_center_job = None
         self._root.bind('<Destroy>', self._cancel_warning_center_refresh, add='+')
@@ -1502,11 +1493,6 @@ class MainWindow:
         summary = collect_warning_summary(self)
         active = getattr(self, '_active_project', None) is not None
         (strip.grid if active else strip.grid_remove)()
-        count = len(summary.items) - summary.info_count
-        self._warning_center_button.configure(text=self._translate('center.entry', count=count, completed=summary.completed_count))
-        self._warning_center_alert.configure(text=f'⚠ {count}')
-        (self._warning_center_alert.grid if active and count > 0 else self._warning_center_alert.grid_remove)()
-        self._warning_center_alert_tooltip.set_text(self._translate('center.review'))
         dialog = getattr(self, '_warning_center_dialog', None)
         if dialog is not None and dialog.window.winfo_exists():
             dialog.render(summary, self._translate)
@@ -1545,8 +1531,8 @@ class MainWindow:
 
     def _refresh_family_selector(self) -> None:
         active = getattr(self, '_active_project', None)
-        # Keep the active-project indicator and warning summary in sync even
-        # though the redundant sidebar family combobox is no longer constructed.
+        # Preserve the project/family label and any open warning detail dialog.
+        # The removed header warning indicators reserve no columns or padding.
         indicator = getattr(self, '_project_family_indicator', None)
         if indicator is not None:
             if active:
