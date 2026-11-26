@@ -21,3 +21,19 @@ def test_pairs_unique_and_catalogs_in_parity():
 def test_fluid_display_name_respects_edits():
     assert fluid_display_name('SEAWATER', 'Seawater') == 'Deniz Suyu'
     assert fluid_display_name('SEAWATER', 'Edited') == 'Edited'
+
+
+def test_report_numbers_keep_engineering_precision():
+    from reporting.word_presentation import ReportLanguage
+    ui = ReportLanguage('en')
+    assert ui.number(0.046) == '0.046'
+    assert ui.number(0.8456) == '0.8456'
+    assert ui.number(3.5) == '3.50'
+    assert ui.number(123.456) == '123.46'
+    assert ReportLanguage('tr').number(0.046) == '0,046'
+
+
+def test_user_names_are_not_rewritten_as_status_codes():
+    from reporting.word_presentation import ReportLanguage
+    ui = ReportLanguage('tr')
+    assert ui.plain('DESIGN') == 'DESIGN'

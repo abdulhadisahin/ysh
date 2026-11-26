@@ -85,12 +85,12 @@ def render_word(report) -> bytes:
     doc.add_paragraph(tr("word.intro",module=ui.text(report.module)))
     doc.add_heading(tr("report.project"),1)
     identity=[]
-    if report.project_name: identity.append((tr("report.project"),ui.text(report.project_name)))
+    if report.project_name: identity.append((tr("report.project"),ui.plain(report.project_name)))
     if report.system_family: identity.append((tr("report.family"),tr("word.family."+report.system_family)))
     identity.append((tr("report.module"),ui.text(report.module)))
     identity.append((tr("report.field.date"),report.created_at.strftime("%Y-%m-%d %H:%M")))
     context_keys={tr("report.field.system"),tr("report.field.circuit"),tr("report.field.fluid")}
-    identity.extend((ui.text(field.label),ui.text(field.value)) for field in report.identification
+    identity.extend((ui.text(field.label),ui.plain(field.value)) for field in report.identification
                     if field.label in context_keys and field.value not in (None,""))
     if report.revision is not None:identity.append((tr("report.revision"),ui.text(report.revision)))
     _table(doc,(tr("report.parameter"),tr("report.value")),identity)

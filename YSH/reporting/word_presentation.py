@@ -56,9 +56,16 @@ class ReportLanguage:
     def number(self,value):
         if isinstance(value,bool):return self.tr('library2.yes' if value else 'library2.no')
         if isinstance(value,(int,float)):
-            text=f'{value:.4g}' if 0<abs(value)<.01 else f'{value:.2f}'
+            if 0<abs(value)<.01:text=f'{value:.4g}'
+            else:
+                digits=len(str(int(abs(value)))) if abs(value)>=1 else 0
+                places=max(2,4-digits);text=f'{value:.{places}f}'
+                while places>2 and text.endswith('0'):text=text[:-1];places-=1
             return text.replace('.',',') if self.language=='tr' else text
         return self.text(value)
+    def plain(self,value):
+        """User-entered or catalog names: never rewritten as status codes."""
+        return str(value)
     def severity(self,code):
         colors={'WARNING':'yellow','OUT_OF_RANGE':'red','ERROR':'red','BLOCKED':'red','CRITICAL':'black'}
         prefix=self.tr('word.color.'+colors[code])+' — ' if code in colors else ''
