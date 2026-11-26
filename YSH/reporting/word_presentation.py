@@ -73,7 +73,9 @@ class ReportLanguage:
         text=self.text(value) if value not in (None,'') else ''
         own={self.tr(key).casefold() for key in USER_SOURCE_KEYS}
         parts=[part.strip() for part in text.split(' · ') if part.strip()]
-        return '-' if not parts or all(part.casefold() in own for part in parts) else text
+        missing=self.tr('word.source_required').casefold()
+        pieces=[piece.strip().casefold() for part in parts for piece in part.split(' - ')]
+        return '-' if not parts or missing in pieces or all(part.casefold() in own for part in parts) else text
     def plain(self,value):
         """User-entered or catalog names: never rewritten as status codes."""
         return str(value)

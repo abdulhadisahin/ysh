@@ -37,3 +37,13 @@ def test_user_names_are_not_rewritten_as_status_codes():
     from reporting.word_presentation import ReportLanguage
     ui = ReportLanguage('tr')
     assert ui.plain('DESIGN') == 'DESIGN'
+
+
+def test_source_cells_show_dash_for_user_entered_or_source_required():
+    from reporting.word_presentation import ReportLanguage
+    ui = ReportLanguage('tr')
+    assert ui.source('Kullanıcı · Manuel · Kullanıcı tarafından sağlandı') == '-'
+    assert ui.source('Kayıtlı değil') == '-'
+    assert ui.source('ENGINEERING_REFERENCE - SOURCE_REQUIRED') == '-'
+    assert ui.source('') == '-'
+    assert ui.source('Türk Loydu Kısım 107') == 'Türk Loydu Kısım 107'
