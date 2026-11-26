@@ -991,7 +991,7 @@ class PipeDesignPage(ttk.Frame):
             label.configure(text=self._translate(key))
         self._ab_source_status.configure(text=self._translate("pipe.ab_source_required"))
         self._design_temperature_label.configure(text=self._t('pipe.design_temperature'))
-        self._standard_wall_label.configure(text=self._t('pipe.standard_wall'))
+        self._standard_wall_label.configure(text=self._t('pipe.minimum_wall' if getattr(self,'_wall_standard_basis',{}).get('nominal_wall_mm') is None and getattr(self,'_wall_standard_basis',{}).get('minimum_wall_mm') is not None and self._wall_result and getattr(self,'_wall_standard_basis',{}).get('minimum_wall_mm')>=self._wall_result.get('final_wall_thickness_mm',0) else 'pipe.standard_wall'))
         self._corrosion_source_note.configure(text=self._translate("pipe.corrosion_source_note"))
         self._bend_result_label.configure(text=self._translate("result.bend_allowance"))
         self._no_bend_note.configure(text=self._translate("pipe.no_bend_note"))
@@ -1546,12 +1546,18 @@ class PipeDesignPage(ttk.Frame):
         result = self._wall_result
         basis=getattr(self,'_wall_standard_basis',{})
         nominal=basis.get('nominal_wall_mm')
-        if hasattr(self,'_wall_nominal_value'):self._wall_nominal_value.set('—' if nominal is None else format_user_number(nominal)+' mm')
+        minimum=basis.get('minimum_wall_mm')
+        # No verified nominal wall: show the TL minimum in the same slot, labelled as a minimum
+        # (it is not a stock size). Only when it governs, i.e. is not below the calculated wall.
+        fallback=nominal is None and minimum is not None and minimum>=result['final_wall_thickness_mm']
+        shown=nominal if nominal is not None else minimum if fallback else None
+        if hasattr(self,'_standard_wall_label'):
+            self._standard_wall_label.configure(text=self._t('pipe.minimum_wall' if fallback else 'pipe.standard_wall'))
+        if hasattr(self,'_wall_nominal_value'):self._wall_nominal_value.set('—' if shown is None else format_user_number(shown)+' mm')
         summary=(f"{format_user_number(nominal)} mm · {basis['nominal_standard']} · {self._t('pipe.table')} {basis['nominal_table']}"
                  if nominal is not None else self._t('pipe.nominal_unverified'))
         if nominal is not None and basis.get('nominal_note'):
             summary+='\n'+self._t(basis['nominal_note'])
-        minimum=basis.get('minimum_wall_mm')
         if minimum is not None:
             summary+='\n'+self._t('pipe.minimum_basis',value=format_user_number(minimum),table=basis['minimum_table'])
         else:summary+='\n'+self._t('pipe.minimum_unverified')

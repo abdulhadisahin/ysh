@@ -172,12 +172,19 @@ class ResultMetric(ttk.Frame):
         self.columnconfigure(3,weight=1)
         self.bind('<Configure>', self._fit_metric, add='+')
         self._value_variable.trace_add("write", self._refresh_value_style)
+        self._value_variable.trace_add("write", lambda *_: self._fit_value())
         self.set_state(state)
 
     def _fit_metric(self, event) -> None:
-        width=max(80,event.width-48-self._unit_label.winfo_reqwidth())
+        self._value_width=max(80,event.width-48-self._unit_label.winfo_reqwidth())
         self._label.configure(wraplength=max(100,event.width-40))
-        self._value.configure(wraplength=width)
+        self._fit_value()
+
+    def _fit_value(self) -> None:
+        # A number must never be split across lines; only text with spaces may wrap.
+        text=str(self._value_variable.get())
+        width=getattr(self,'_value_width',None)
+        self._value.configure(wraplength=0 if ' ' not in text.strip() or width is None else width)
 
     def set_label(self, label: str) -> None:
         """Update the localized metric label without changing its value source."""
