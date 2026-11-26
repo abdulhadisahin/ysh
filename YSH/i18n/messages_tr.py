@@ -221,6 +221,7 @@ MESSAGES = {
     "pipe.bend_mode.D1": "1D",
     "pipe.bend_mode.D1_5": "1.5D",
     "pipe.bend_ratio": "R/D = {ratio}",
+    "pipe.nominal_secondary_source": "Kaynak: üretici kataloğu (EEMUA 234/1); standardın kendisi doğrulanmadı. Belirtilen et kalınlığıdır; boru toleransı uygulanmadı.",
     "pipe.bend_ratio_tight": "R, 1D değerinin altında; olağandışı sıkı bükme. Üreticiyle doğrulayın.",
     "pipe.bend_mode.D2": "2D",
     "pipe.bend_mode.D3": "3D",

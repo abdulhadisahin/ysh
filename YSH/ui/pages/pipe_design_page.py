@@ -1549,6 +1549,8 @@ class PipeDesignPage(ttk.Frame):
         if hasattr(self,'_wall_nominal_value'):self._wall_nominal_value.set('—' if nominal is None else format_user_number(nominal)+' mm')
         summary=(f"{format_user_number(nominal)} mm · {basis['nominal_standard']} · {self._t('pipe.table')} {basis['nominal_table']}"
                  if nominal is not None else self._t('pipe.nominal_unverified'))
+        if nominal is not None and basis.get('nominal_note'):
+            summary+='\n'+self._t(basis['nominal_note'])
         minimum=basis.get('minimum_wall_mm')
         if minimum is not None:
             summary+='\n'+self._t('pipe.minimum_basis',value=format_user_number(minimum),table=basis['minimum_table'])

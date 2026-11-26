@@ -221,6 +221,7 @@ MESSAGES = {
     "pipe.bend_mode.D1": "1D",
     "pipe.bend_mode.D1_5": "1.5D",
     "pipe.bend_ratio": "R/D = {ratio}",
+    "pipe.nominal_secondary_source": "Source: manufacturer catalogue (EEMUA 234/1); the standard itself was not verified. Specified wall; no pipe tolerance applied.",
     "pipe.bend_ratio_tight": "R is below 1D; unusually tight bend. Confirm with the fabricator.",
     "pipe.bend_mode.D2": "2D",
     "pipe.bend_mode.D3": "3D",

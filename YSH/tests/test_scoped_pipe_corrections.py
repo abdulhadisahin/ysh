@@ -92,8 +92,8 @@ def test_cuni10_nominal_wall_from_eemua_144_for_seawater_only():
     assert [r.thickness_mm for r in records]==[3.0]
     basis=recommend_wall(1.801754,'CuNi10Fe',159,'seawater',records)
     assert basis['nominal_wall_mm']==3.0 and basis['status']=='MATCH'
-    assert basis['nominal_standard'].startswith('EEMUA 144')
-    assert basis['nominal_note'] and basis['nominal_publication_date']=='unspecified'
+    assert basis['nominal_standard'].startswith('EEMUA 234')
+    assert basis['nominal_note']=='pipe.nominal_secondary_source' and basis['nominal_publication_date']=='2016'
     assert basis['nominal_wall_mm']>=basis['minimum_wall_mm']==2.5
     # A wall at or above the table value gives no recommendation, never a guess.
     assert recommend_wall(3.0,'CuNi10Fe',159,'seawater',records)['nominal_wall_mm'] is None

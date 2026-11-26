@@ -93,10 +93,13 @@ class NominalWall:
     status_note: str = ''
 
 
-EEMUA_URL = 'https://www.piping-world.com/dimension-of-16-bar-rating-cu-ni-pipes-tubes'
-# EEMUA 144 (16 bar) 90-10 Cu-Ni pipe: outside diameter -> specified wall [mm].
-# Transcribed from a supplier listing (secondary source) at the user's
-# direction; the original standard edition has not been checked.
+EEMUA_URL = 'https://www.kme.com/fileadmin/DOWNLOADCENTER/SPECIAL%20DIVISION/2%20Marine%20Applications/2%20Offshore/OSNA10_Offshore_2017.pdf'
+# EEMUA 234/1 (2016) seamless 90-10 Cu-Ni pipe, 16 bar series:
+# outside diameter -> specified wall [mm]. Transcribed from the KME OSNA-10
+# offshore catalogue (2017), which cites EEMUA 234 chapter 1; the same values
+# appear in an EEMUA 144 supplier listing. The standard itself was not read.
+# Catalogue note 4: for 159 mm and larger the wall may be up to 12.5 % below
+# the specified value; this is NOT applied here (no thickness tolerance).
 EEMUA_144_16BAR_CUNI10 = {16.:2., 25.:2., 30.:2.5, 38.:2.5, 44.5:2.5, 57.:2.5,
     76.1:2.5, 88.9:2.5, 108.:3., 159.:3., 219.1:4., 267.:4.5, 323.9:5.5,
     368.:6.5, 419.:7.}
@@ -136,9 +139,9 @@ def verified_nominal_walls(designation, outside_mm, family):
         if wall is None:
             return ()
         return (NominalWall(designation, outside_mm, family, wall,
-                'EEMUA 144 (16 bar), supplier listing', '16 bar rating',
-                publication_date='unspecified', url=EEMUA_URL,
-                status_note='Secondary source; verify against EEMUA 144 edition.'),)
+                'EEMUA 234/1 (2016), 16 bar, via KME catalogue', '16 bar',
+                publication_date='2016', url=EEMUA_URL,
+                status_note='pipe.nominal_secondary_source'),)
     if family not in {'fuel','fire','seawater'} or material_code(designation) not in {'316L','AISI316L','14404','304L','AISI304L','14307'}:
         return ()
     rows = {48.3:(1.6,2.,2.6,3.6,5.),60.3:(1.6,2.,2.3,2.9,4.,5.6),
