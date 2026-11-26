@@ -204,7 +204,7 @@ class SuctionNPSHPage(ttk.Frame):
         self._enpy_card = InputCard(self, self._translate("section.enpy_inputs"))
         enpy = self._enpy_card
         enpy.workspace_surface_role="input"
-        enpy.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(12, 0))
+        enpy.grid(row=1, column=2, sticky="nsew", padx=(6, 0))
         self._enpy_card.configure(text=self._translate("section.enpy_calculation"))
         for row, (key, label, suffix) in enumerate((
             ("pressure", "field.suction_pressure", " PE"), ("vapour", "field.vapour_pressure", " Pb"),
@@ -224,19 +224,21 @@ class SuctionNPSHPage(ttk.Frame):
         self._pressure_note = ttk.Label(
             enpy,
             text=self._translate("suction.pressure_note"),
-            wraplength=720,
+            wraplength=320,
         )
         self._pressure_note.grid(row=5, column=0, columnspan=3, sticky="w", pady=(8, 0))
 
         self._results_card = ResultCard(self, self._translate("section.suction_results"))
         results = self._results_card
-        results.grid(row=1, column=2, sticky="nsew", padx=(6, 0))
+        results.grid(row=3, column=0, columnspan=3, sticky="nsew", pady=(12, 0))
+        results.columnconfigure(0, weight=1)
+        results.columnconfigure(1, weight=2)
         self._enpy_metric = ResultMetric(results, self._translate("result.available_npsh"), self._enpy_summary, "m", normal_style_prefix="SuctionResultMetric")
         self._enpy_metric.grid(row=0, column=0, sticky="ew")
         self._suction_metric = ResultMetric(results, self._translate("result.suction_head_loss"), self._suction_loss_summary, "m", normal_style_prefix="SuctionLossMetric")
         self._suction_metric.grid(row=1, column=0, sticky="ew", pady=(8, 0))
         self._result_empty_state = EmptyState(results, "result", self._translate("guidance.empty.title"), self._translate("guidance.empty.suction"), image_size=145)
-        self._result_empty_state.grid(row=0, column=0, sticky="nsew")
+        self._result_empty_state.grid(row=0, column=0, columnspan=2, sticky="nsew")
         self._details_card = ttk.Frame(results, style="EngineeringDetails.TFrame", padding=(10, 8))
         self._details_card.columnconfigure(0, weight=1)
         self._details_card.columnconfigure(1, weight=1)
@@ -270,19 +272,24 @@ class SuctionNPSHPage(ttk.Frame):
             label.grid(row=0, column=0, sticky="w")
             ttk.Label(metric, textvariable=self._detail_values[value_key], style="EngineeringDetailsValue.TLabel").grid(row=0, column=1, sticky="e", padx=(8, 0))
             self._detail_labels.append((label, label_key))
-        self._details_card.grid(row=2, column=0, sticky="ew", pady=(8, 0))
+        self._details_card.grid(row=0, column=1, rowspan=2, sticky="new", padx=(12, 0))
         self._details_card.grid_remove()
-        self._result_fallback = ttk.Label(results, textvariable=self._result, style="Info.TLabel", justify="left", wraplength=360)
-        self._result_fallback.grid(row=3, column=0, sticky="w", pady=(8, 0))
+        self._result_fallback = ttk.Label(results, textvariable=self._result, style="Info.TLabel", justify="left", wraplength=640)
+        self._result_fallback.grid(row=2, column=0, columnspan=2, sticky="w", pady=(8, 0))
         self._result_fallback.grid_remove()
         self._warning_panel = EngineeringWarningPanel(results, self._translate)
-        self._warning_panel.grid(row=4, column=0, sticky="ew", pady=(8, 0))
+        self._warning_panel.grid(row=3, column=0, columnspan=2, sticky="ew", pady=(8, 0))
         self._warning_panel.set_findings(())
-        ttk.Label(results, textvariable=self._message, style="Info.TLabel", wraplength=360).grid(row=5, column=0, sticky="w", pady=(8, 0))
-        ttk.Label(results, textvariable=self._formula, justify="left", wraplength=360).grid(row=6, column=0, sticky="w", pady=(8, 0))
-        self._actions_card = CalculationCard(results, self._translate("common.calculations"))
+        self._message_label = ttk.Label(results, textvariable=self._message, style="Info.TLabel", wraplength=640)
+        self._message_label.grid(row=4, column=0, columnspan=2, sticky="w", pady=(8, 0))
+        self._formula_label = ttk.Label(results, textvariable=self._formula, justify="left", wraplength=640)
+        self._formula_label.grid(row=5, column=0, columnspan=2, sticky="w", pady=(8, 0))
+        results.bind("<Configure>", self._on_results_configure, add="+")
+        # The command bar sits between the inputs and the results, so the user
+        # reads inputs -> calculate -> result -> warnings top to bottom.
+        self._actions_card = CalculationCard(self, self._translate("common.calculations"))
         actions = self._actions_card
-        actions.grid(row=7, column=0, sticky="ew", pady=(10, 0))
+        actions.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(12, 0))
         self._calculate_loss_button = create_rounded_button(actions, self._translate("calculation.calculate"), self._calculate_suction_loss, style="SuctionRoundedPrimary.TButton", palette=SUCTION_PRIMARY_PALETTE, primary=True)
         self._calculate_loss_button.grid(row=0, column=0, sticky="w")
         self._calculate_enpy_button = create_rounded_button(actions, self._translate("action.calculate_enpy"), self._calculate_enpy, style="SuctionRoundedPrimary.TButton", palette=SUCTION_PRIMARY_PALETTE, primary=True)
@@ -291,7 +298,7 @@ class SuctionNPSHPage(ttk.Frame):
         self._clear_button.grid(row=0, column=2, sticky="w", padx=(8, 0))
         self._formula_panel = FormulaReferencePanel(self, self._formula_sections, self._translate, self._create_formula_toggle, lambda: hasattr(self, "_last_loss") or hasattr(self, "_last_enpy"), step_provider=self._formula_steps, separate_window=True, module_key="suction_npsh")
         self._formula_panel.grid(
-            row=3, column=0, columnspan=3, sticky="ew", pady=(12, 0)
+            row=4, column=0, columnspan=3, sticky="ew", pady=(12, 0)
         )
         self._responsive_layout_mode = ""
         self.bind("<Configure>", self._on_layout_configure, add="+")
@@ -319,12 +326,13 @@ class SuctionNPSHPage(ttk.Frame):
         results = self._results_card
         enpy = self._enpy_card
         wide_width = sum(
-            card.winfo_reqwidth() for card in (fluid, losses, results)
+            card.winfo_reqwidth() for card in (fluid, losses, enpy)
         ) + 24
         two_column_width = max(
-            fluid.winfo_reqwidth() + results.winfo_reqwidth() + 12,
+            fluid.winfo_reqwidth() + enpy.winfo_reqwidth() + 12,
             losses.winfo_reqwidth(),
-            enpy.winfo_reqwidth(),
+            results.winfo_reqwidth(),
+            self._actions_card.winfo_reqwidth(),
         )
         content_width = max(1, width - 24)
         if content_width >= wide_width:
@@ -339,33 +347,48 @@ class SuctionNPSHPage(ttk.Frame):
         self._apply_responsive_layout(mode)
 
     def _apply_responsive_layout(self, mode: str) -> None:
-        """Apply one normal-grid layout without recreating cards or their state."""
+        """Apply one normal-grid layout without recreating cards or their state.
+
+        Reading order is always inputs, then the command bar, then results
+        (with warnings directly under the numbers), then the formula view.
+        """
         for column in range(3):
             self.columnconfigure(column, minsize=0, weight=0)
+        fluid, losses, enpy = self._fluid_card, self._losses_card, self._enpy_card
+        actions, results, formula = self._actions_card, self._results_card, self._formula_panel
         if mode == "wide":
             for column in range(3):
                 self.columnconfigure(column, weight=1)
-            self._fluid_card.grid_configure(row=1, column=0, columnspan=1, sticky="nsew", padx=(0, 6), pady=0)
-            self._losses_card.grid_configure(row=1, column=1, columnspan=1, sticky="nsew", padx=6, pady=0)
-            self._results_card.grid_configure(row=1, column=2, columnspan=1, sticky="nsew", padx=(6, 0), pady=0)
-            self._enpy_card.grid_configure(row=2, column=0, columnspan=2, sticky="ew", pady=(12, 0))
-            self._formula_panel.grid_configure(row=3, column=0, columnspan=3, sticky="ew", pady=(12, 0))
+            fluid.grid_configure(row=1, column=0, columnspan=1, sticky="nsew", padx=(0, 6), pady=0)
+            losses.grid_configure(row=1, column=1, columnspan=1, sticky="nsew", padx=6, pady=0)
+            enpy.grid_configure(row=1, column=2, columnspan=1, sticky="nsew", padx=(6, 0), pady=0)
+            actions.grid_configure(row=2, column=0, columnspan=3, sticky="ew", padx=0, pady=(12, 0))
+            results.grid_configure(row=3, column=0, columnspan=3, sticky="nsew", padx=0, pady=(12, 0))
+            formula.grid_configure(row=4, column=0, columnspan=3, sticky="ew", pady=(12, 0))
             return
         if mode == "two-column":
             self.columnconfigure(0, weight=1)
             self.columnconfigure(1, weight=1)
-            self._fluid_card.grid_configure(row=1, column=0, columnspan=1, sticky="nsew", padx=(0, 6), pady=0)
-            self._results_card.grid_configure(row=1, column=1, columnspan=1, sticky="nsew", padx=(6, 0), pady=0)
+            fluid.grid_configure(row=1, column=0, columnspan=1, sticky="nsew", padx=(0, 6), pady=0)
+            enpy.grid_configure(row=1, column=1, columnspan=1, sticky="nsew", padx=(6, 0), pady=0)
             self._losses_card.grid_configure(row=2, column=0, columnspan=2, sticky="nsew", padx=0, pady=(12, 0))
-            self._enpy_card.grid_configure(row=3, column=0, columnspan=2, sticky="ew", pady=(12, 0))
-            self._formula_panel.grid_configure(row=4, column=0, columnspan=2, sticky="ew", pady=(12, 0))
+            actions.grid_configure(row=3, column=0, columnspan=2, sticky="ew", padx=0, pady=(12, 0))
+            results.grid_configure(row=4, column=0, columnspan=2, sticky="nsew", padx=0, pady=(12, 0))
+            formula.grid_configure(row=5, column=0, columnspan=2, sticky="ew", pady=(12, 0))
             return
         self.columnconfigure(0, weight=1)
-        self._fluid_card.grid_configure(row=1, column=0, columnspan=1, sticky="ew", padx=0, pady=0)
-        self._losses_card.grid_configure(row=2, column=0, columnspan=1, sticky="ew", padx=0, pady=(12, 0))
-        self._results_card.grid_configure(row=3, column=0, columnspan=1, sticky="ew", padx=0, pady=(12, 0))
-        self._enpy_card.grid_configure(row=4, column=0, columnspan=1, sticky="ew", pady=(12, 0))
-        self._formula_panel.grid_configure(row=5, column=0, columnspan=1, sticky="ew", pady=(12, 0))
+        fluid.grid_configure(row=1, column=0, columnspan=1, sticky="ew", padx=0, pady=0)
+        losses.grid_configure(row=2, column=0, columnspan=1, sticky="ew", padx=0, pady=(12, 0))
+        enpy.grid_configure(row=3, column=0, columnspan=1, sticky="ew", padx=0, pady=(12, 0))
+        actions.grid_configure(row=4, column=0, columnspan=1, sticky="ew", padx=0, pady=(12, 0))
+        results.grid_configure(row=5, column=0, columnspan=1, sticky="ew", padx=0, pady=(12, 0))
+        formula.grid_configure(row=6, column=0, columnspan=1, sticky="ew", pady=(12, 0))
+
+    def _on_results_configure(self, event: tk.Event[tk.Misc]) -> None:
+        """Let status text use the result band's real width instead of a fixed wrap."""
+        wrap = max(240, event.width - 48)
+        for label in (self._message_label, self._formula_label, self._result_fallback):
+            label.configure(wraplength=wrap)
 
     def _on_actions_configure(self, event: tk.Event[tk.Misc]) -> None:
         """Keep localized calculation actions inside their card instead of clipping."""

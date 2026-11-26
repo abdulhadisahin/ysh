@@ -35,6 +35,15 @@ class EngineeringWarningPanel(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self._translate = translate
         self._findings: tuple[EngineeringFinding, ...] = ()
+        self._bodies: list[ttk.Label] = []
+        self.bind("<Configure>", self._fit_bodies, add="+")
+
+    def _fit_bodies(self, event: tk.Event[tk.Misc]) -> None:
+        """Wrap finding text to the panel's real width instead of a fixed 860 px."""
+        wrap = max(240, event.width - 70)
+        for label in self._bodies:
+            if label.winfo_exists():
+                label.configure(wraplength=wrap)
 
     @property
     def findings(self) -> tuple[EngineeringFinding, ...]:
@@ -44,6 +53,7 @@ class EngineeringWarningPanel(ttk.Frame):
         self._findings = normalized_findings(findings)
         for child in self.winfo_children():
             child.destroy()
+        self._bodies = []
         if not self._findings:
             self.grid_remove()
             return
@@ -74,7 +84,9 @@ class EngineeringWarningPanel(ttk.Frame):
         ).grid(
             row=row * 2, column=0, sticky="w", pady=((0 if row == 0 else 10), 0)
         )
-        ttk.Label(self, text=self._message(finding), style=body_style, wraplength=860).grid(
+        body = ttk.Label(self, text=self._message(finding), style=body_style, wraplength=860)
+        self._bodies.append(body)
+        body.grid(
             # Reserve a stable 40 px leading lane so the explanation aligns
             # below the heading rather than beneath the status symbol.
             row=row * 2 + 1, column=0, sticky="ew", padx=(40, 0), pady=(4, 0)
