@@ -23,7 +23,8 @@ def test_cuni_allowable_stress_is_direct(material_service,pipe_size_service,engi
     assert result.wall_thickness.allowable_stress_mpa==68.
     assert result.wall_thickness.base_wall_thickness_mm==diameter*8/(20*68+8)
     assert result.trace['allowable_stress_rule']['tl_temperature_verified']
-    assert result.wall_thickness.selected_standard_wall_thickness_mm is None
+    # Only EEMUA 144 (16 bar) ODs have a recorded nominal wall; others stay unresolved.
+    assert result.wall_thickness.selected_standard_wall_thickness_mm=={108.:3.,159.:3.}.get(diameter)
     from engineering.formula.pipe import legacy_pipe_steps
     stress=next(s for s in legacy_pipe_steps(result) if s.step_id=='pipe.stress')
     assert stress.formula_text=='σallow = 68 MPa'
@@ -84,3 +85,17 @@ def test_historical_colour_thresholds_unchanged(value,status):
     from engineering.catalog_seeds import d243_rule
     from engineering.rule_evaluation import rule_status
     assert rule_status(d243_rule(),value)==status
+
+
+def test_cuni10_nominal_wall_from_eemua_144_for_seawater_only():
+    records=verified_nominal_walls('CuNi10Fe',159,'seawater')
+    assert [r.thickness_mm for r in records]==[3.0]
+    basis=recommend_wall(1.801754,'CuNi10Fe',159,'seawater',records)
+    assert basis['nominal_wall_mm']==3.0 and basis['status']=='MATCH'
+    assert basis['nominal_standard'].startswith('EEMUA 144')
+    assert basis['nominal_note'] and basis['nominal_publication_date']=='unspecified'
+    assert basis['nominal_wall_mm']>=basis['minimum_wall_mm']==2.5
+    # A wall at or above the table value gives no recommendation, never a guess.
+    assert recommend_wall(3.0,'CuNi10Fe',159,'seawater',records)['nominal_wall_mm'] is None
+    assert not verified_nominal_walls('CuNi10Fe',159,'fuel')
+    assert not verified_nominal_walls('CuNi10Fe',160,'seawater')

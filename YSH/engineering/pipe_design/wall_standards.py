@@ -88,6 +88,18 @@ class NominalWall:
     thickness_mm: float
     standard: str
     table: str
+    publication_date: str = '1991-02'
+    url: str = ISO_URL
+    status_note: str = ''
+
+
+EEMUA_URL = 'https://www.piping-world.com/dimension-of-16-bar-rating-cu-ni-pipes-tubes'
+# EEMUA 144 (16 bar) 90-10 Cu-Ni pipe: outside diameter -> specified wall [mm].
+# Transcribed from a supplier listing (secondary source) at the user's
+# direction; the original standard edition has not been checked.
+EEMUA_144_16BAR_CUNI10 = {16.:2., 25.:2., 30.:2.5, 38.:2.5, 44.5:2.5, 57.:2.5,
+    76.1:2.5, 88.9:2.5, 108.:3., 159.:3., 219.1:4., 267.:4.5, 323.9:5.5,
+    368.:6.5, 419.:7.}
 
 
 def recommend_wall(required_mm, designation, outside_mm, family, records=()):
@@ -103,10 +115,11 @@ def recommend_wall(required_mm, designation, outside_mm, family, records=()):
             'nominal_standard': selected.standard if selected else None,
             'nominal_table': selected.table if selected else None,
             'minimum_publication_date': '2022-01' if table else None,
-            'nominal_publication_date': '1991-02' if selected else None,
+            'nominal_publication_date': selected.publication_date if selected else None,
+            'nominal_note': selected.status_note if selected else None,
             'verification_date': '2026-11-25',
             'minimum_url': TL_URL if table else None,
-            'nominal_url': ISO_URL if selected else None,
+            'nominal_url': selected.url if selected else None,
             'status': 'MATCH' if selected else 'SOURCE_REQUIRED'}
 
 
@@ -117,6 +130,15 @@ def verified_nominal_walls(designation, outside_mm, family):
     CuNi. Missing dimensions are unresolved, not rounded to another OD.
     Publication: February 1991; verification: 2026-11-25.
     """
+    if is_cuni10(designation):
+        # Auxiliary seawater only, matching the CuNi allowable-stress scope.
+        wall = EEMUA_144_16BAR_CUNI10.get(float(outside_mm)) if family == 'seawater' else None
+        if wall is None:
+            return ()
+        return (NominalWall(designation, outside_mm, family, wall,
+                'EEMUA 144 (16 bar), supplier listing', '16 bar rating',
+                publication_date='unspecified', url=EEMUA_URL,
+                status_note='Secondary source; verify against EEMUA 144 edition.'),)
     if family not in {'fuel','fire','seawater'} or material_code(designation) not in {'316L','AISI316L','14404','304L','AISI304L','14307'}:
         return ()
     rows = {48.3:(1.6,2.,2.6,3.6,5.),60.3:(1.6,2.,2.3,2.9,4.,5.6),
