@@ -391,7 +391,10 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         from engineering.formula.discharge import hydraulic_steps
         from engineering.head_loss.v2_models import DischargeV2Result
         result = getattr(self, "_last_result", None)
-        return hydraulic_steps(result) if isinstance(result, DischargeV2Result) else ()
+        if not isinstance(result, DischargeV2Result): return ()
+        from engineering.snapshots.builders import material_source_steps
+        # Same material-source decoration the frozen snapshot carries, so the Word button recognises the current result.
+        return material_source_steps(hydraulic_steps(result), result.metadata)
 
     def _formula_sections(self)->list[FormulaSection]:
         """Show canonical YSH coefficient formulas from the current result."""

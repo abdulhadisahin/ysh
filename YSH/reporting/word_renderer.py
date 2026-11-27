@@ -11,7 +11,7 @@ from docx.shared import Cm, Pt, RGBColor
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
-from reporting.word_presentation import ReportLanguage, basis_explanations
+from reporting.word_presentation import ReportLanguage, basis_explanations, USER_SOURCE_KEYS
 
 SOURCE_LABEL = "Kaynak / doğrulama"
 NAVY = "163047"
@@ -220,10 +220,12 @@ def render_word(report) -> bytes:
         _table(doc,(tr("report.parameter"),tr("word.symbol"),tr("report.value"),tr("report.unit"),tr("report.source")),
             [(ui.label(f.label,f.symbol,f.unit),_symbol(f.symbol),ui.number(f.value),ui.text(f.unit),ui.source(f.source)) for f in input_rows],language=report.language)
     if report.selections:
-        doc.add_heading(tr("report.selections"),1)
         safe_selections=[f for f in report.selections if not any(token in f.label.casefold() for token in ("uuid","kimliği","identity","revision","schema","model"))]
-        if safe_selections:
-            _table(doc,(tr("report.parameter"),tr("report.value")),[(ui.label(f.label,f.symbol,f.unit),ui.source(f.value) if f.label==SOURCE_LABEL else ui.text(ui.number(f.value))) for f in safe_selections])
+        selection_rows=[(ui.label(f.label,f.symbol,f.unit),ui.source(f.value) if f.label==SOURCE_LABEL else ui.text(ui.number(f.value))) for f in safe_selections]
+        selection_rows=[row for row in selection_rows if not (row[0]==SOURCE_LABEL and row[1]=='-')]
+        if selection_rows:
+            doc.add_heading(tr("report.selections"),1)
+            _table(doc,(tr("report.parameter"),tr("report.value")),selection_rows)
     if report.engineering_basis_json:
         import json
         try: explanations=basis_explanations(json.loads(report.engineering_basis_json),report.language)
@@ -260,7 +262,7 @@ def render_word(report) -> bytes:
         doc.add_paragraph(tr("word.graph.note"))
         doc.add_heading(tr("word.graph.references"),2)
         _table(doc,(tr("word.reference_vessel"),tr("word.graph.x"),tr("word.graph.y"),tr("report.source"),tr("report.status")),
-            [(ui.text(p.name),ui.number(p.fuel_capacity_m3),ui.number(p.pump_capacity_m3_h),ui.text(p.source) or tr("report.source_required"),ui.status(p.verification)) for p in graph.references])
+            [(ui.text(p.name),ui.number(p.fuel_capacity_m3),ui.number(p.pump_capacity_m3_h),ui.text(p.source) or "-",ui.status(p.verification)) for p in graph.references])
         stats=[(tr("word.transfer.equation"),f"Q = {ui.number(graph.slope)} V + {ui.number(graph.intercept)}"),
             (tr("word.transfer.r2"),ui.number(graph.r_squared) if graph.r_squared is not None else "—"),
             (tr("word.transfer.predicted"),ui.number(graph.predicted_capacity_m3_h) if graph.predicted_capacity_m3_h is not None else "—"),
@@ -280,11 +282,18 @@ def render_word(report) -> bytes:
     if notes:
         doc.add_heading(tr("word.checks_notes"),1); _table(doc,(tr("report.status"),tr("report.message"),tr("report.context")),notes)
     if report.sources:
-        doc.add_heading(tr("report.provenance"),1)
-        rows=[]
+        # One compact line per distinct origin; "entered by the user" is self-evident and is not repeated.
+        type_label=tr('formula2.source.source_type'); own={tr(key).casefold() for key in USER_SOURCE_KEYS}; rows=[]
         for source in report.sources:
-            rows.extend((ui.text(label),ui.text(value)) for label,value in source.rows)
-        if rows: _table(doc,(tr("report.parameter"),tr("report.value")),rows)
+            values=[(label,ui.text(value)) for label,value in source.rows]
+            kind=next((value for label,value in values if label==type_label),'')
+            detail=' · '.join(value for label,value in values if label!=type_label and value and value.casefold() not in own)
+            if kind.casefold() in own and not detail: continue
+            row=(kind or '—',detail or '—')
+            if row not in rows: rows.append(row)
+        if rows:
+            doc.add_heading(tr("report.provenance"),1)
+            _table(doc,(tr("report.source"),tr("word.source_detail")),rows,widths=(5.0,12.0))
     from reporting.reference_catalog import references_for
     refs=references_for(report.module_code,report.system_family)
     if refs:

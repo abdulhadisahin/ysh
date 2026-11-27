@@ -196,8 +196,10 @@ def adapt_snapshot(snapshot: CalculationSnapshot, language: str = 'tr') -> Engin
                     if key == 'bend_allowance_enabled':
                         value = tr('report.bend_on') if value else tr('report.bend_off')
                     elif key == 'mode':
-                        if value not in ('MANUAL', 'LINKED'):
-                            label = 'Hesap / kapasite modu'
+                        if value in ('VOLUME', 'MASS'):
+                            label = 'Kapasite giriş türü'
+                        elif value not in ('MANUAL', 'LINKED'):
+                            label = 'Hesap modu'
                         value = {'MANUAL': tr('source.state.manual'), 'LINKED': tr('source.state.linked')}.get(value, value)
                     if key == 'status' and str(value) in ('RULE_NOT_CONFIGURED', 'BLOCKED_APPLICABILITY', 'SOURCE_REQUIRED'):
                         label = 'Kural kontrol durumu'

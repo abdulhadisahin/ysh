@@ -713,9 +713,10 @@ class SuctionNPSHPage(ttk.Frame):
         from engineering.suction_npsh.v2_models import SuctionV2Result, SuctionV2LossResult
         enpy = getattr(self, "_last_enpy", None)
         loss = getattr(self, "_last_loss", None)
+        from engineering.snapshots.builders import material_source_steps
         if isinstance(enpy, SuctionV2Result):
-            return suction_steps(enpy)
-        return hydraulic_steps(loss) if isinstance(loss, SuctionV2LossResult) else ()
+            return material_source_steps(suction_steps(enpy), enpy.hydraulic.metadata)
+        return material_source_steps(hydraulic_steps(loss), loss.metadata) if isinstance(loss, SuctionV2LossResult) else ()
 
     def _formula_sections(self) -> list[FormulaSection]:
         """Return static suction/ENPY reference and stored-result substitutions."""

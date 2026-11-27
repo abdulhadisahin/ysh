@@ -1187,3 +1187,5 @@ MESSAGES['word.status.info'] = 'Info'
 MESSAGES['word.checks_notes'] = 'Checks and Notes'
 MESSAGES['report.field.record_status'] = 'Calculation status'
 MESSAGES['report.field.rule_status'] = 'Rule check status'
+MESSAGES.update({'report.field.calc_mode': 'Calculation mode', 'report.field.capacity_input': 'Capacity input type'})
+MESSAGES['word.source_detail'] = 'Detail'

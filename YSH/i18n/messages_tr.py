@@ -1199,3 +1199,5 @@ MESSAGES['word.status.info'] = 'Bilgi'
 MESSAGES['word.checks_notes'] = 'Kontroller ve Notlar'
 MESSAGES['report.field.record_status'] = 'Hesap durumu'
 MESSAGES['report.field.rule_status'] = 'Kural kontrol durumu'
+MESSAGES.update({'report.field.calc_mode': 'Hesap modu', 'report.field.capacity_input': 'Kapasite giriş türü'})
+MESSAGES['word.source_detail'] = 'Ayrıntı'

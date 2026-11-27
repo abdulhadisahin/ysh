@@ -39,6 +39,9 @@ def _material_source(steps: tuple, metadata: dict) -> tuple:
         used_values=tuple(replace(v,source=source) if v.symbol=='k' else v for v in step.used_values)) for step in steps)
 
 
+material_source_steps=_material_source
+
+
 def _pipe(stage: str, result: object, selection: PipeSelection | None) -> tuple:
     if not isinstance(result,PipeDesignCalculationResult) or not result.is_successful:
         raise ValueError('A successful pipe result is required')
