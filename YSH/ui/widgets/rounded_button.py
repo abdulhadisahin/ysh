@@ -75,9 +75,9 @@ CLEAR_ALL_BUTTON_PALETTE = RoundedButtonPalette(
     focus_border="#A77A2D",
 )
 FORMULA_BUTTON_PALETTE = RoundedButtonPalette(
-    normal=("#FBF6E9", "#7B5A17"),
-    hover=("#F5EBCF", "#7B5A17"),
-    pressed=("#E9D9AD", "#5D4311"),
+    normal=("#FFF8DC", "#7B5A17"),
+    hover=("#FCEFB8", "#7B5A17"),
+    pressed=("#F6E08A", "#5D4311"),
     disabled=("#F4F0E7", "#D8CFBA"),
     focus_border="#7B5A17",
 )
