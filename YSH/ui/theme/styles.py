@@ -331,6 +331,10 @@ def apply_theme(root: tk.Misc) -> None:
     style.map("TNotebook.Tab", background=[("selected", colors.PRIMARY), ("active", colors.PRIMARY_SOFT)], foreground=[("selected", colors.ON_ACCENT), ("active", colors.PRIMARY_HOVER)])
     style.configure("YSH.TNotebook", background=colors.NAVY, bordercolor=colors.BORDER, tabmargins=(8, 6, 8, 0))
     style.configure("YSH.TNotebook.Tab", background=colors.NAVY, foreground=colors.ON_ACCENT, padding=(22, 11), font=typography.BODY_BOLD)
+    # Tab text is selected by colour only; drop the dotted focus rectangle around it.
+    style.layout("YSH.TNotebook.Tab", [("Notebook.tab", {"sticky": "nswe", "children": [
+        ("Notebook.padding", {"side": "top", "sticky": "nswe", "children": [
+            ("Notebook.label", {"side": "top", "sticky": ""})]})]})])
     style.map("YSH.TNotebook.Tab", padding=[("selected", (22, 11))], expand=[("selected", (0, 0, 0, 0))],
               background=[("selected", colors.GOLD), ("active", colors.SEA_DARK)],
               foreground=[("selected", colors.NAVY), ("active", colors.ON_ACCENT)])

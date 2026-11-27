@@ -36,6 +36,23 @@ class EngineeringPageContext(ttk.Frame):
         if module in ('discharge_head_loss','suction_npsh'):
             self._build_fluid_controls()
         self.bind('<Configure>',self._fit)
+        self._initial_texts()
+
+    def _initial_texts(self):
+        """Label the band even before any project exists; refresh() takes over once a context loads."""
+        try:
+            tr=self.controller.window._translate
+            self.fluid_label.configure(text=tr('engineering.select.fluid'))
+            self.material_label.configure(text=tr('engineering.select.material'))
+            self.project_button.configure(text=tr('engineering.edit_project'))
+            self.override_button.configure(text=tr('engineering.edit_module'))
+            if hasattr(self,'operating'):
+                for name,label in self.condition_labels.items():label.configure(text=tr('hydro.fluid.'+name))
+                self.apply_fluid.configure(text=tr('hydro.fluid.apply'))
+                self.project_fluid.configure(text=tr('engineering.use_project'))
+                self.atmosphere.configure(text=tr('hydro.fluid.atmosphere'))
+        except Exception:
+            return
 
     def _build_fluid_controls(self):
         from ui.widgets.numeric_input import numeric_entry
