@@ -123,7 +123,6 @@ def test_dead_renderer_cache_focus_handlers_and_polling_are_removed() -> None:
 
 def test_normal_branding_and_pdf_header_assets_remain_available() -> None:
     """Workspace removal preserves canonical assets, shell branding and PDF resources."""
-    from ui.assets import d243_main_logo_path, d243_watermark_logo_path, d243_small_logo_path
-    assert d243_watermark_logo_path().is_file()
+    from ui.assets import d243_main_logo_path, d243_small_logo_path
     assert d243_main_logo_path().is_file() and d243_small_logo_path().is_file()
     assert 'd243_small_logo_path' in (ROOT / 'reporting/renderer.py').read_text(encoding='utf-8')

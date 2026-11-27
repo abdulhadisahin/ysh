@@ -38,9 +38,3 @@ def set_result_state(card, calculated):
         for child in widget.winfo_children():mark(child)
     mark(card)
     card.composite_panel=True
-    parent=card
-    while parent is not None:
-        backdrop=getattr(parent,'_workspace_backdrop',None)
-        if backdrop:
-            backdrop.request();break
-        parent=parent.master

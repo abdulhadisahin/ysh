@@ -11,7 +11,6 @@ from YSH.ui.assets import (
     d243_main_logo_path,
     d243_logo_path,
     d243_ui_logo_path,
-    d243_watermark_logo_path,
     ysh_icon_path,
     ysh_logo_path,
     ysh_ship_bottom_left_path,
@@ -90,9 +89,6 @@ def test_approved_brand_assets_resolve_from_source_resources() -> None:
     assert d243_main_logo_path(paths.resource_root) == (
         paths.resource_root / "resources" / "branding" / "d243_logo_main.png"
     )
-    assert d243_watermark_logo_path(paths.resource_root) == (
-        paths.resource_root / "resources" / "branding" / "d243_logo_watermark.png"
-    )
     assert d243_icon_path(paths.resource_root) == paths.resource_root / "resources" / "branding" / "d243_logo.ico"
     assert ysh_ship_top_right_path(paths.resource_root) == (
         paths.resource_root / "resources" / "ysh_ship_top_right.png"
@@ -111,7 +107,6 @@ def test_missing_brand_assets_remain_optional_in_frozen_resources(tmp_path: Path
     assert d243_logo_path(frozen_root) is None
     assert d243_ui_logo_path(frozen_root) is None
     assert d243_main_logo_path(frozen_root) is None
-    assert d243_watermark_logo_path(frozen_root) is None
     assert d243_icon_path(frozen_root) is None
     assert ysh_ship_top_right_path(frozen_root) is None
     assert ysh_ship_bottom_left_path(frozen_root) is None

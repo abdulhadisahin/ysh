@@ -51,7 +51,7 @@ def main() -> None:
             assert "_tk_data" in str(checks["bundled_tk_path"])
             paths = ApplicationPaths()
             assert paths.user_root.is_relative_to(profile)
-            for getter in (assets.d243_main_logo_path, assets.d243_watermark_logo_path,
+            for getter in (assets.d243_main_logo_path,
                            assets.d243_production_icon_path, assets.d243_logo_path):
                 assert getter() is not None
             for key in assets.ACTION_ICON_FILENAMES:

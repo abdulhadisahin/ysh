@@ -42,7 +42,6 @@ def test_spec_resource_and_icon_paths_are_repository_relative() -> None:
         "d243_logo_main.png",
         "d243_logo_medium.png",
         "d243_logo_small.png",
-        "d243_logo_watermark.png",
         "d243_logo.ico",
     ):
         assert (REPOSITORY_ROOT / "YSH" / "resources" / "branding" / asset_name).is_file()

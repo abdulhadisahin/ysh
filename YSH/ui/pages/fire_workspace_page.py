@@ -316,9 +316,6 @@ class FireCalculatorPage(ttk.Frame):
         result=self.model.results[self.kind]
         self.result_card.result_surface_opaque=bool(result)
         self.result_card.composite_panel=True
-        viewport=self.workspace.host._page_keys[self.kind]
-        backdrop=getattr(viewport,'_workspace_backdrop',None)
-        if backdrop:backdrop.request()
         role='Error' if message=='fire.ui.invalid' else 'Status' if message=='fire.ui.blocked' else 'Info'
         if result and result.warnings:role='Status'
         self.status.configure(style='Fire.'+role+'.TLabel')

@@ -20,12 +20,10 @@ BRANDING_RESOURCE_DIRECTORY = "resources"
 YSH_LOGO_FILENAME = "ysh_logo.png"
 D243_LOGO_FILENAME = "d243_logo.png"
 D243_UI_LOGO_FILENAME = "d243_logo_ui.png"
-D243_WATERMARK_LOGO_FILENAME = "d243_logo_watermark.png"
 D243_ICON_FILENAME = "d243_logo.ico"
 D243_LOGO_MAIN = "branding/d243_logo_main.png"
 D243_LOGO_MEDIUM = "branding/d243_logo_medium.png"
 D243_LOGO_SMALL = "branding/d243_logo_small.png"
-D243_LOGO_WATERMARK = "branding/d243_logo_watermark.png"
 D243_LOGO_ICO = "branding/d243_logo.ico"
 BTN_YENI = "btn_yeni.png"
 BTN_AC = "btn_ac.png"
@@ -183,11 +181,6 @@ def d243_logo_path(resource_root: Path | None = None) -> Path | None:
 def d243_ui_logo_path(resource_root: Path | None = None) -> Path | None:
     """Return the transparent technical derivative used by the shell lockup."""
     return branding_asset_path(D243_UI_LOGO_FILENAME, resource_root)
-
-
-def d243_watermark_logo_path(resource_root: Path | None = None) -> Path | None:
-    """Return the transparent technical derivative used by workspace watermarks."""
-    return production_branding_path(D243_LOGO_WATERMARK, resource_root)
 
 
 def action_icon_path(name: str, resource_root: Path | None = None) -> Path | None:

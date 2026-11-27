@@ -21,8 +21,6 @@ def test_foam_calculates_and_uses_native_text_painter(shell):
     assert w._fire_workspace.views['foam'] is view
     assert all(entry.winfo_viewable() for entry in view.entries.values())
     fill_view(view,('210','5','30','3'));view.calculate();root.update()
-    backdrop=w._fire_workspace.host._active_host()._workspace_backdrop
-    backdrop.paint();root.update()
     assert w._fire_workspace.model.results['foam'].domain_result.foam_concentrate_volume_l==945
     assert view.pdf_button.instate(['!disabled'])
     canvas=w._fire_workspace.host._active_host().canvas
@@ -86,7 +84,6 @@ def test_hw_native_inputs_results_and_stale_pdf(shell):
     page=w._fire_workspace;page.host.select(page.host._page_keys['hw']);root.update()
     view=page.views['hw'];page.model.service=HWService.WATER
     fill_view(view,('2000','105','150','120'));view.calculate();root.update()
-    page.host._active_host()._workspace_backdrop.paint();root.update()
     assert page.model.results['hw'].domain_result.total_pressure_loss_bar==pytest.approx(2.3717829024660286)
     assert view.result_labels[0].winfo_viewable() and 'ΔpHW' in view.result_labels[0].cget('text')
     canvas=page.host._active_host().canvas;primary=view.result_labels[0]

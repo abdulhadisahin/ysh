@@ -64,7 +64,6 @@ def test_foam_primary_result_caption_warning_and_actions_are_separate(shell,size
     w._show_family('fire',dirty=False);page=w._fire_workspace;view=page.views['foam']
     page.host.select(page.host._page_keys['foam']);root.update()
     fill_view(view,('210','5','30','3'));view.calculate();root.update()
-    backdrop=page.host._active_host()._workspace_backdrop;backdrop.paint();root.update()
     assert page.model.results['foam'].domain_result.foam_concentrate_volume_l==945
     assert view.result_card.result_surface_opaque
     assert view.result_title.cget('text') and view.primary_caption.cget('text')
@@ -77,8 +76,6 @@ def test_foam_primary_result_caption_warning_and_actions_are_separate(shell,size
     assert view.pdf_button.master is view.secondary_actions
     assert view.pdf_button.instate(['!disabled'])
     assert view.status not in list(descendants(view.result_labels[0]))
-    for widget in (view.result_card,*descendants(view.result_card)):
-        assert widget not in backdrop.surfaces and widget not in backdrop.tints
     assert_horizontal_bounds(descendants(view),page.host._active_host().canvas)
 
 
@@ -90,9 +87,6 @@ def test_pipe_calculated_primary_metric_and_warning_separation(shell,size):
     page._fields['q'].set('20');page._fields['v'].set('2');page._calculate_diameter();root.update()
     assert page._diameter_result and page._diameter_value.get()!='—'
     assert page._diameter_result_card.result_surface_opaque
-    backdrop=viewport._workspace_backdrop;backdrop.paint();root.update()
-    for widget in (page._diameter_result_card,*descendants(page._diameter_result_card)):
-        assert widget not in backdrop.surfaces and widget not in backdrop.tints
     style=ttk.Style(root)
     primary=font.Font(root,font=style.lookup(page._diameter_metric_value.cget('style'),'font'))
     support=font.Font(root,font=style.lookup(page._diameter_standard_value.cget('style'),'font'))

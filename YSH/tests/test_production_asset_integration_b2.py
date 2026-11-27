@@ -39,7 +39,6 @@ def test_production_asset_manifest_is_complete_and_resolves_from_package_resourc
         "d243_logo_main.png",
         "d243_logo_medium.png",
         "d243_logo_small.png",
-        "d243_logo_watermark.png",
     ]
     assert all((ROOT / "resources" / "icons" / "actions" / name).is_file() for name in ACTION_ICON_FILENAMES.values())
     assert all((ROOT / "resources" / "icons" / "status" / name).is_file() for name in STATUS_ICON_FILENAMES.values())
