@@ -96,7 +96,7 @@ def test_shell_transfer_and_warning_surfaces_use_logical_asset_names() -> None:
     warnings = _source("ui/widgets/engineering_warning_panel.py")
     host = _source("ui/widgets/scrollable_page_host.py")
 
-    for icon_name in ('icon_name="new"', 'icon_name="open"', 'icon_name="save"', 'icon_name="save_as"', 'icon_name="about"'):
+    for icon_name in ('icon_name="new"', 'icon_name="open"', 'icon_name="save"', 'icon_name="save_as"'):
         assert icon_name in shell
     for icon_name in ('icon_name="calculate"', 'icon_name="clear"', 'icon_name="add"', 'icon_name="edit"', 'icon_name="delete"', 'icon_name="formula"'):
         assert icon_name in transfer

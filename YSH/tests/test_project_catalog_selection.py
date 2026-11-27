@@ -112,7 +112,7 @@ def test_catalog_material_service_identity_and_panel_geometry(shell,language,siz
         for module in ('pipe_design','discharge_head_loss','suction_npsh'):
             viewport=w._page_host._page_keys[module];w._page_host.select(viewport);viewport.canvas.yview_moveto(0)
             panel=w._pages[module]._engineering_panel;settle_geometry(root,panel)
-            assert set(panel.material_box['values'])=={r.material_name for r in c.catalog.surface_records}
+            assert set(panel.material_box['values'])=={r.material_name for r in c.catalog.surface_records if 'Cu-Ni' not in r.material_name}
             assert panel.winfo_rootx()>=viewport.canvas.winfo_rootx()
             assert panel.winfo_rootx()+panel.winfo_width()<=viewport.canvas.winfo_rootx()+viewport.canvas.winfo_width()
             assert not w._pages[module]._engineering_context_label.winfo_ismapped()

@@ -60,7 +60,7 @@ def test_visible_catalog_navigation_fluid_details_and_distinct_rules(shell,langu
         assert window._tree.item(str(rules['TL_FFS_DELIVERY'].id),'values')[3]=='Türk Loydu'
         assert window._tree.item(str(rules['BALLAST'].id),'values')[1]==w._translate('engineering.status.SOURCE_REQUIRED')
         window.show_category('material_surfaces');root.update()
-        assert len(window._controller.records)==10
+        assert len(window._controller.records)==11
         surface=next(r for r in window._controller.records if r.code=='CARBON_NEW')
         values=window._tree.item(str(surface.id),'values')
         assert 'mm' in values[1] and values[2]=='Carbon Steel' and values[3]=='NEW_COMMERCIAL'
