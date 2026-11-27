@@ -732,12 +732,10 @@ class TransferPumpPage(ttk.LabelFrame):
 
     def _formula_steps(self) -> tuple:
         """Only the active calculation mode supplies the primary explanation."""
-        from engineering.formula.transfer import design_steps, empirical_steps
+        from engineering.snapshots.builders import transfer_formula_steps
         if self._calculation_mode is TransferPumpMode.DESIGN:
-            result = getattr(self._design_panel, "_last_result", None)
-            return design_steps(result) if result is not None else ()
-        result = getattr(self, "_empirical_v2_result", None)
-        return empirical_steps(result) if result is not None else ()
+            return transfer_formula_steps(getattr(self._design_panel, "_last_result", None))
+        return transfer_formula_steps(getattr(self, "_empirical_v2_result", None))
 
     def _formula_sections(self) -> list[FormulaSection]:
         """Display the available model and optional latest estimate substitution."""

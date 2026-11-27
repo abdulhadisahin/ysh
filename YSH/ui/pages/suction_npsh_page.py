@@ -707,16 +707,10 @@ class SuctionNPSHPage(ttk.Frame):
         notify_success(self,"enpy",result)
 
     def _formula_steps(self) -> tuple:
-        """Explain stored stages without reading the current entry controls."""
-        from engineering.formula.discharge import hydraulic_steps
-        from engineering.formula.suction import suction_steps
-        from engineering.suction_npsh.v2_models import SuctionV2Result, SuctionV2LossResult
+        """Formula steps of the stored stage; identical to the frozen snapshot's by construction."""
+        from engineering.snapshots.builders import suction_formula_steps
         enpy = getattr(self, "_last_enpy", None)
-        loss = getattr(self, "_last_loss", None)
-        from engineering.snapshots.builders import material_source_steps
-        if isinstance(enpy, SuctionV2Result):
-            return material_source_steps(suction_steps(enpy), enpy.hydraulic.metadata)
-        return material_source_steps(hydraulic_steps(loss), loss.metadata) if isinstance(loss, SuctionV2LossResult) else ()
+        return suction_formula_steps(enpy) or suction_formula_steps(getattr(self, "_last_loss", None))
 
     def _formula_sections(self) -> list[FormulaSection]:
         """Return static suction/ENPY reference and stored-result substitutions."""

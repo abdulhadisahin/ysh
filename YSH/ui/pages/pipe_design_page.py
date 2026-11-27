@@ -1451,10 +1451,9 @@ class PipeDesignPage(ttk.Frame):
                 cached.trace['wall_standard']=getattr(self,'_wall_standard_basis',{})
             steps.extend(pipe_material_source_steps(legacy_pipe_steps(cached),cached))
         selection = getattr(self, "_formula_selection", None)
-        if (self._diameter_result or self._wall_result) and selection is not None:
-            from engineering.formula.pipe import selection_geometry_steps
-            steps = [s for s in steps if s.step_id != "pipe.Di"]
-            steps.extend(selection_geometry_steps(selection))
+        if self._diameter_result or self._wall_result:
+            from engineering.snapshots.builders import apply_selection_geometry
+            return apply_selection_geometry(tuple(steps), selection)
         return tuple(steps)
 
     def _formula_sections(self) -> list[FormulaSection]:

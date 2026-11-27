@@ -42,6 +42,36 @@ def _material_source(steps: tuple, metadata: dict) -> tuple:
 material_source_steps=_material_source
 
 
+def apply_selection_geometry(steps: tuple, selection: object) -> tuple:
+    """Replace the generic Di step by the published pipe selection geometry (shared by page and snapshot)."""
+    if selection is None:
+        return tuple(steps)
+    return tuple(s for s in steps if s.step_id!='pipe.Di')+selection_geometry_steps(selection)
+
+
+def discharge_formula_steps(result: DischargeV2Result) -> tuple:
+    """The one definition of a discharge result's formula steps; the page and the snapshot both call it."""
+    return _material_source(hydraulic_steps(result),result.metadata)
+
+
+def suction_formula_steps(result: object) -> tuple:
+    """Formula steps for a suction hydraulics or ENPY result; the page and the snapshot both call it."""
+    if isinstance(result,SuctionV2Result):
+        return _material_source(suction_steps(result),result.hydraulic.metadata)
+    if isinstance(result,SuctionV2LossResult):
+        return _material_source(hydraulic_steps(result),result.metadata)
+    return ()
+
+
+def transfer_formula_steps(result: object) -> tuple:
+    """Formula steps for a transfer design or empirical result; the page and the snapshot both call it."""
+    if isinstance(result,TransferPumpDesignResult):
+        return design_steps(result)
+    if isinstance(result,TransferPumpEmpiricalResult):
+        return empirical_steps(result)
+    return ()
+
+
 def pipe_material_source_steps(steps: tuple, result: object) -> tuple:
     """Attach the library material's standard to the stress step; shared with the page's formula view."""
     material=getattr(result,'trace',{}).get('material')
@@ -61,8 +91,7 @@ def _pipe(stage: str, result: object, selection: PipeSelection | None) -> tuple:
     if key=='diameter' and result.diameter is None or key=='wall' and result.wall_thickness is None:
         raise ValueError('Incomplete pipe stage')
     steps=pipe_material_source_steps(legacy_pipe_steps(result),result)
-    if selection is not None:
-        steps=tuple(s for s in steps if s.step_id!='pipe.Di')+selection_geometry_steps(selection)
+    steps=apply_selection_geometry(steps,selection)
     return ({'calculation':result,'published_selection':selection},steps,'PIPE_LEGACY_1')
 
 
@@ -70,27 +99,27 @@ def _discharge(stage: str, result: object, selection: object) -> tuple:
     if stage!='hydraulics' or not isinstance(result,DischargeV2Result):
         raise ValueError('A complete discharge result is required')
     facts={'input':result.input,'outputs':result_fields(result)}
-    return facts,_material_source(hydraulic_steps(result),result.metadata),'HYDRAULIC_COEFFICIENTS_1'
+    return facts,discharge_formula_steps(result),'HYDRAULIC_COEFFICIENTS_1'
 
 
 def _suction(stage: str, result: object, selection: object) -> tuple:
     if stage=='hydraulics' and isinstance(result,SuctionV2LossResult):
         return ({'input':result.input,'outputs':result_fields(result)},
-                _material_source(hydraulic_steps(result),result.metadata),'SUCTION_HYDRAULICS_1')
+                suction_formula_steps(result),'SUCTION_HYDRAULICS_1')
     if stage=='enpy' and isinstance(result,SuctionV2Result):
         facts={'input':result.input,'outputs':result_fields(result),
                'hydraulic_input':result.hydraulic.input,'hydraulic_outputs':result_fields(result.hydraulic)}
-        return facts,_material_source(suction_steps(result),result.hydraulic.metadata),'ENPY_SINGLE_SOURCE_1'
+        return facts,suction_formula_steps(result),'ENPY_SINGLE_SOURCE_1'
     raise ValueError('A complete suction/ENPY stage is required')
 
 
 def _transfer(stage: str, result: object, selection: object) -> tuple:
     if stage=='design' and isinstance(result,TransferPumpDesignResult):
-        return {'calculation':result},design_steps(result),'TRANSFER_VOLUME_TIME_1'
+        return {'calculation':result},transfer_formula_steps(result),'TRANSFER_VOLUME_TIME_1'
     if stage=='empirical' and isinstance(result,TransferPumpEmpiricalResult):
         if not result.estimate.is_successful or result.estimate.regression_model is None:
             raise ValueError('A successful regression result is required')
-        return {'calculation':result},empirical_steps(result),'TRANSFER_OLS_VESSEL_REFERENCE_1'
+        return {'calculation':result},transfer_formula_steps(result),'TRANSFER_OLS_VESSEL_REFERENCE_1'
     raise ValueError('A complete active transfer mode is required')
 
 

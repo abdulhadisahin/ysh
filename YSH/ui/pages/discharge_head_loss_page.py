@@ -387,14 +387,11 @@ class DischargeHeadLossPage(ttk.LabelFrame):
             self._pipe_source_panel.render()
             self._sync_pipe_fields()
     def _formula_steps(self) -> tuple:
-        """Adapt the exact applied V2 result only when the view is requested."""
-        from engineering.formula.discharge import hydraulic_steps
+        """Formula steps of the current result; identical to the frozen snapshot's by construction."""
         from engineering.head_loss.v2_models import DischargeV2Result
+        from engineering.snapshots.builders import discharge_formula_steps
         result = getattr(self, "_last_result", None)
-        if not isinstance(result, DischargeV2Result): return ()
-        from engineering.snapshots.builders import material_source_steps
-        # Same material-source decoration the frozen snapshot carries, so the Word button recognises the current result.
-        return material_source_steps(hydraulic_steps(result), result.metadata)
+        return discharge_formula_steps(result) if isinstance(result, DischargeV2Result) else ()
 
     def _formula_sections(self)->list[FormulaSection]:
         """Show canonical YSH coefficient formulas from the current result."""
