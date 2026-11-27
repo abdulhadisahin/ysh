@@ -50,7 +50,7 @@ from ui.dialogs.new_project_dialog import NewProjectDialog
 from ui.dialogs.open_project_dialog import OpenProjectDialog
 from ui.dialogs.save_project_as_dialog import SaveProjectAsDialog
 from ui.widgets.project_summary import ProjectSummary
-from ui.widgets.identity_stripe import IdentityStripe, STRIPE_HEIGHT
+from ui.widgets.identity_stripe import IdentityStripe
 from ui.widgets.status_bar import StatusBar
 from ui.widgets.scrollable_frame import ScrollableFrame
 from ui.widgets.scrollable_page_host import ScrollablePageHost
@@ -174,7 +174,7 @@ class MainWindow:
         header.grid(row=0, column=1, sticky="ew")
         self._shell_header = header
         header.columnconfigure(0, weight=1)
-        IdentityStripe(header, background=colors.HEADER_SURFACE).place(x=0, rely=1.0, anchor="sw", relwidth=1.0, height=STRIPE_HEIGHT)
+        IdentityStripe.attach(header, background=colors.HEADER_SURFACE)
         # Branding belongs to the Project panel; no oversized header lockup.
         if self._localization is not None:
             self._language_value = tk.StringVar(value=self._language_display_name())

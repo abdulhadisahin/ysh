@@ -22,7 +22,7 @@ class StatusBar(ttk.Frame):
         """Create a status bar with the default Ready message."""
         super().__init__(parent, style="Status.TFrame", padding=(MD, SM // 2 + STRIPE_HEIGHT, MD, SM // 2))
         self._translate = translate or Translator().translate
-        IdentityStripe(self).place(x=0, y=0, relwidth=1.0, height=STRIPE_HEIGHT)
+        IdentityStripe.attach(self, edge="top")
         self._message = tk.StringVar(value=self._translate("message.ready"))
         ttk.Label(self, textvariable=self._message, anchor="w", style="Status.TLabel").pack(
             fill="x",

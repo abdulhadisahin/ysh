@@ -37,7 +37,7 @@ def test_library_styles_are_scoped_and_reuse_master_geometry():
     style=Style();configure_library_visuals(style)
     assert all(key.startswith('Library') for key in style.configurations | style.maps)
     assert style.configurations['Library.Data.Treeview']['rowheight']==32
-    assert style.configurations['Library.Data.Treeview.Heading']['background']==colors.SURFACE_ALT
+    assert style.configurations['Library.Data.Treeview.Heading']['background']==colors.NAVY  # identity: navy table heads
     assert style.maps['Library.Data.Treeview']['background'][0]==('selected',LIBRARY_SOFT)
     assert style.configurations['Library.TEntry']['fieldbackground']==colors.WHITE
     assert PANE_WEIGHTS==(2,4,3)

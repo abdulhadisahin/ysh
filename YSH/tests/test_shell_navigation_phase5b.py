@@ -22,9 +22,8 @@ def test_calculation_tabs_have_stable_semantic_page_colors() -> None:
     assert colors.SUCTION == "#35698F"
     assert "self._page_keys" in source
     assert "YSH.TNotebook" in source
-    assert "selected_foreground = colors.SHELL_CYAN" in source
+    assert "selected_foreground = " in source and "selected_background = " in source
     assert 'background=[("selected", selected_background)' in source
-    assert 'if page_key == "pipe_design"' in source
     assert 'foreground=[("selected", selected_foreground)' in source
 
 

@@ -14,7 +14,7 @@ from engineering.fire.enums import FireSourceStatus
 from services.engineering_library_service import EngineeringLibraryService, LibraryError
 from services.library_catalog import VISIBLE_CATEGORIES as CATEGORIES, CATEGORY_BY_CODE, PROPERTY_CODES, HIDDEN_LIBRARY_CATEGORIES
 from ui.library_controller import LibraryController, EditMode
-from ui.widgets.identity_stripe import IdentityStripe, STRIPE_HEIGHT
+from ui.widgets.identity_stripe import IdentityStripe
 from ui.widgets.scrollable_frame import ScrollableFrame
 from ui.widgets.formula_steps import number, source_rows
 from ui.widgets.detail_disclosure import DetailDisclosure
@@ -128,7 +128,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         self._status=tk.StringVar();self._edit_vars={};self._edit_choices={}
         self._choice_cache={};self._row_map={}
         self.columnconfigure(0,weight=1);self.rowconfigure(2,weight=1)
-        header=ttk.Frame(self,style='Library.Header.TFrame');header.grid(row=0,column=0,sticky='ew',padx=MD,pady=(MD,SM));header.columnconfigure(0,weight=1);IdentityStripe(header,background=colors.NAVY).place(x=0,rely=1.0,anchor='sw',relwidth=1.0,height=STRIPE_HEIGHT)
+        header=ttk.Frame(self,style='Library.Header.TFrame');header.grid(row=0,column=0,sticky='ew',padx=MD,pady=(MD,SM));header.columnconfigure(0,weight=1);IdentityStripe.attach(header,background=colors.NAVY)
         self._header_title=ttk.Label(header,style='Library.Title.TLabel');self._header_title.grid(row=0,column=0,sticky='w')
         self._header_subtitle=ttk.Label(header,style='Library.Subtitle.TLabel');self._header_subtitle.grid(row=1,column=0,sticky='w',pady=(SM//2,0))
         header.columnconfigure(0,weight=1)

@@ -27,3 +27,15 @@ class IdentityStripe(tk.Canvas):
             right = width if index == len(STRIPE_SEGMENTS) - 1 else left + int(width * share)
             self.create_rectangle(left, 0, right, STRIPE_HEIGHT, fill=colour, outline=colour)
             left = right
+
+    @classmethod
+    def attach(cls, parent: tk.Misc, *, edge: str = "bottom", background: str = colors.NAVY) -> "IdentityStripe | None":
+        """Overlay a stripe on the top or bottom edge of a real Tk container; skipped for non-Tk test doubles."""
+        if not isinstance(parent, tk.Misc):
+            return None
+        stripe = cls(parent, background=background)
+        if edge == "top":
+            stripe.place(x=0, y=0, relwidth=1.0, height=STRIPE_HEIGHT)
+        else:
+            stripe.place(x=0, rely=1.0, anchor="sw", relwidth=1.0, height=STRIPE_HEIGHT)
+        return stripe
