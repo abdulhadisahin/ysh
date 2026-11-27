@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 from i18n.catalog_text import catalog_text
 from engineering.system_context import SystemContext,ContextReference
+from services.library_scope import material_relevant,profile_relevant
 
 SERVICES=('', 'DIESEL_FUEL_DELIVERY','DIESEL_FUEL_SUCTION','SEA_WATER_COOLING','FRESH_WATER_COOLING','LUBE_OIL','BALLAST','BILGE')
 
@@ -46,13 +47,14 @@ class EngineeringSelectionForm(ttk.Frame):
                 self.variables[name].set('' if value is None else str(value))
         surface=next((r for r in self.catalog.surface_records if r.id==context.surface_profile_id),None)
         material=surface.material_name if surface else None
-        self._set('material',{none:None,**{r.material_name:r.material_name for r in self.catalog.surface_records}},material)
+        family=self.family
+        self._set('material',{none:None,**{r.material_name:r.material_name for r in self.catalog.surface_records if r.material_name==material or material_relevant(family,r.material_name,r.name)}},material)
         self._surfaces(context.surface_profile_id)
         if 'service' in self.boxes:
             services={none:None,**{self.tr('engineering.service.'+code):code for code in SERVICES if code}}
             if context.service and context.service not in SERVICES:services[context.service]=context.service
             self._set('service',services,context.service or None)
-        self._set('profile',{none:None,**{r.name:r.id for r in self.catalog.profile_records}},context.rule_set_id)
+        self._set('profile',{none:None,**{r.name:r.id for r in self.catalog.profile_records if r.id==context.rule_set_id or profile_relevant(family,r.name)}},context.rule_set_id)
         for name,label in self.labels.items():label.configure(text=self.tr('engineering.select.'+name))
     def _surfaces(self,selected=None):
         material=self.choices['material'].get(self.variables['material'].get())

@@ -56,3 +56,18 @@ def material_relevant(family: str | None, *texts) -> bool:
     joined = ' '.join(str(t or '') for t in texts)
     code = material_code(joined)
     return not ('CUNI' in code or 'CUPRONICKEL' in code)
+
+
+# Rule profiles and applicability scopes that make sense for each project family (selection filter only).
+PROFILE_FAMILIES = {'D243': ('fuel', 'seawater', 'fire'), 'EVERLLENCE': ('fuel', 'seawater'), 'TL_FFS': ('fire',),
+                    'TL_LT500': ('seawater',), 'CUNI_REFERENCE': ('seawater',), 'WARTSILA': ('seawater',)}
+SCOPE_FAMILIES = {'TL_FFS': ('fire',), 'TL_LT500': ('seawater',)}
+
+
+def profile_relevant(family, name) -> bool:
+    key = str(name or '').upper().replace('ENG_', '', 1)
+    return not scoped(family) or key not in PROFILE_FAMILIES or family in PROFILE_FAMILIES[key]
+
+
+def scope_relevant(family, scope) -> bool:
+    return not scoped(family) or scope not in SCOPE_FAMILIES or family in SCOPE_FAMILIES[scope]

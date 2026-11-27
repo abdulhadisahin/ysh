@@ -85,3 +85,11 @@ def test_v10_completes_cuni_and_wartsila_rules_and_drops_placeholders(tmp_path):
     with database.connection() as c:
         rows = {r[0]: r[1] for r in c.execute('SELECT code, recommended_max FROM engineering_rules')}
     assert rows['CUNI_9010'] == 3.5 and rows['WARTSILA_CUNI7030'] == 4.5 and 'BALLAST' not in rows
+
+
+def test_profile_and_scope_choices_follow_the_family():
+    from services.library_scope import profile_relevant, scope_relevant
+    assert not profile_relevant('fuel', 'WARTSILA') and not profile_relevant('fuel', 'CUNI_REFERENCE')
+    assert profile_relevant('seawater', 'WARTSILA') and profile_relevant('fire', 'TL_FFS') and not profile_relevant('seawater', 'TL_FFS')
+    assert profile_relevant('fuel', 'My own profile') and profile_relevant(None, 'WARTSILA')
+    assert scope_relevant('fire', 'TL_FFS') and not scope_relevant('fuel', 'TL_FFS') and scope_relevant('seawater', 'TL_LT500')
