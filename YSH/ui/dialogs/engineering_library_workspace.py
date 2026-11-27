@@ -130,7 +130,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         self.columnconfigure(0,weight=1);self.rowconfigure(2,weight=1)
         header=ttk.Frame(self,style='Library.Header.TFrame');header.grid(row=0,column=0,sticky='ew',padx=MD,pady=(MD,SM));header.columnconfigure(0,weight=1);IdentityStripe.attach(header,background=colors.NAVY)
         self._header_title=ttk.Label(header,style='Library.Title.TLabel');self._header_title.grid(row=0,column=0,sticky='w')
-        self._header_subtitle=ttk.Label(header,style='Library.Subtitle.TLabel');self._header_subtitle.grid(row=1,column=0,sticky='w',pady=(SM//2,0))
+        self._header_subtitle=ttk.Label(header,style='Library.Subtitle.TLabel');self._header_subtitle.grid(row=1,column=0,sticky='w',pady=(SM//2,8))
         header.columnconfigure(0,weight=1)
         self._scope_check=ttk.Checkbutton(header,variable=self._show_all,command=self._scope_changed)
         if self._family:self._scope_check.grid(row=0,column=1,rowspan=2,sticky='e')
@@ -184,7 +184,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         scrollbar.grid(row=1,column=2,sticky='ns');self._tree.configure(yscrollcommand=scrollbar.set)
         horizontal=ttk.Scrollbar(listing,orient='horizontal',command=self._tree.xview)
         horizontal.grid(row=2,column=0,columnspan=2,sticky='ew');self._tree.configure(xscrollcommand=horizontal.set)
-        for key,width in (('name',190),('value',80),('ownership',175),('verification',150),('active',90)):
+        for key,width in (('name',250),('value',70),('ownership',165),('verification',110),('active',70)):
             self._tree.column(key,width=width,minwidth=80,stretch=(key=='name'))
         self._tree.tag_configure('even',background=colors.CARD_SURFACE)
         self._tree.tag_configure('odd',background=colors.RESULT_SURFACE)
