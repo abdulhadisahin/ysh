@@ -24,3 +24,20 @@ def test_p235tr2_added_to_existing_and_fresh_libraries(tmp_path):
         c.execute('UPDATE schema_version SET version=10')
     LibraryDatabase(tmp_path / 'b.db').initialize()
     assert 'P235TR2' in {m.name for m in MaterialService(MaterialRepository(old)).get_all_materials()}
+
+
+def test_st37_st52_have_minimum_yield_in_fresh_and_upgraded_libraries(tmp_path):
+    from database.library_database import LibraryDatabase
+    from repositories.material_repository import MaterialRepository
+    from services.material_service import MaterialService
+    db = LibraryDatabase(tmp_path / 'c.db'); db.initialize()
+    service = MaterialService(MaterialRepository(db))
+    got = {m.name: m.yield_strength_mpa for m in service.get_all_materials()}
+    assert got['ST37'] == 235 and got['ST52'] == 355
+    with db.connection() as c:  # old library: blank factory yield, schema 11
+        c.execute("UPDATE materials SET yield_strength_mpa=NULL, description='' WHERE name IN ('ST37','ST52')")
+        c.execute("UPDATE materials SET yield_strength_mpa=300 WHERE name='AISI 304L'")
+        c.execute('UPDATE schema_version SET version=11')
+    LibraryDatabase(tmp_path / 'c.db').initialize()
+    got = {m.name: m.yield_strength_mpa for m in MaterialService(MaterialRepository(db)).get_all_materials()}
+    assert got['ST37'] == 235 and got['ST52'] == 355 and got['AISI 304L'] == 300

@@ -50,8 +50,11 @@ class MaterialService:
         """Validate independently entered material values."""
         self._validate(Material(name="Manual", designation="Manual", yield_strength_mpa=yield_strength_mpa, roughness_mm=roughness_mm))
     def _seed(self) -> None:
-        for name, strength, roughness in (("AISI 304L",190.0,0.015),("AISI 316L",195.0,0.015),("ST37",None,0.045),("ST52",None,0.045)):
-            self._repository.create(Material(name=name, designation=name, yield_strength_mpa=strength, roughness_mm=roughness, source="YSH Version 1 default", is_system=True))
+        from database.library_v12 import STEEL_DESCRIPTIONS
+        for name, strength, roughness in (("AISI 304L",190.0,0.015),("AISI 316L",195.0,0.015),("ST37",235.0,0.045),("ST52",355.0,0.045)):
+            note = STEEL_DESCRIPTIONS.get(name)
+            self._repository.create(Material(name=name, designation=name, yield_strength_mpa=strength, roughness_mm=roughness,
+                                             description=note[0] if note else "", source=note[1] if note else "YSH Version 1 default", is_system=True))
         from database.library_v11 import p235tr2_material
         self._repository.create(p235tr2_material())
     @staticmethod

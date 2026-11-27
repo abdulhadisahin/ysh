@@ -66,7 +66,7 @@ def test_v9_fills_blank_factory_rows_but_keeps_user_edits(tmp_path):
     raw.commit(); raw.close()
     LibraryDatabase(path).initialize()
     raw = sqlite3.connect(path)
-    assert raw.execute("SELECT version FROM schema_version").fetchone()[0] == 11
+    assert raw.execute("SELECT version FROM schema_version").fetchone()[0] == 12
     assert raw.execute("SELECT default_value,source_min,source_max FROM fluid_specifications WHERE code='DMB_KINEMATIC_VISCOSITY'").fetchone() == (6.5, 2.0, 11.0)
     assert raw.execute("SELECT roughness_mm FROM material_surfaces WHERE code='PVC_NEW'").fetchone()[0] == 0.5
     assert raw.execute("SELECT roughness_mm FROM material_surfaces WHERE code='CAST_IRON_UNCOATED'").fetchone()[0] == 0.26

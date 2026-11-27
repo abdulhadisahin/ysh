@@ -321,7 +321,7 @@ def test_schema_versions_and_sql_definitions_remain_frozen(library_database, par
     SystemRepository(library_database).get_all()
     with library_database.connection() as c:
         assert [tuple(row) for row in c.execute("SELECT name,sql FROM sqlite_master ORDER BY name")] == [tuple(row) for row in before]
-        assert c.execute("SELECT version FROM schema_version").fetchone()[0] == 11
+        assert c.execute("SELECT version FROM schema_version").fetchone()[0] == 12
 
 
 def test_new_repositories_have_no_ui_or_calculator_dependencies():
