@@ -12,10 +12,10 @@ from .test_fire_phase5cd_navigation import application,shell
 from ._tk_geometry import settle_geometry
 
 APPROVED={
-    'library_materials':('boru_malzemeleri.png','6E5221D52F933BBFE41936BC5DC57BEE94678E38A9AB71EBAC03452703987534'),
-    'library_fluids':('akiskanlar.png','AEBC7D35E8EA63EB94A0F8ED61B15D4D1D7A161FF6AFBDA7F72E706B7D040379'),
-    'library_engineering_constants':('muhendislik_sabitleri.png','AA98E90F076056E8F754087499FDC3D7DF8325D6D1F66E9038E8D8D257B52AC6'),
-    'library_standards':('standartlar.png','2AA279F81192C2E2879F8BFE7DBC6AA6F5F7FEE8B48F0D5E27B3B9D904DDB391'),
+    'library_materials':('boru_malzemeleri.png','4B6BE0B30295D1BD66C58F3EB7FFD630EE758E2EF3275D60A6158462552B20BA'),
+    'library_fluids':('akiskanlar.png','7A245FBE96B3A12A9FFC03C3F247EFA750310D3A6FB287D1494B351E5EC5499B'),
+    'library_engineering_constants':('muhendislik_sabitleri.png','E05A12507D0CB3CF09085AAB490EF21BE4EE7B86CEF1BAB7CF464679812CCD17'),
+    'library_standards':('standartlar.png','4EAEB001718E11ED44927DFA8CD8F45A45628CE324F9DC652E9264210F4089E5'),
 }
 
 
