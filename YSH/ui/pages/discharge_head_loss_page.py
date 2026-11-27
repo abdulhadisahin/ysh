@@ -331,8 +331,10 @@ class DischargeHeadLossPage(ttk.LabelFrame):
                 self.set_transfer_state(PipeTransferProjectState())
         finally:self._suppress_dirty=False
     def _load_materials(self)->None:
-        materials=self._materials.get_all_materials();values=[]
+        from services.library_scope import material_relevant
+        family=getattr(self,'_project_family',lambda:None)();materials=self._materials.get_all_materials();values=[]
         for material in materials:
+            if not material_relevant(family,material.name,material.designation):continue
             label=f"{material.name} ({material.designation})";values.append(label);self._material_ids[label]=material.id
         self._material_box["values"]=values
     def _set_source_mode(self, reset_value: bool = True)->None:

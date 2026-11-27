@@ -173,6 +173,15 @@ def render_word(report) -> bytes:
         for source in report.sources:
             rows.extend((ui.text(label),ui.text(value)) for label,value in source.rows)
         if rows: _table(doc,(tr("report.parameter"),tr("report.value")),rows)
+    from reporting.reference_catalog import references_for
+    refs=references_for(report.module_code,report.system_family)
+    if refs:
+        en=report.language=='en'
+        doc.add_heading("References" if en else "Referanslar",1)
+        _table(doc,("Document" if en else "Doküman","Table / clause" if en else "Tablo / madde","Used for" if en else "Kullanım","Basis" if en else "Dayanak"),
+            [(r.document+("\n"+r.url if r.url else ""),r.table,r.use_en if en else r.use_tr,
+              ("Primary" if r.basis=="primary" else "Secondary (quoted)") if en else ("Birincil" if r.basis=="primary" else "İkincil (alıntı)")) for r in refs],
+            widths=(6.0,3.2,5.8,2.0))
     doc.add_heading(tr("report.approval"),1)
     _table(doc,(tr("report.checked"),tr("report.signature"),tr("report.date")),[("\n\n", "\n\n", "\n\n")])
     doc.add_paragraph(tr("word.frozen"),style="Caption")

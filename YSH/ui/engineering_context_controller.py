@@ -20,6 +20,7 @@ class EngineeringContextController:
         self.window=window;self.catalog=catalog;self.links={};self.step_cache={};self.suppress=False;self.module_contexts={};self._module_dialogs={};self.hydraulic_modules=set()
         for module,page in window._pages.items():
             if module=='pipe_design':page._wall_project_family=self.family
+            if module=='discharge_head_loss':page._project_family=self.family;page._load_materials()
             if module=='discharge_head_loss':
                 import tkinter as tk
                 page._fields.setdefault('fluid_density',tk.StringVar(master=page))

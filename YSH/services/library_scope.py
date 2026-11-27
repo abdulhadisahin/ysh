@@ -46,3 +46,13 @@ def row_visible(family: str | None, category: str, row, fluid_ids) -> bool:
         group = getattr(row, 'fluid_group', '') or ''
         return getattr(row, 'system_family', '') in ('', family) and (not group or group in FLUID_GROUPS[family])
     return True
+
+
+def material_relevant(family: str | None, *texts) -> bool:
+    """Cu-Ni 90/10 pipe materials are offered only to seawater projects (presentation only)."""
+    if family == 'seawater' or not scoped(family):
+        return True
+    from engineering.pipe_design.wall_standards import material_code
+    joined = ' '.join(str(t or '') for t in texts)
+    code = material_code(joined)
+    return not ('CUNI' in code or 'CUPRONICKEL' in code)

@@ -107,7 +107,8 @@ class EngineeringPageContext(ttk.Frame):
         fluids=c.catalog.project_fluids(c.family()) if hasattr(self,'operating') else c.catalog.fluid_records
         self.fluid_choices={catalog_text(tr,r.name_tr)+' · '+r.code:r.id for r in fluids}
         self.fluid_box.configure(values=tuple(self.fluid_choices),state='readonly' if hasattr(self,'operating') and c.family() else 'disabled')
-        self.material_box.configure(values=tuple(dict.fromkeys(r.material_name for r in c.catalog.surface_records)))
+        from services.library_scope import material_relevant
+        self.material_box.configure(values=tuple(dict.fromkeys(r.material_name for r in c.catalog.surface_records if material_relevant(c.family(),r.material_name,r.name))))
         changed=not hasattr(self,'operating') or self._shown_context!=context
         if changed:self.fluid_box.set(next((label for label,identifier in self.fluid_choices.items() if identifier==context.fluid_id),context.fluid.name_tr if context.fluid else tr('engineering.none')))
         if hasattr(self,'operating'):
