@@ -4,8 +4,8 @@ from ui.theme import colors, typography
 from ui.theme.pipe_pilot import PIPE_INPUT_BORDER, PIPE_WORKSPACE
 from ui.theme.spacing import XS, SM, MD
 
-LIBRARY_ACCENT = '#0E7490'
-LIBRARY_SOFT = '#ECF7FA'
+LIBRARY_ACCENT = colors.SEA_DARK
+LIBRARY_SOFT = colors.GOLD_SOFT
 PANE_WEIGHTS = (2, 4, 3)
 
 
@@ -37,10 +37,10 @@ def configure_library_visuals(style: ttk.Style) -> None:
     style.configure('Library.Card.TFrame',background=colors.WHITE,padding=SM,
                     borderwidth=1,relief='solid',bordercolor=PIPE_INPUT_BORDER)
     style.configure('Library.Body.TFrame',background=colors.WHITE)
-    style.configure('Library.Header.TFrame',background=LIBRARY_SOFT,padding=(MD,SM))
-    style.configure('Library.Title.TLabel',background=LIBRARY_SOFT,foreground=colors.NAVY,font=typography.PAGE_TITLE)
-    style.configure('Library.Subtitle.TLabel',background=LIBRARY_SOFT,foreground=colors.TEXT_SECONDARY,font=typography.MUTED)
-    style.configure('Library.Heading.TLabel',background=colors.WHITE,foreground=colors.NAVY,font=typography.SECTION_TITLE)
+    style.configure('Library.Header.TFrame',background=colors.NAVY,padding=(MD,MD))
+    style.configure('Library.Title.TLabel',background=colors.NAVY,foreground=colors.GOLD,font=typography.PAGE_TITLE)
+    style.configure('Library.Subtitle.TLabel',background=colors.NAVY,foreground=colors.SHELL_CYAN_LIGHT,font=typography.MUTED)
+    style.configure('Library.Heading.TLabel',background=colors.WHITE,foreground=colors.SEA_DARK,font=typography.SECTION_TITLE)
     style.configure('Library.Field.TLabel',background=colors.WHITE,foreground=colors.TEXT_SECONDARY,font=typography.MUTED)
     style.configure('Library.Value.TLabel',background=colors.WHITE,foreground=colors.TEXT_PRIMARY,font=typography.BODY)
     style.configure('Library.Section.TLabelframe',background=colors.WHITE,bordercolor=PIPE_INPUT_BORDER,
@@ -67,5 +67,6 @@ def configure_library_visuals(style: ttk.Style) -> None:
         style.configure(tree,rowheight=rowheight,background=colors.WHITE,fieldbackground=colors.WHITE,
                         foreground=colors.TEXT_PRIMARY,font=typography.BODY,borderwidth=0)
         style.map(tree,background=[('selected',LIBRARY_SOFT)],foreground=[('selected',colors.NAVY)])
-    style.configure('Library.Data.Treeview.Heading',background=colors.SURFACE_ALT,
-                    foreground=colors.NAVY,font=typography.BODY_BOLD,padding=(SM,SM))
+    style.configure('Library.Data.Treeview.Heading',background=colors.NAVY,
+                    foreground=colors.WHITE,font=typography.BODY_BOLD,padding=(SM,SM))
+    style.map('Library.Data.Treeview.Heading',background=[('active',colors.SEA_DARK)])

@@ -214,6 +214,25 @@ def _rule(paragraph, color=GOLD, size="18"):
     border.append(line); paragraph._p.get_or_add_pPr().append(border)
 
 
+def _banner(paragraph):
+    """Navy title band with a gold underline: the report's visible identity block."""
+    pPr = paragraph._p.get_or_add_pPr()
+    shade = OxmlElement("w:shd")
+    for key, value in (("val", "clear"), ("color", "auto"), ("fill", NAVY)): shade.set(qn("w:" + key), value)
+    pPr.append(shade)
+    paragraph.paragraph_format.left_indent = Cm(0.2); paragraph.paragraph_format.space_before = Pt(6)
+    paragraph.paragraph_format.space_after = Pt(10)
+    for run in paragraph.runs: run.font.color.rgb = RGBColor.from_string("FFFFFF")
+    _rule(paragraph, GOLD, "36")
+
+
+def _heading_bar(style):
+    """Gold bar to the left of every first-level heading."""
+    pPr = style.element.get_or_add_pPr(); border = OxmlElement("w:pBdr"); line = OxmlElement("w:left")
+    for key, value in (("val", "single"), ("sz", "36"), ("space", "6"), ("color", GOLD)): line.set(qn("w:" + key), value)
+    border.append(line); pPr.append(border)
+
+
 def render_word(report) -> bytes:
     """Create an editable A4 DOCX from frozen report data; performs no engineering work."""
     ui = ReportLanguage(report.language); tr = ui.tr; doc = Document()
@@ -222,10 +241,11 @@ def render_word(report) -> bytes:
     normal = doc.styles["Normal"]; normal.font.name="Aptos"; normal.font.size=Pt(10); normal.font.color.rgb=RGBColor.from_string(NAVY)
     for style_name,size in (("Title",22),("Heading 1",14),("Heading 2",11)):
         style=doc.styles[style_name]; style.font.name="Aptos Display"; style.font.size=Pt(size); style.font.bold=True; style.font.color.rgb=RGBColor.from_string(NAVY)
+    _heading_bar(doc.styles["Heading 1"]); doc.styles["Heading 1"].font.color.rgb=RGBColor.from_string(CYAN)
     header=section.header.paragraphs[0]; header.text="D243  |  "+tr("report.title"); header.runs[0].bold=True; header.runs[0].font.color.rgb=RGBColor.from_string(CYAN)
     footer=section.footer.paragraphs[0]; footer.alignment=WD_ALIGN_PARAGRAPH.RIGHT; footer.add_run("D243  ·  "+tr("word.page")+" "); _page_field(footer,"PAGE")
     _logo(doc)
-    title=doc.add_paragraph(style="Title"); title.add_run("D243 — "+tr("report.title")); _rule(title)
+    title=doc.add_paragraph(style="Title"); title.add_run("D243 — "+tr("report.title")); _banner(title)
     doc.add_paragraph(tr("word.intro",module=ui.text(report.module)))
     doc.add_heading(tr("report.project"),1)
     identity=[]
