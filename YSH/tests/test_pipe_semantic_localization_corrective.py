@@ -128,7 +128,7 @@ def test_localizing_saved_library_label_does_not_refresh_frozen_rp() -> None:
     identity = UUID(int=1)
     page._material_ids = {'Saved material': identity}
     page._t = Translator('tr').translate
-    for name in ('_select_pipe_standard', '_select_circuit', '_select_line_role',
+    for name in ('_load_materials', '_select_pipe_standard', '_select_circuit', '_select_line_role',
                  '_set_source_mode', '_update_diameter_summary', '_update_wall_summary',
                  '_refresh_diameter_warning_message', '_evaluate_velocity_warning', '_refresh_formula_panel'):
         setattr(page, name, lambda *a, **kw: True)

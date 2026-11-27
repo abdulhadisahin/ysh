@@ -1185,3 +1185,4 @@ MESSAGES.update({'word.status.success':'Başarılı'})
 MESSAGES.update({'library2.show_all':'Tümünü göster','library2.show_all_hint':'Seçili sistem dışındaki kayıtları da göster'})
 from i18n.catalog_text import turkish_messages as _catalog_text_messages
 MESSAGES.update(_catalog_text_messages())
+MESSAGES['engineering.use_averages'] = 'Boş viskozite/yoğunluk alanlarını şartname ortalamasıyla doldur (girilen değerlere dokunmaz)'

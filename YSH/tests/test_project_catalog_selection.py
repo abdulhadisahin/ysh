@@ -50,6 +50,8 @@ def test_real_new_fuel_project_collects_and_persists_catalog_choices(shell,monke
     assert w._system_context.material_id is None and w._system_context.rule_set_id is None
     assert w._system_context.service=='' and w._system_context.line_type==''
     c=w._engineering_context_controller
+    assert c.read('discharge_head_loss','kinematic_viscosity') is None  # blank unless averages are requested
+    c.set_use_averages(True)
     for module in ('discharge_head_loss','suction_npsh'):
         assert c.read(module,'kinematic_viscosity')==3
         assert 'absolute_roughness' not in c.links[module]
@@ -66,7 +68,7 @@ def test_real_new_fuel_project_collects_and_persists_catalog_choices(shell,monke
 
 
 def test_explicit_module_fluid_override_preserves_project_and_manual_values(shell):
-    w=shell;c=new_context(w);page=w._pages['suction_npsh']
+    w=shell;c=new_context(w);c.set_use_averages(True);page=w._pages['suction_npsh']
     page._fields['density'].set('850')
     project_context=w._system_context
     c.open_module_context('suction_npsh');dialog=c._module_dialogs['suction_npsh'];form=dialog.selection
@@ -138,7 +140,7 @@ def test_module_material_and_fluid_are_frozen_in_formula_basis(shell,monkeypatch
 
 
 def test_unchanged_identity_is_not_a_context_override(shell):
-    w=shell;c=new_context(w)
+    w=shell;c=new_context(w);c.set_use_averages(True)
     c.set_module_context('discharge_head_loss',w._system_context)
     assert 'discharge_head_loss' not in c.module_contexts
     page=w._pages['discharge_head_loss'];page._fields['nu'].set('4')

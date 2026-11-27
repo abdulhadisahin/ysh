@@ -17,7 +17,7 @@ def _conversion_equal(a,b):
 
 class EngineeringContextController:
     def __init__(self,window,catalog):
-        self.window=window;self.catalog=catalog;self.links={};self.step_cache={};self.suppress=False;self.module_contexts={};self._module_dialogs={};self.hydraulic_modules=set()
+        self.window=window;self.catalog=catalog;self.use_averages=False;self.links={};self.step_cache={};self.suppress=False;self.module_contexts={};self._module_dialogs={};self.hydraulic_modules=set()
         for module,page in window._pages.items():
             if module=='pipe_design':page._wall_project_family=self.family
             if module=='discharge_head_loss':page._project_family=self.family;page._load_materials()
@@ -44,10 +44,25 @@ class EngineeringContextController:
                     page._engineering_panel=EngineeringPageContext(page._header,self,module)
                     page._engineering_panel.grid(row=3,column=0,sticky='ew',pady=(4,0))
             if module in FIELD_MAP:self.write(module,'absolute_roughness',None)
+    def set_use_averages(self,flag):
+        """Opt-in: fill EMPTY viscosity/density fields with specification midpoints (never overwrites input)."""
+        self.use_averages=bool(flag)
+        if self.use_averages and self.family() in ('fuel','seawater'):
+            for module in FIELD_MAP:
+                if module not in self.hydraulic_modules:continue
+                references=self.references_for(module);links=self.links.setdefault(module,{})
+                for name in ('density','kinematic_viscosity'):
+                    reference=references.get(name)
+                    if not reference or reference.get('default_value') is None:continue
+                    try:current=self.read(module,name)
+                    except ValueError:continue
+                    if current is not None:continue
+                    links[name]=bind(reference,None);self.write(module,name,links[name].used_value)
+        self.observe();self.window._mark_workspace_dirty()
     def family(self):return self.window._locked_project_family()
     def references_for(self,module):
         context=self.context_for(module)
-        return self.catalog.hydraulic_references(context) if module in self.hydraulic_modules else self.catalog.references(context)
+        return self.catalog.hydraulic_references(context,self.use_averages) if module in self.hydraulic_modules else self.catalog.references(context)
     def clear(self):
         self.links={};self.step_cache={};self.module_contexts={};self.hydraulic_modules=set()
         for dialog in self._module_dialogs.values():
@@ -58,11 +73,12 @@ class EngineeringContextController:
             panel=getattr(page,'_engineering_panel',None)
             if panel is not None and hasattr(panel,'operating'):panel._shown_context=None
         self.refresh_labels()
-    def payload(self):return {'version':1,'hydraulic_modules':sorted(self.hydraulic_modules),'module_contexts':{m:c.to_payload() for m,c in self.module_contexts.items()},'stale_modules':[m for m,p in self.window._pages.items() if getattr(p,'_engineering_context_stale',False)],'links':{m:{n:v.payload() for n,v in links.items()} for m,links in self.links.items()}}
+    def payload(self):return {'version':1,'use_averages':self.use_averages,'hydraulic_modules':sorted(self.hydraulic_modules),'module_contexts':{m:c.to_payload() for m,c in self.module_contexts.items()},'stale_modules':[m for m,p in self.window._pages.items() if getattr(p,'_engineering_context_stale',False)],'links':{m:{n:v.payload() for n,v in links.items()} for m,links in self.links.items()}}
     def load(self,payload):
         if payload and payload.get('version')!=1:raise ValueError('Unsupported engineering links')
         from engineering.system_context import SystemContext
         self.hydraulic_modules=set((payload or {}).get('hydraulic_modules',())) & set(FIELD_MAP)
+        self.use_averages=bool((payload or {}).get('use_averages',False))
         self.module_contexts={m:SystemContext.from_workspace({'system_context':c}) for m,c in (payload or {}).get('module_contexts',{}).items() if m in self.window._pages}
         self.links={m:{n:EngineeringValueLink.from_payload(v) for n,v in values.items()}
                     for m,values in (payload or {}).get('links',{}).items() if m in FIELD_MAP}

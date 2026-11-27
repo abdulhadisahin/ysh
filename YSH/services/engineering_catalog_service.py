@@ -99,10 +99,11 @@ class EngineeringCatalogService:
                 'temperature_c':context.fluid_temperature_c,'salinity_g_kg':context.fluid_salinity_g_kg,
                 'hw_applicability':'SOURCE_REQUIRED'}
 
-    def hydraulic_references(self,context):
+    def hydraulic_references(self,context,use_averages=False):
         """Operating points only; specification bounds/midpoints are never substituted."""
         import uuid
-        values={k:v for k,v in self.references(context).items() if k not in ('density','kinematic_viscosity')}
+        specification=self.references(context)
+        values={k:v for k,v in specification.items() if k not in ('density','kinematic_viscosity')}
         profile=self.completion.profiles.get(context.fluid_id) if context.fluid_id else None
         salinity=context.fluid_salinity_g_kg if profile and profile.classification=='SEA_WATER' else 0
         points=self.completion.operating_references(context.fluid_id,temperature_c=context.fluid_temperature_c,
@@ -110,6 +111,9 @@ class EngineeringCatalogService:
         if profile and profile.classification=='FRESH_WATER' and context.fluid_salinity_g_kg not in (None,0):points={}
         for name,unit in (('density','kg/m³'),('kinematic_viscosity','cSt')):
             point=points.get(name);proof=point.get('source_evidence',{}) if point else {}
+            average=specification.get(name) if use_averages and not point else None
+            if average and average.get('default_value') is not None:
+                values[name]=average;continue
             condition=f'{context.fluid_id}:{name}:{context.fluid_temperature_c}:{salinity}:{context.fluid_reference_pressure_mpa}'
             values[name]={'id':point['id'] if point else str(uuid.uuid5(uuid.NAMESPACE_URL,'d243:manual-fluid:'+condition)),
                 'property_name':name,'name':context.fluid.name_tr if context.fluid else '', 'unit':unit,

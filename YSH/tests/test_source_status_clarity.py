@@ -93,7 +93,7 @@ def test_fuel_link_current_stale_keep_update_wording(shell,language):
         for key in ('pipe_design','discharge_head_loss','suction_npsh'):
             page=w._pages[key]
             selector=page._roughness_source_box if key=='suction_npsh' else page._source_box
-            assert tuple(map(str,selector.cget('values')))==(tr('source.state.library'),tr('source.state.manual'))
+            assert tuple(map(str,selector.cget('values')))==(tr('selection.standard'),tr('source.state.manual'))
         design=w._pages['transfer_pump']._design_panel
         design._fields['volume'].set('100');design._fields['target_time'].set('2');design.calculate()
         assert tr('result.source_manual') in design._status.get()

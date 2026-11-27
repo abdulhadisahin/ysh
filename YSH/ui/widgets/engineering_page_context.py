@@ -51,6 +51,9 @@ class EngineeringPageContext(ttk.Frame):
             label=ttk.Label(self.operating);label.grid(row=row,column=0,sticky='w')
             entry=numeric_entry(self.operating,textvariable=self.conditions[name]);entry.grid(row=row,column=1,sticky='w',padx=6,pady=2)
             self.condition_labels[name]=label;self.condition_entries[name]=entry
+        self.average_var=tk.BooleanVar(self,value=getattr(self.controller,'use_averages',False))
+        self.average_check=ttk.Checkbutton(self.operating,variable=self.average_var,command=lambda:self.controller.set_use_averages(self.average_var.get()))
+        self.average_check.grid(row=4,column=0,columnspan=3,sticky='w')
         self.atmosphere=ttk.Button(self.operating,command=lambda:self.conditions['pressure'].set('0.101325'))
         self.atmosphere.grid(row=2,column=2,sticky='w')
         self.apply_fluid=ttk.Button(self.operating,command=self._apply_fluid);self.apply_fluid.grid(row=0,column=2,sticky='w')
@@ -103,6 +106,7 @@ class EngineeringPageContext(ttk.Frame):
         c=self.controller;tr=c.window._translate;context=c.context_for(self.module)
         surface=next((r for r in c.catalog.surface_records if r.id==context.surface_profile_id),None)
         self.fluid_label.configure(text=tr('engineering.select.fluid'))
+        if hasattr(self,'average_check'):self.average_check.configure(text=tr('engineering.use_averages'));self.average_var.set(self.controller.use_averages)
         self.material_label.configure(text=tr('engineering.select.material'))
         fluids=c.catalog.project_fluids(c.family()) if hasattr(self,'operating') else c.catalog.fluid_records
         self.fluid_choices={catalog_text(tr,r.name_tr)+' · '+r.code:r.id for r in fluids}
