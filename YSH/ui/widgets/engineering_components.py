@@ -51,6 +51,13 @@ class EmptyState(ttk.Frame):
         self._helper = ttk.Label(self, text=helper_text, style="EmptyStateHelper.TLabel", justify="center", wraplength=360)
         if helper_text:
             self._helper.grid(row=3, column=0, sticky="n", pady=(3, 0))
+        self.bind("<Configure>", self._fit_text, add="+")
+
+    def _fit_text(self, event: tk.Event) -> None:
+        """Wrap body text to the available width so narrow panels never clip it."""
+        width = max(120, min(360, event.width - 32))
+        self._body.configure(wraplength=width)
+        self._helper.configure(wraplength=width)
 
     def set_content(self, title: str, body: str) -> None:
         """Refresh localized empty-state text without rebuilding its widgets."""

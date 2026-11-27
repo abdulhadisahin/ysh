@@ -184,7 +184,7 @@ class EngineeringLibraryWorkspace(tk.Toplevel):
         scrollbar.grid(row=1,column=2,sticky='ns');self._tree.configure(yscrollcommand=scrollbar.set)
         horizontal=ttk.Scrollbar(listing,orient='horizontal',command=self._tree.xview)
         horizontal.grid(row=2,column=0,columnspan=2,sticky='ew');self._tree.configure(xscrollcommand=horizontal.set)
-        for key,width in (('name',190),('value',80),('ownership',130),('verification',150),('active',90)):
+        for key,width in (('name',190),('value',80),('ownership',175),('verification',150),('active',90)):
             self._tree.column(key,width=width,minwidth=80,stretch=(key=='name'))
         self._tree.tag_configure('even',background=colors.CARD_SURFACE)
         self._tree.tag_configure('odd',background=colors.RESULT_SURFACE)
