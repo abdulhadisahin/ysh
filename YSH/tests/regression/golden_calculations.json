@@ -1,0 +1,1100 @@
+{
+ "discharge_basic": {
+  "flow_regime": "Turbulent",
+  "flow_velocity_m_s": 2.4867959858108644,
+  "friction_factor": 0.021770129769537374,
+  "local_loss_coefficient_total": 5.5,
+  "local_loss_m": 1.740234375,
+  "messages": [],
+  "metadata": {
+   "audit": {
+    "coefficient_d4_local_m": 1.740234375,
+    "coefficient_pipe_m": 10.332307683589027,
+    "derived_d4_local_m": 1.7341726492309573,
+    "recorded_d5_local_m": 0.0217529296875,
+    "si_dynamic_pipe_m": 10.296317377690363
+   },
+   "formula": "YSH coefficient forms",
+   "roughness_source": "manual"
+  },
+  "pipe_friction_loss_m": 10.332307683589027,
+  "relative_roughness": 0.0005625,
+  "reynolds_number": 66314.55962162305,
+  "system_head_m": 30.07254205858903,
+  "total_hydraulic_loss_m": 12.072542058589027,
+  "warnings": [
+   {
+    "code": "excel_local_loss_unresolved",
+    "field_key": null,
+    "params": null
+   }
+  ]
+ },
+ "discharge_high_flow": {
+  "flow_regime": "Turbulent",
+  "flow_velocity_m_s": 3.4581814795276022,
+  "friction_factor": 0.019571172797120322,
+  "local_loss_coefficient_total": 5.5,
+  "local_loss_m": 3.3652938271604937,
+  "messages": [],
+  "metadata": {
+   "audit": {
+    "coefficient_d4_local_m": 3.3652938271604937,
+    "coefficient_pipe_m": 31.93345309306201,
+    "derived_d4_local_m": 3.353571562271605,
+    "recorded_d5_local_m": 0.02243529218106996,
+    "si_dynamic_pipe_m": 31.822219980342638
+   },
+   "formula": "YSH coefficient forms",
+   "roughness_source": "manual"
+  },
+  "pipe_friction_loss_m": 31.93345309306201,
+  "relative_roughness": 0.0006666666666666668,
+  "reynolds_number": 207490.88877165611,
+  "system_head_m": 70.2987469202225,
+  "total_hydraulic_loss_m": 35.298746920222506,
+  "warnings": [
+   {
+    "code": "excel_local_loss_unresolved",
+    "field_key": null,
+    "params": null
+   }
+  ]
+ },
+ "discharge_low_flow_laminar": {
+  "flow_regime": "Laminar",
+  "flow_velocity_m_s": 0.14147106052612918,
+  "friction_factor": 0.045238934211693026,
+  "local_loss_coefficient_total": 0,
+  "local_loss_m": 0.0,
+  "messages": [],
+  "metadata": {
+   "audit": {
+    "coefficient_d4_local_m": 0.0,
+    "coefficient_pipe_m": 0.027794801179664194,
+    "derived_d4_local_m": 0.0,
+    "recorded_d5_local_m": 0.0,
+    "si_dynamic_pipe_m": 0.027697984144449742
+   },
+   "formula": "YSH coefficient forms",
+   "roughness_source": "manual"
+  },
+  "pipe_friction_loss_m": 0.027794801179664194,
+  "relative_roughness": 0.0008999999999999999,
+  "reynolds_number": 1414.7106052612917,
+  "system_head_m": 5.027794801179664,
+  "total_hydraulic_loss_m": 0.027794801179664194,
+  "warnings": [
+   {
+    "code": "excel_local_loss_unresolved",
+    "field_key": null,
+    "params": null
+   }
+  ]
+ },
+ "pipe_diameter_q120_v1_5": {
+  "diameter_m": 0.168208834801344,
+  "diameter_mm": 168.20883480134398,
+  "minimum_matching_dn": "DN200",
+  "recommended_dn": "DN200",
+  "recommended_inside_diameter_mm": 209.1,
+  "recommended_outside_diameter_mm": 219.1,
+  "recommended_wall_thickness_mm": 5.0,
+  "warnings": []
+ },
+ "pipe_diameter_q34_v2": {
+  "diameter_m": 0.0775404415280213,
+  "diameter_mm": 77.54044152802129,
+  "minimum_matching_dn": "DN80",
+  "recommended_dn": "DN80",
+  "recommended_inside_diameter_mm": 82.5,
+  "recommended_outside_diameter_mm": 88.9,
+  "recommended_wall_thickness_mm": 3.2,
+  "warnings": []
+ },
+ "pipe_diameter_q5_v0_8": {
+  "diameter_m": 0.04701579862897969,
+  "diameter_mm": 47.015798628979695,
+  "minimum_matching_dn": "DN50",
+  "recommended_dn": "DN50",
+  "recommended_inside_diameter_mm": 54.5,
+  "recommended_outside_diameter_mm": 60.3,
+  "recommended_wall_thickness_mm": 2.9,
+  "warnings": []
+ },
+ "pipe_formula_steps_diameter": [
+  {
+   "check": null,
+   "classification": "ENGINEERING_CALCULATION",
+   "display_order": 0,
+   "engineering_basis_json": null,
+   "formula_text": "D = √((4 × Qm³/s) / (π × V))",
+   "reference_variables": [],
+   "result_symbol": "D",
+   "result_unit": "mm",
+   "result_value": 77.54044152802129,
+   "selection_reason": null,
+   "sources": [],
+   "step_id": "pipe.D",
+   "substitution": null,
+   "title_key": "engineering.D",
+   "used_values": [
+    {
+     "override_policy": "USER_INPUT",
+     "override_reason": null,
+     "recommended_value": null,
+     "selection_reason": null,
+     "source": {
+      "article": null,
+      "document": null,
+      "effective_date": null,
+      "formula": null,
+      "notes": null,
+      "part": null,
+      "revision": null,
+      "section": null,
+      "source_organization": null,
+      "source_type": "USER_INPUT",
+      "table": null,
+      "verification_date": null,
+      "verification_status": null
+     },
+     "symbol": "V",
+     "terminology_key": "engineering.V",
+     "unit": "m/s",
+     "used_value": 2.0
+    }
+   ],
+   "variables": [
+    {
+     "context": null,
+     "reason": null,
+     "source": null,
+     "source_revision": null,
+     "source_selection_id": null,
+     "symbol": "Q",
+     "terminology_key": "engineering.Q",
+     "unit": "m³/h",
+     "value": 34
+    },
+    {
+     "context": null,
+     "reason": null,
+     "source": null,
+     "source_revision": null,
+     "source_selection_id": null,
+     "symbol": "V",
+     "terminology_key": "engineering.V",
+     "unit": "m/s",
+     "value": 2.0
+    }
+   ]
+  },
+  {
+   "check": null,
+   "classification": "ENGINEERING_CALCULATION",
+   "display_order": 7,
+   "engineering_basis_json": null,
+   "formula_text": "formula2.standard_selection",
+   "reference_variables": [],
+   "result_symbol": "Di",
+   "result_unit": "mm",
+   "result_value": 82.5,
+   "selection_reason": "PIPE_STANDARD",
+   "sources": [
+    {
+     "article": null,
+     "document": "EN 10220",
+     "effective_date": null,
+     "formula": null,
+     "notes": null,
+     "part": null,
+     "revision": null,
+     "section": null,
+     "source_organization": null,
+     "source_type": "PIPE_STANDARD",
+     "table": null,
+     "verification_date": null,
+     "verification_status": null
+    }
+   ],
+   "step_id": "pipe.Di",
+   "substitution": null,
+   "title_key": "engineering.Di",
+   "used_values": [],
+   "variables": []
+  }
+ ],
+ "pipe_formula_steps_wall": [
+  {
+   "check": null,
+   "classification": "ENGINEERING_CALCULATION",
+   "display_order": 1,
+   "engineering_basis_json": null,
+   "formula_text": "σallow = Rp0.2 / B",
+   "reference_variables": [],
+   "result_symbol": "σallow",
+   "result_unit": "MPa",
+   "result_value": 108.33333333333333,
+   "selection_reason": null,
+   "sources": [],
+   "step_id": "pipe.stress",
+   "substitution": null,
+   "title_key": "engineering.σallow",
+   "used_values": [],
+   "variables": [
+    {
+     "context": null,
+     "reason": null,
+     "source": null,
+     "source_revision": null,
+     "source_selection_id": null,
+     "symbol": "Rp0.2",
+     "terminology_key": "engineering.Rp0.2",
+     "unit": "MPa",
+     "value": 195
+    },
+    {
+     "context": null,
+     "reason": null,
+     "source": null,
+     "source_revision": null,
+     "source_selection_id": null,
+     "symbol": "B",
+     "terminology_key": "engineering.B",
+     "unit": "",
+     "value": 1.8
+    }
+   ]
+  },
+  {
+   "check": null,
+   "classification": "ENGINEERING_CALCULATION",
+   "display_order": 2,
+   "engineering_basis_json": null,
+   "formula_text": "s0 = (da × pc) / ((20 × σallow × v) + pc)",
+   "reference_variables": [],
+   "result_symbol": "s0",
+   "result_unit": "mm",
+   "result_value": 0.7656917279741613,
+   "selection_reason": null,
+   "sources": [],
+   "step_id": "pipe.s0",
+   "substitution": null,
+   "title_key": "engineering.s0",
+   "used_values": [],
+   "variables": [
+    {
+     "context": null,
+     "reason": null,
+     "source": null,
+     "source_revision": null,
+     "source_selection_id": null,
+     "symbol": "da",
+     "terminology_key": "engineering.da",
+     "unit": "mm",
+     "value": 88.9
+    },
+    {
+     "context": null,
+     "reason": null,
+     "source": null,
+     "source_revision": null,
+     "source_selection_id": null,
+     "symbol": "pc",
+     "terminology_key": "engineering.pc",
+     "unit": "bar",
+     "value": 16
+    },
+    {
+     "context": null,
+     "reason": null,
+     "source": null,
+     "source_revision": null,
+     "source_selection_id": null,
+     "symbol": "v",
+     "terminology_key": "engineering.v",
+     "unit": "",
+     "value": 0.85
+    },
+    {
+     "context": null,
+     "reason": null,
+     "source": null,
+     "source_revision": null,
+     "source_selection_id": null,
+     "symbol": "σallow",
+     "terminology_key": "engineering.σallow",
+     "unit": "MPa",
+     "value": 108.33333333333333
+    }
+   ]
+  },
+  {
+   "check": null,
+   "classification": "ENGINEERING_CALCULATION",
+   "display_order": 3,
+   "engineering_basis_json": null,
+   "formula_text": "b = 0.4 × (da / R) × s0",
+   "reference_variables": [],
+   "result_symbol": "b",
+   "result_unit": "mm",
+   "result_value": 0.10209223039655486,
+   "selection_reason": null,
+   "sources": [],
+   "step_id": "pipe.b",
+   "substitution": null,
+   "title_key": "engineering.b",
+   "used_values": [],
+   "variables": [
+    {
+     "context": null,
+     "reason": null,
+     "source": null,
+     "source_revision": null,
+     "source_selection_id": null,
+     "symbol": "da",
+     "terminology_key": "engineering.da",
+     "unit": "mm",
+     "value": 88.9
+    },
+    {
+     "context": null,
+     "reason": null,
+     "source": null,
+     "source_revision": null,
+     "source_selection_id": null,
+     "symbol": "R",
+     "terminology_key": "engineering.R",
+     "unit": "mm",
+     "value": 266.7
+    },
+    {
+     "context": null,
+     "reason": null,
+     "source": null,
+     "source_revision": null,
+     "source_selection_id": null,
+     "symbol": "s0",
+     "terminology_key": "engineering.s0",
+     "unit": "mm",
+     "value": 0.7656917279741613
+    }
+   ]
+  },
+  {
+   "check": null,
+   "classification": "ENGINEERING_CALCULATION",
+   "display_order": 4,
+   "engineering_basis_json": null,
+   "formula_text": "c",
+   "reference_variables": [],
+   "result_symbol": "c",
+   "result_unit": "mm",
+   "result_value": 1.0,
+   "selection_reason": null,
+   "sources": [],
+   "step_id": "pipe.c",
+   "substitution": null,
+   "title_key": "engineering.c",
+   "used_values": [
+    {
+     "override_policy": "USER_INPUT",
+     "override_reason": null,
+     "recommended_value": null,
+     "selection_reason": null,
+     "source": {
+      "article": null,
+      "document": null,
+      "effective_date": null,
+      "formula": null,
+      "notes": null,
+      "part": null,
+      "revision": null,
+      "section": null,
+      "source_organization": null,
+      "source_type": "USER_INPUT",
+      "table": null,
+      "verification_date": null,
+      "verification_status": null
+     },
+     "symbol": "c",
+     "terminology_key": "engineering.c",
+     "unit": "mm",
+     "used_value": 1.0
+    }
+   ],
+   "variables": []
+  },
+  {
+   "check": null,
+   "classification": "ENGINEERING_CALCULATION",
+   "display_order": 6,
+   "engineering_basis_json": null,
+   "formula_text": "s = s0 + c + b",
+   "reference_variables": [],
+   "result_symbol": "s",
+   "result_unit": "mm",
+   "result_value": 1.867783958370716,
+   "selection_reason": null,
+   "sources": [],
+   "step_id": "pipe.wall",
+   "substitution": null,
+   "title_key": "engineering.s",
+   "used_values": [],
+   "variables": [
+    {
+     "context": null,
+     "reason": null,
+     "source": null,
+     "source_revision": null,
+     "source_selection_id": null,
+     "symbol": "s0",
+     "terminology_key": "engineering.s0",
+     "unit": "mm",
+     "value": 0.7656917279741613
+    },
+    {
+     "context": null,
+     "reason": null,
+     "source": null,
+     "source_revision": null,
+     "source_selection_id": null,
+     "symbol": "c",
+     "terminology_key": "engineering.c",
+     "unit": "mm",
+     "value": 1.0
+    },
+    {
+     "context": null,
+     "reason": null,
+     "source": null,
+     "source_revision": null,
+     "source_selection_id": null,
+     "symbol": "b",
+     "terminology_key": "engineering.b",
+     "unit": "mm",
+     "value": 0.10209223039655486
+    }
+   ]
+  }
+ ],
+ "pipe_wall_bend_3d": {
+  "allowable_stress_mpa": 108.33333333333333,
+  "base_wall_thickness_mm": 0.7656917279741613,
+  "bend_allowance_mm": 0.10209223039655486,
+  "corrosion_allowance_mm": 1.0,
+  "final_wall_thickness_mm": 1.867783958370716,
+  "selected_standard_wall_thickness_mm": null
+ },
+ "pipe_wall_bend_manual": {
+  "allowable_stress_mpa": 150.0,
+  "base_wall_thickness_mm": 0.22250922509225093,
+  "bend_allowance_mm": 0.017889741697416976,
+  "corrosion_allowance_mm": 0.5,
+  "final_wall_thickness_mm": 0.7403989667896679,
+  "selected_standard_wall_thickness_mm": null
+ },
+ "pipe_wall_high_pressure": {
+  "allowable_stress_mpa": 156.66666666666666,
+  "base_wall_thickness_mm": 2.1214285714285714,
+  "bend_allowance_mm": 0.0,
+  "corrosion_allowance_mm": 1.5,
+  "final_wall_thickness_mm": 3.6214285714285714,
+  "selected_standard_wall_thickness_mm": null
+ },
+ "pipe_wall_straight": {
+  "allowable_stress_mpa": 108.33333333333333,
+  "base_wall_thickness_mm": 0.7656917279741613,
+  "bend_allowance_mm": 0.0,
+  "corrosion_allowance_mm": 1.0,
+  "final_wall_thickness_mm": 1.7656917279741613,
+  "selected_standard_wall_thickness_mm": null
+ },
+ "suction_enpy": {
+  "enpym_available_m": 10.836093755107953,
+  "messages": [],
+  "metadata": {
+   "formula": "ENPYm = PE/(rho*g) - Pb/(rho*g) - HEgeo - he",
+   "gravity_m_s2": 9.80665,
+   "suction_pressure_pa": 120000.0,
+   "vapour_pressure_pa": 3000.0
+  },
+  "npsh_margin_m": 6.836093755107953,
+  "suction_line_loss_m": 1.2,
+  "suction_pressure_head_m": 14.395993594982516,
+  "vapour_pressure_head_m": 0.3598998398745629,
+  "warnings": []
+ },
+ "suction_full": {
+  "enpym_available_m": 9.549936630753928,
+  "messages": [],
+  "metadata": {
+   "formula": "ENPYm = PE/(rho*g) - Pb/(rho*g) - HEgeo - he",
+   "gravity_m_s2": 9.80665,
+   "head_loss": {
+    "flow_regime": "Turbulent",
+    "flow_velocity_m_s": 2.1220659078919377,
+    "friction_factor": 0.0211624500755907,
+    "local_loss_coefficient_total": 5.5,
+    "local_loss_m": 1.2672,
+    "messages": [],
+    "metadata": {
+     "audit": {
+      "coefficient_d4_local_m": 1.2672,
+      "coefficient_pipe_m": 1.2189571243540243,
+      "derived_d4_local_m": 1.2627859860000001,
+      "recorded_d5_local_m": 0.012672,
+      "si_dynamic_pipe_m": 1.2147111571290512
+     },
+     "formula": "YSH coefficient forms"
+    },
+    "pipe_friction_loss_m": 1.2189571243540243,
+    "relative_roughness": 0.00044999999999999993,
+    "reynolds_number": 70735.53026306459,
+    "system_head_m": 2.4861571243540244,
+    "total_hydraulic_loss_m": 2.4861571243540244,
+    "warnings": [
+     {
+      "code": "excel_local_loss_unresolved",
+      "field_key": null,
+      "params": null
+     }
+    ]
+   },
+   "suction_pressure_pa": 120000.0,
+   "vapour_pressure_pa": 3000.0,
+   "viscosity_m2s": 3e-06
+  },
+  "npsh_margin_m": 5.549936630753928,
+  "suction_line_loss_m": 2.4861571243540244,
+  "suction_pressure_head_m": 14.395993594982516,
+  "vapour_pressure_head_m": 0.3598998398745629,
+  "warnings": [
+   {
+    "code": "excel_local_loss_unresolved",
+    "field_key": null,
+    "params": null
+   }
+  ]
+ },
+ "suction_loss": {
+  "flow_regime": "Turbulent",
+  "flow_velocity_m_s": 2.1220659078919377,
+  "friction_factor": 0.0211624500755907,
+  "local_loss_coefficient_total": 5.5,
+  "local_loss_m": 1.2672,
+  "messages": [],
+  "metadata": {
+   "audit": {
+    "coefficient_d4_local_m": 1.2672,
+    "coefficient_pipe_m": 1.2189571243540243,
+    "derived_d4_local_m": 1.2627859860000001,
+    "recorded_d5_local_m": 0.012672,
+    "si_dynamic_pipe_m": 1.2147111571290512
+   },
+   "formula": "YSH coefficient forms",
+   "viscosity_m2s": 3e-06
+  },
+  "pipe_friction_loss_m": 1.2189571243540243,
+  "relative_roughness": 0.00044999999999999993,
+  "reynolds_number": 70735.53026306459,
+  "system_head_m": 2.4861571243540244,
+  "total_hydraulic_loss_m": 2.4861571243540244,
+  "warnings": [
+   {
+    "code": "excel_local_loss_unresolved",
+    "field_key": null,
+    "params": null
+   }
+  ]
+ },
+ "transfer_design": {
+  "input": {
+   "context": {
+    "available_npsh_m": null,
+    "circuit_id": null,
+    "fluid_id": null,
+    "npsh_margin_m": null,
+    "required_head_m": null,
+    "required_npsh_m": null,
+    "selected_pump_reference_id": null,
+    "system_id": null
+   },
+   "mode": "DESIGN",
+   "selected_pump_capacity_m3_h": 45,
+   "target_time_source": {
+    "article": null,
+    "document": null,
+    "effective_date": null,
+    "formula": null,
+    "notes": null,
+    "part": null,
+    "revision": null,
+    "section": null,
+    "source_organization": null,
+    "source_type": "USER_INPUT",
+    "table": null,
+    "verification_date": null,
+    "verification_status": null
+   },
+   "target_transfer_time_h": 3,
+   "transfer_volume_m3": 120.1,
+   "volume_source": {
+    "article": null,
+    "document": null,
+    "effective_date": null,
+    "formula": null,
+    "notes": null,
+    "part": null,
+    "revision": null,
+    "section": null,
+    "source_organization": null,
+    "source_type": "USER_INPUT",
+    "table": null,
+    "verification_date": null,
+    "verification_status": null
+   }
+  },
+  "margin_adjusted_flow_m3_h": null,
+  "margin_percent": null,
+  "mode": "DESIGN",
+  "required_capacity": {
+   "override_policy": "LOCKED",
+   "override_reason": null,
+   "recommended_value": 40.03333333333333,
+   "selection_reason": null,
+   "source": {
+    "article": null,
+    "document": null,
+    "effective_date": null,
+    "formula": "Qgerekli = Vtransfer / tdef",
+    "notes": null,
+    "part": null,
+    "revision": null,
+    "section": null,
+    "source_organization": null,
+    "source_type": "CALCULATED",
+    "table": null,
+    "verification_date": null,
+    "verification_status": null
+   },
+   "symbol": "Qgerekli",
+   "terminology_key": null,
+   "unit": "m³/h",
+   "used_value": 40.03333333333333
+  },
+  "status": "ADEQUATE",
+  "transfer_time_h": 2.6688888888888886
+ },
+ "transfer_design_no_pump": {
+  "input": {
+   "context": {
+    "available_npsh_m": null,
+    "circuit_id": null,
+    "fluid_id": null,
+    "npsh_margin_m": null,
+    "required_head_m": null,
+    "required_npsh_m": null,
+    "selected_pump_reference_id": null,
+    "system_id": null
+   },
+   "mode": "DESIGN",
+   "selected_pump_capacity_m3_h": null,
+   "target_time_source": {
+    "article": null,
+    "document": null,
+    "effective_date": null,
+    "formula": null,
+    "notes": null,
+    "part": null,
+    "revision": null,
+    "section": null,
+    "source_organization": null,
+    "source_type": "USER_INPUT",
+    "table": null,
+    "verification_date": null,
+    "verification_status": null
+   },
+   "target_transfer_time_h": 4,
+   "transfer_volume_m3": 300,
+   "volume_source": {
+    "article": null,
+    "document": null,
+    "effective_date": null,
+    "formula": null,
+    "notes": null,
+    "part": null,
+    "revision": null,
+    "section": null,
+    "source_organization": null,
+    "source_type": "USER_INPUT",
+    "table": null,
+    "verification_date": null,
+    "verification_status": null
+   }
+  },
+  "margin_adjusted_flow_m3_h": null,
+  "margin_percent": null,
+  "mode": "DESIGN",
+  "required_capacity": {
+   "override_policy": "LOCKED",
+   "override_reason": null,
+   "recommended_value": 75.0,
+   "selection_reason": null,
+   "source": {
+    "article": null,
+    "document": null,
+    "effective_date": null,
+    "formula": "Qgerekli = Vtransfer / tdef",
+    "notes": null,
+    "part": null,
+    "revision": null,
+    "section": null,
+    "source_organization": null,
+    "source_type": "CALCULATED",
+    "table": null,
+    "verification_date": null,
+    "verification_status": null
+   },
+   "symbol": "Qgerekli",
+   "terminology_key": null,
+   "unit": "m³/h",
+   "used_value": 75.0
+  },
+  "status": "NO_SELECTED_PUMP",
+  "transfer_time_h": null
+ },
+ "transfer_empirical_second": {
+  "calculated_capacity": {
+   "override_policy": "LOCKED",
+   "override_reason": null,
+   "recommended_value": 49.92523364485981,
+   "selection_reason": null,
+   "source": {
+    "article": null,
+    "document": null,
+    "effective_date": null,
+    "formula": "Qpump = m × Vfuel + b",
+    "notes": null,
+    "part": null,
+    "revision": null,
+    "section": null,
+    "source_organization": null,
+    "source_type": "CALCULATED",
+    "table": null,
+    "verification_date": null,
+    "verification_status": null
+   },
+   "symbol": null,
+   "terminology_key": null,
+   "unit": "m³/h",
+   "used_value": 49.92523364485981
+  },
+  "estimate": {
+   "errors": [],
+   "estimated_emptying_time_hours": 8.412579558217896,
+   "estimated_emptying_time_minutes": 504.75477349307374,
+   "metadata": {
+    "formulas": "y = a*x + b; t = fuel_capacity / pump_capacity",
+    "module_identifier": "transfer_pump",
+    "reference_count": 4
+   },
+   "predicted_pump_capacity_m3h": 49.92523364485981,
+   "regression_model": {
+    "intercept": 11.457943925233643,
+    "maximum_reference_capacity_m3": 450,
+    "minimum_reference_capacity_m3": 100,
+    "r_squared": 0.9964144021513587,
+    "reference_count": 4,
+    "slope": 0.09158878504672897
+   },
+   "warnings": []
+  },
+  "input": {
+   "capacity_input_mode": "VOLUME",
+   "context": {
+    "available_npsh_m": null,
+    "circuit_id": null,
+    "fluid_id": null,
+    "npsh_margin_m": null,
+    "required_head_m": null,
+    "required_npsh_m": null,
+    "selected_pump_reference_id": null,
+    "system_id": null
+   },
+   "mode": "EMPIRICAL",
+   "source_capacity": 420
+  },
+  "mode": "EMPIRICAL",
+  "references": [
+   {
+    "description": "",
+    "fuel_capacity_m3": 100,
+    "pump_capacity_m3_h": 20,
+    "ship_name": "A",
+    "source": {
+     "article": null,
+     "document": null,
+     "effective_date": null,
+     "formula": null,
+     "notes": "regression",
+     "part": null,
+     "revision": null,
+     "section": null,
+     "source_organization": null,
+     "source_type": "REFERENCE_VESSEL_DATA",
+     "table": null,
+     "verification_date": null,
+     "verification_status": "UNVERIFIED"
+    }
+   },
+   {
+    "description": "",
+    "fuel_capacity_m3": 200,
+    "pump_capacity_m3_h": 30,
+    "ship_name": "B",
+    "source": {
+     "article": null,
+     "document": null,
+     "effective_date": null,
+     "formula": null,
+     "notes": "regression",
+     "part": null,
+     "revision": null,
+     "section": null,
+     "source_organization": null,
+     "source_type": "REFERENCE_VESSEL_DATA",
+     "table": null,
+     "verification_date": null,
+     "verification_status": "UNVERIFIED"
+    }
+   },
+   {
+    "description": "",
+    "fuel_capacity_m3": 300,
+    "pump_capacity_m3_h": 40,
+    "ship_name": "C",
+    "source": {
+     "article": null,
+     "document": null,
+     "effective_date": null,
+     "formula": null,
+     "notes": "regression",
+     "part": null,
+     "revision": null,
+     "section": null,
+     "source_organization": null,
+     "source_type": "REFERENCE_VESSEL_DATA",
+     "table": null,
+     "verification_date": null,
+     "verification_status": "UNVERIFIED"
+    }
+   },
+   {
+    "description": "",
+    "fuel_capacity_m3": 450,
+    "pump_capacity_m3_h": 52,
+    "ship_name": "D",
+    "source": {
+     "article": null,
+     "document": null,
+     "effective_date": null,
+     "formula": null,
+     "notes": "regression",
+     "part": null,
+     "revision": null,
+     "section": null,
+     "source_organization": null,
+     "source_type": "REFERENCE_VESSEL_DATA",
+     "table": null,
+     "verification_date": null,
+     "verification_status": "UNVERIFIED"
+    }
+   }
+  ],
+  "required_flow_m3_h": null,
+  "resolution": {
+   "mode": "VOLUME",
+   "required_capacity_12h_m3h": 35.0,
+   "source_value": 420.0,
+   "volume_m3": 420.0
+  }
+ },
+ "transfer_empirical_volume": {
+  "calculated_capacity": {
+   "override_policy": "LOCKED",
+   "override_reason": null,
+   "recommended_value": 34.35514018691589,
+   "selection_reason": null,
+   "source": {
+    "article": null,
+    "document": null,
+    "effective_date": null,
+    "formula": "Qpump = m × Vfuel + b",
+    "notes": null,
+    "part": null,
+    "revision": null,
+    "section": null,
+    "source_organization": null,
+    "source_type": "CALCULATED",
+    "table": null,
+    "verification_date": null,
+    "verification_status": null
+   },
+   "symbol": null,
+   "terminology_key": null,
+   "unit": "m³/h",
+   "used_value": 34.35514018691589
+  },
+  "estimate": {
+   "errors": [],
+   "estimated_emptying_time_hours": 7.276931447225245,
+   "estimated_emptying_time_minutes": 436.61588683351465,
+   "metadata": {
+    "formulas": "y = a*x + b; t = fuel_capacity / pump_capacity",
+    "module_identifier": "transfer_pump",
+    "reference_count": 4
+   },
+   "predicted_pump_capacity_m3h": 34.35514018691589,
+   "regression_model": {
+    "intercept": 11.457943925233643,
+    "maximum_reference_capacity_m3": 450,
+    "minimum_reference_capacity_m3": 100,
+    "r_squared": 0.9964144021513587,
+    "reference_count": 4,
+    "slope": 0.09158878504672897
+   },
+   "warnings": []
+  },
+  "input": {
+   "capacity_input_mode": "VOLUME",
+   "context": {
+    "available_npsh_m": null,
+    "circuit_id": null,
+    "fluid_id": null,
+    "npsh_margin_m": null,
+    "required_head_m": null,
+    "required_npsh_m": null,
+    "selected_pump_reference_id": null,
+    "system_id": null
+   },
+   "mode": "EMPIRICAL",
+   "source_capacity": 250
+  },
+  "mode": "EMPIRICAL",
+  "references": [
+   {
+    "description": "",
+    "fuel_capacity_m3": 100,
+    "pump_capacity_m3_h": 20,
+    "ship_name": "A",
+    "source": {
+     "article": null,
+     "document": null,
+     "effective_date": null,
+     "formula": null,
+     "notes": "regression",
+     "part": null,
+     "revision": null,
+     "section": null,
+     "source_organization": null,
+     "source_type": "REFERENCE_VESSEL_DATA",
+     "table": null,
+     "verification_date": null,
+     "verification_status": "UNVERIFIED"
+    }
+   },
+   {
+    "description": "",
+    "fuel_capacity_m3": 200,
+    "pump_capacity_m3_h": 30,
+    "ship_name": "B",
+    "source": {
+     "article": null,
+     "document": null,
+     "effective_date": null,
+     "formula": null,
+     "notes": "regression",
+     "part": null,
+     "revision": null,
+     "section": null,
+     "source_organization": null,
+     "source_type": "REFERENCE_VESSEL_DATA",
+     "table": null,
+     "verification_date": null,
+     "verification_status": "UNVERIFIED"
+    }
+   },
+   {
+    "description": "",
+    "fuel_capacity_m3": 300,
+    "pump_capacity_m3_h": 40,
+    "ship_name": "C",
+    "source": {
+     "article": null,
+     "document": null,
+     "effective_date": null,
+     "formula": null,
+     "notes": "regression",
+     "part": null,
+     "revision": null,
+     "section": null,
+     "source_organization": null,
+     "source_type": "REFERENCE_VESSEL_DATA",
+     "table": null,
+     "verification_date": null,
+     "verification_status": "UNVERIFIED"
+    }
+   },
+   {
+    "description": "",
+    "fuel_capacity_m3": 450,
+    "pump_capacity_m3_h": 52,
+    "ship_name": "D",
+    "source": {
+     "article": null,
+     "document": null,
+     "effective_date": null,
+     "formula": null,
+     "notes": "regression",
+     "part": null,
+     "revision": null,
+     "section": null,
+     "source_organization": null,
+     "source_type": "REFERENCE_VESSEL_DATA",
+     "table": null,
+     "verification_date": null,
+     "verification_status": "UNVERIFIED"
+    }
+   }
+  ],
+  "required_flow_m3_h": null,
+  "resolution": {
+   "mode": "VOLUME",
+   "required_capacity_12h_m3h": 20.833333333333332,
+   "source_value": 250.0,
+   "volume_m3": 250.0
+  }
+ },
+ "transfer_regression_model": {
+  "errors": [],
+  "estimated_emptying_time_hours": 4.850407978241161,
+  "estimated_emptying_time_minutes": 291.0244786944696,
+  "metadata": {
+   "formulas": "y = a*x + b; t = fuel_capacity / pump_capacity",
+   "module_identifier": "transfer_pump",
+   "reference_count": 4
+  },
+  "predicted_pump_capacity_m3h": 20.61682242990654,
+  "regression_model": {
+   "intercept": 11.457943925233643,
+   "maximum_reference_capacity_m3": 450,
+   "minimum_reference_capacity_m3": 100,
+   "r_squared": 0.9964144021513587,
+   "reference_count": 4,
+   "slope": 0.09158878504672897
+  },
+  "warnings": []
+ }
+}
