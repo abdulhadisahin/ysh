@@ -83,7 +83,7 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         self._k_total_context_value=ttk.Label(self._k_total_context,textvariable=self._k_total_summary,style="TechnicalReferenceValue.TLabel");self._k_total_context_value.grid(row=0,column=1,sticky="w",padx=(8,0))
         layout_local_loss_toolbar(self._loss_actions,self._loss_action_buttons,self._k_total_context)
         self._results_card=ResultCard(workspace,self._translate("section.calculation_results"));results=self._results_card;results.grid(row=0,column=2,sticky="new",padx=(6,0));results.columnconfigure(0,weight=1)
-        self._result_actions=ttk.Frame(results);self._result_actions.grid(row=0,column=0,columnspan=2,sticky="w")
+        self._result_actions=ttk.Frame(pipe);self._result_actions.grid(row=9,column=0,columnspan=3,sticky="w",pady=(10,0))  # Calculate/Clear live at the bottom-left of the inputs on every page
         self._calculate_button=create_rounded_button(self._result_actions,self._translate("calculation.calculate"),self._calculate,style="DischargeRoundedPrimary.TButton",palette=DISCHARGE_PRIMARY_PALETTE,primary=True,icon_name="calculate",icon_size=36)
         self._clear_button=create_rounded_button(self._result_actions,self._translate("common.clear"),self._clear,style="RoundedNeutral.TButton",palette=NEUTRAL_BUTTON_PALETTE,icon_name="clear",icon_size=28)
         self._result_action_buttons=(self._calculate_button,self._clear_button)
