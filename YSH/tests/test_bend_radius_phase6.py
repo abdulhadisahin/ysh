@@ -54,7 +54,7 @@ def _automatic_page() -> PipeDesignPage:
     page._bend_mode_labels = {mode.code: mode.label for mode in BEND_RADIUS_MODES}
     page._last_bend_mode = "D3"
     page._manual_bend_radius_mm = ""
-    page._fields = {"r": _Value(""), "da": _Value("88,90")}
+    page._fields = {"r": _Value(""), "da": _Value("88,90"), "temperature": _Value("")}
     page._number = lambda key: 88.90
     page._suppress_dirty = False
     return page

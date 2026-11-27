@@ -375,7 +375,7 @@ def test_pipe_design_normal_calculation_event_publishes_and_revises_automaticall
     pipe._refresh_formula_panel=lambda:None
     pipe._sync_pipe_result_empty_state=lambda:None
     pipe._message=Var();pipe._translate=Translator('tr').translate
-    pipe._material_ids={};pipe._material=Var();pipe._bend=Var(False)
+    pipe._material_ids={};pipe._material=Var();pipe._bend=Var(False);pipe._fields={'temperature':Var()}
     pipe._update_wall_summary=lambda:None
     state['fields']['da']='110'
     pipe.set_pipe_selection_listener(window._publish_pipe_selection,window._pipe_sources.remove)

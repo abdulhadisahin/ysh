@@ -134,4 +134,4 @@ def test_warning_panels_are_adjacent_to_the_results_they_qualify() -> None:
     assert "EngineeringWarningPanel(results,self._translate)" in discharge
     assert "row=4,column=0,columnspan=2" in discharge
     assert "EngineeringWarningPanel(results, self._translate)" in suction
-    assert "self._warning_panel.grid(row=4, column=0, sticky=\"ew\"" in suction
+    assert "self._warning_panel.grid(row=3, column=0, columnspan=2, sticky=\"ew\"" in suction

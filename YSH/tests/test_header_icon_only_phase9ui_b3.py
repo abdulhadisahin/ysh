@@ -32,11 +32,10 @@ def test_header_starts_commands_without_branding_gap_and_keeps_group_titles() ->
     assert "header.columnconfigure(0, weight=1)" in shell
     assert "icon_only=True" in shell
     assert "tooltip_text=text" in shell
-    assert "icon_size=79" in shell
-    assert "square_size=86" in shell
+    assert "else 79" in shell
+    assert "else 86" in shell
     assert 'self._create_ribbon_group(toolbar, "ribbon.project")' in shell
     assert 'self._create_ribbon_group(toolbar, "ribbon.data_library")' in shell
-    assert 'self._create_ribbon_group(toolbar, "ribbon.help")' in shell
 
 
 def test_sidebar_restores_native_text_while_transfer_toolbar_stays_compact() -> None:

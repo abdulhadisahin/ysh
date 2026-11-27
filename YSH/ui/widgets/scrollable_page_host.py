@@ -79,9 +79,9 @@ class ScrollablePageHost(ttk.Notebook):
             (key for key, host in self._page_keys.items() if str(host) == selected),
             None,
         )
-        # One selected-tab look for every module (gold on navy), so tabs never change identity.
-        selected_foreground = colors.NAVY
-        selected_background = colors.GOLD
+        # Same look for every tab (white text on a filled tab); only the fill hue tells the pages apart.
+        selected_foreground = colors.WHITE
+        selected_background = colors.TAB_COLORS.get(page_key, colors.SEA_DARK)
         style = ttk.Style(self)
         style.configure(
             "YSH.TNotebook.Tab",
@@ -90,7 +90,7 @@ class ScrollablePageHost(ttk.Notebook):
         )
         style.map(
             "YSH.TNotebook.Tab",
-            background=[("selected", selected_background), ("active", colors.SEA_DARK)],
+            background=[("selected", selected_background), ("active", "#1B4468")],
             foreground=[("selected", selected_foreground), ("active", colors.WHITE)],
             padding=[("selected", (22, 11))],
         )

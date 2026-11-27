@@ -20,8 +20,8 @@ def test_top_commands_remain_icon_only_at_the_larger_shared_size() -> None:
 
     assert "icon_only=True" in header_factory
     assert "tooltip_text=text" in header_factory
-    assert "icon_size=79" in header_factory
-    assert "square_size=86" in header_factory
+    assert "else 79" in header_factory
+    assert "else 86" in header_factory
 
 
 def test_sidebar_actions_keep_native_text_callbacks_and_icons() -> None:

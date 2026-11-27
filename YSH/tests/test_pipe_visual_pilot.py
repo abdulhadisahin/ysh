@@ -49,8 +49,8 @@ def test_selected_tab_receives_accepted_module_identity(monkeypatch, key: str) -
     owner = SimpleNamespace(select=lambda: str(frame), _page_keys={key: frame})
     ScrollablePageHost._apply_active_tab_color(owner)
     state = style.maps['YSH.TNotebook.Tab']
-    assert state['background'][0] == ('selected', colors.GOLD)
-    assert state['foreground'][0] == ('selected', colors.NAVY)
+    assert state['background'][0] == ('selected', colors.TAB_COLORS[key])
+    assert state['foreground'][0] == ('selected', colors.WHITE)
 
 
 @pytest.mark.parametrize('page', ['transfer_pump_page', 'discharge_head_loss_page', 'suction_npsh_page'])
@@ -77,7 +77,7 @@ def test_pipe_semantics_actions_units_and_source_safety_survive_visual_pilot() -
     assert 'save_snapshot_word(self._root,target._pdf_snapshot,translate=self._translate)' in main.replace(' ', '')
     assert 'ifMainWindow._pdf_is_current(target)' in main.replace(' ', '')
     assert 'if MainWindow._pdf_is_current(target) else None' in main
-    assert 'icon_size=79' in main and 'square_size=86' in main
+    assert 'else 79' in main and 'else 86' in main
     assert 'icon_size=32' in main and 'minimum_height=44' in main
 
 

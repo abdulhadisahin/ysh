@@ -56,7 +56,8 @@ def test_real_new_fuel_project_collects_and_persists_catalog_choices(shell,monke
         assert c.read(module,'kinematic_viscosity')==3
         assert 'absolute_roughness' not in c.links[module]
         panel=w._pages[module]._engineering_panel
-        assert panel.fluid_box.get()==f76.name_tr
+        from i18n.catalog_text import catalog_text
+        assert panel.fluid_box.get()==catalog_text(w._translate,f76.name_tr)+' · '+f76.code  # panel shows localized name and code
         assert str(panel.fluid_box['state'])=='disabled'
     assert c.read('suction_npsh','density')==838
     assert '838' in w._pages['discharge_head_loss']._engineering_panel.summary['text']

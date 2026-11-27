@@ -49,7 +49,7 @@ def test_creation_family_choice_remains_available_without_sidebar_popup(shell):
     assert not hasattr(w,'_family_selector')
     dialog=tk.Toplevel(root);choice=ProjectFamilyChoice(dialog,w._translate);choice.pack()
     try:
-        assert tuple(choice.choice['values'])==(w._translate('project.family.fuel'),w._translate('project.family.fire'))
+        assert tuple(choice.choice['values'])==(w._translate('project.family.fuel'),w._translate('project.family.fire'),w._translate('project.family.seawater'))
         assert choice.choice.current()==-1
         choice.choice.current(1);assert choice.selected()=='fire'
         choice.choice.current(0);assert choice.selected()=='fuel'

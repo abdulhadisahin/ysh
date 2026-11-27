@@ -219,7 +219,7 @@ def test_wrapped_metric_keeps_exact_value_unit_and_severity(shell):
     try:
         root.update()
         assert int(metric._label.cget('wraplength'))>0
-        assert int(metric._value.cget('wraplength'))>0
+        assert int(metric._value.cget('wraplength'))==0  # a single numeric token is never wrapped
         assert value.get()=='123456,789' and metric._unit_label.cget('text')=='m³/h'
         for width in (220,500):
             metric.place_configure(width=width); root.update()

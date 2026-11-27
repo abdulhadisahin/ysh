@@ -80,7 +80,7 @@ def test_menu_context_inheritance_reopen_and_readonly_browsing(shell):
     dialogs=[x for x in w._root.winfo_children() if x not in before]
     assert any(x.winfo_class()=='Toplevel' and x.title()==w._translate('engineering.context_title') for x in dialogs)
     for x in dialogs:x.destroy()
-    c.apply(chosen(c.catalog))
+    c.apply(chosen(c.catalog));c.set_use_averages(True)  # viscosity is blank unless averages are requested
     assert c.read('discharge_head_loss','kinematic_viscosity')==3
     assert c.read('discharge_head_loss','absolute_roughness')==.045
     page=w._pages['discharge_head_loss'];page._fields['k'].set('.1')

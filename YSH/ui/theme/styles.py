@@ -336,8 +336,8 @@ def apply_theme(root: tk.Misc) -> None:
         ("Notebook.padding", {"side": "top", "sticky": "nswe", "children": [
             ("Notebook.label", {"side": "top", "sticky": ""})]})]})])
     style.map("YSH.TNotebook.Tab", padding=[("selected", (22, 11))], expand=[("selected", (0, 0, 0, 0))],
-              background=[("selected", colors.GOLD), ("active", colors.SEA_DARK)],
-              foreground=[("selected", colors.NAVY), ("active", colors.ON_ACCENT)])
+              background=[("selected", colors.SEA_DARK), ("active", "#1B4468")],
+              foreground=[("selected", colors.WHITE), ("active", colors.ON_ACCENT)])
     style.configure("Data.Treeview", background=colors.SURFACE, fieldbackground=colors.SURFACE, foreground=colors.TEXT_PRIMARY, rowheight=28, bordercolor=colors.BORDER, font=typography.BODY)
     style.configure("Data.Treeview.Heading", background=colors.SURFACE_ALT, foreground=colors.TEXT_SECONDARY, font=typography.BODY_BOLD, relief="flat")
     style.map("Data.Treeview", background=[("selected", colors.SECONDARY)], foreground=[("selected", colors.ON_ACCENT)])

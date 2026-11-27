@@ -175,7 +175,7 @@ def test_real_page_legacy_load_and_new_state_round_trip(state, mode, radius) -> 
         page._source, page._material, page._message = _Value(), _Value(), _Value()
         page._material_ids = {}
         page._t = Translator('tr').translate
-        for name in ('_select_pipe_standard', '_select_circuit', '_select_line_role',
+        for name in ('_load_materials', '_select_pipe_standard', '_select_circuit', '_select_line_role',
                      '_set_source_mode', '_update_diameter_summary', '_update_wall_summary',
                      '_refresh_diameter_warning_message', '_evaluate_velocity_warning', '_refresh_formula_panel'):
             setattr(page, name, lambda *a, **kw: True)

@@ -104,3 +104,11 @@ SUCCESS_SOFT = SUCCESS_SURFACE
 WARNING_SOFT = WARNING_SURFACE
 DANGER = ERROR
 DANGER_SOFT = ERROR_SURFACE
+
+# Selected-tab fills, one per calculation page. Same saturation family, white text, used on tabs only.
+TAB_COLORS = {
+    "pipe_design": "#1766C4",
+    "transfer_pump": "#0E8A8F",
+    "discharge_head_loss": "#4B5FBF",
+    "suction_npsh": "#7A5BB5",
+}
