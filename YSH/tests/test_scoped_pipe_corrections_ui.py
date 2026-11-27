@@ -86,7 +86,7 @@ def test_pipe_direct_stress_nominal_result_and_saved_basis(shell):
     assert page._wall_result, page._message.get()
     assert page._wall_result['allowable_stress_mpa']==68
     assert '8.7' in page._wall_standard_text.get()
-    assert 'nominal' in page._wall_standard_text.get()
+    assert 'EEMUA' in page._wall_standard_text.get()  # a verified standard wall now exists for this size
     assert '50' in page._wall_standard_text.get()
     state=page.export_state()
     assert state['source_mode']=='Kütüphane'  # Stored legacy identity, not the new label.
