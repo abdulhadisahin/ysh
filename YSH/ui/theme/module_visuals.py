@@ -14,9 +14,9 @@ DISCHARGE_ACCENT = MODULE_ACCENTS['discharge_head_loss']
 SUCTION_ACCENT = MODULE_ACCENTS['suction_npsh']
 # Dark tones provide readable text and white-on-color actions.
 MODULES = MappingProxyType({
-    'transfer_pump': ('Transfer', TRANSFER_ACCENT, '#1D4ED8', '#EFF6FF', 'TransferSecondaryMetric'),
-    'discharge_head_loss': ('Discharge', DISCHARGE_ACCENT, '#4338CA', '#F1F0FF', 'DischargeLossMetric'),
-    'suction_npsh': ('Suction', SUCTION_ACCENT, '#9A3412', '#FFF4EB', 'SuctionLossMetric'),
+    'transfer_pump': ('Transfer', TRANSFER_ACCENT, '#1766C4', '#FFF8DC', 'TransferSecondaryMetric'),
+    'discharge_head_loss': ('Discharge', DISCHARGE_ACCENT, '#0B7C8A', '#FFF8DC', 'DischargeLossMetric'),
+    'suction_npsh': ('Suction', SUCTION_ACCENT, '#C2410C', '#FFF8DC', 'SuctionLossMetric'),
 })
 
 
@@ -33,8 +33,9 @@ def configure_module_visuals(style: ttk.Style) -> None:
                         foreground=colors.TEXT_SECONDARY, font=typography.MUTED)
         for role, surface in (('Input', colors.WHITE), ('Result', soft)):
             name=prefix+role+'Card.TLabelframe'
-            style.configure(name, background=surface, bordercolor=PIPE_INPUT_BORDER,
-                            borderwidth=1, relief='solid', padding=(MD, SM))
+            style.configure(name, background=surface,
+                            bordercolor=colors.GOLD_BORDER if role == 'Result' else PIPE_INPUT_BORDER,
+                            borderwidth=2 if role == 'Result' else 1, relief='solid', padding=(MD, SM))
             style.configure(name+'.Label', background=surface, foreground=dark,
                             font=typography.SECTION_TITLE)
             style.configure(prefix+role+'.TFrame', background=surface)

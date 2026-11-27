@@ -9,17 +9,17 @@ from ui.theme.spacing import XS, SM, MD
 
 # Future identities are a design plan only. Other module styles are not applied.
 MODULE_ACCENTS = MappingProxyType({
-    'pipe_design': '#0D9488', 'transfer_pump': '#2563EB',
-    'discharge_head_loss': '#6366F1', 'suction_npsh': '#EA7C32',
+    'pipe_design': '#F2B705', 'transfer_pump': '#1E7FE0',
+    'discharge_head_loss': '#12B5C8', 'suction_npsh': '#F26B1D',
 })
 PIPE_ACCENT = MODULE_ACCENTS['pipe_design']
-PIPE_DARK = '#0F766E'
-PIPE_SOFT = '#ECFDF8'
-PIPE_BORDER = '#99D9D1'
+PIPE_DARK = '#8A6500'
+PIPE_SOFT = '#FFF8DC'
+PIPE_BORDER = '#F0D77A'
 PIPE_WORKSPACE = '#F1F7FA'
 PIPE_INPUT_BORDER = '#D6E3EA'
 PIPE_LIGHT_BLUE = '#EFF6FF'
-PIPE_HOVER = '#11877E'
+PIPE_HOVER = '#A87800'
 
 
 def configure_pipe_pilot(style: ttk.Style) -> None:

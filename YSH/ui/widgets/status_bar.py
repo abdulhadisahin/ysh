@@ -8,6 +8,7 @@ from tkinter import ttk
 
 from i18n.translator import Translator
 from ui.theme.spacing import MD, SM
+from ui.widgets.identity_stripe import IdentityStripe, STRIPE_HEIGHT
 
 
 class StatusBar(ttk.Frame):
@@ -19,8 +20,9 @@ class StatusBar(ttk.Frame):
         translate: Callable[[str], str] | None = None,
     ) -> None:
         """Create a status bar with the default Ready message."""
-        super().__init__(parent, style="Status.TFrame", padding=(MD, SM // 2))
+        super().__init__(parent, style="Status.TFrame", padding=(MD, SM // 2 + STRIPE_HEIGHT, MD, SM // 2))
         self._translate = translate or Translator().translate
+        IdentityStripe(self).place(x=0, y=0, relwidth=1.0, height=STRIPE_HEIGHT)
         self._message = tk.StringVar(value=self._translate("message.ready"))
         ttk.Label(self, textvariable=self._message, anchor="w", style="Status.TLabel").pack(
             fill="x",
