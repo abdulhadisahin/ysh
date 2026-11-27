@@ -42,6 +42,16 @@ def _material_source(steps: tuple, metadata: dict) -> tuple:
 material_source_steps=_material_source
 
 
+def pipe_material_source_steps(steps: tuple, result: object) -> tuple:
+    """Attach the library material's standard to the stress step; shared with the page's formula view."""
+    material=getattr(result,'trace',{}).get('material')
+    if not material:
+        return tuple(steps)
+    source=SourceReference(source_type=SourceType.MATERIAL_STANDARD,
+                           document=material.get('standard') or None,notes=material.get('source') or None)
+    return tuple(replace(step,sources=step.sources+(source,)) if step.step_id=='pipe.stress' else step for step in steps)
+
+
 def _pipe(stage: str, result: object, selection: PipeSelection | None) -> tuple:
     if not isinstance(result,PipeDesignCalculationResult) or not result.is_successful:
         raise ValueError('A successful pipe result is required')
@@ -50,12 +60,7 @@ def _pipe(stage: str, result: object, selection: PipeSelection | None) -> tuple:
         raise ValueError('Missing actually used pipe inputs')
     if key=='diameter' and result.diameter is None or key=='wall' and result.wall_thickness is None:
         raise ValueError('Incomplete pipe stage')
-    steps=legacy_pipe_steps(result)
-    material=result.trace.get('material')
-    if material:
-        source=SourceReference(source_type=SourceType.MATERIAL_STANDARD,
-                               document=material.get('standard') or None,notes=material.get('source') or None)
-        steps=tuple(replace(step,sources=step.sources+(source,)) if step.step_id=='pipe.stress' else step for step in steps)
+    steps=pipe_material_source_steps(legacy_pipe_steps(result),result)
     if selection is not None:
         steps=tuple(s for s in steps if s.step_id!='pipe.Di')+selection_geometry_steps(selection)
     return ({'calculation':result,'published_selection':selection},steps,'PIPE_LEGACY_1')

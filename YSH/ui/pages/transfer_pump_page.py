@@ -58,7 +58,7 @@ class TransferPumpPage(ttk.LabelFrame):
     ) -> None:
         """Build the enabled fuel-transfer-pump calculation page."""
         self._translate = translate or Translator().translate
-        super().__init__(parent, text=self._translate("page.transfer.tab"), padding=12)
+        super().__init__(parent, padding=12)
         self._service = service
         self._constants = constant_service
         self._calculation_mode = TransferPumpMode.DESIGN
@@ -317,7 +317,6 @@ class TransferPumpPage(ttk.LabelFrame):
             self._capacity_mode.set(self._capacity_mode_labels[mode])
         finally:
             self._suppress_dirty = False
-        self.configure(text=self._translate("page.transfer.tab"))
         self._header.set_content(self._translate("page.transfer.title"), self._translate("page.transfer.description"))
         self._references_card.configure(text=self._translate("section.reference_vessels"))
         self._search_label.configure(text=self._translate("field.search_references"))

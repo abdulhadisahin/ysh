@@ -1435,6 +1435,7 @@ class PipeDesignPage(ttk.Frame):
     def _formula_steps(self) -> tuple:
         """Explain cached service results; saved legacy output needs no live fields."""
         from engineering.formula.pipe import legacy_pipe_steps
+        from engineering.snapshots.builders import pipe_material_source_steps
         from engineering.pipe_design.models import PipeDesignCalculationResult, PipeDiameterResult, WallThicknessResult
         steps = []
         if self._diameter_result:
@@ -1448,9 +1449,9 @@ class PipeDesignPage(ttk.Frame):
                 cached = PipeDesignCalculationResult(wall_thickness=WallThicknessResult.from_dict(self._wall_result))
                 cached.trace['allowable_stress_rule']=getattr(self,'_wall_stress_basis',{})
                 cached.trace['wall_standard']=getattr(self,'_wall_standard_basis',{})
-            steps.extend(legacy_pipe_steps(cached))
+            steps.extend(pipe_material_source_steps(legacy_pipe_steps(cached),cached))
         selection = getattr(self, "_formula_selection", None)
-        if self._diameter_result and selection is not None:
+        if (self._diameter_result or self._wall_result) and selection is not None:
             from engineering.formula.pipe import selection_geometry_steps
             steps = [s for s in steps if s.step_id != "pipe.Di"]
             steps.extend(selection_geometry_steps(selection))

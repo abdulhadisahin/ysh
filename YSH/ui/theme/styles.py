@@ -331,8 +331,9 @@ def apply_theme(root: tk.Misc) -> None:
     style.map("TNotebook.Tab", background=[("selected", colors.PRIMARY), ("active", colors.PRIMARY_SOFT)], foreground=[("selected", colors.ON_ACCENT), ("active", colors.PRIMARY_HOVER)])
     style.configure("YSH.TNotebook", background=colors.NAVY, bordercolor=colors.BORDER, tabmargins=(8, 6, 8, 0))
     style.configure("YSH.TNotebook.Tab", background=colors.NAVY, foreground=colors.ON_ACCENT, padding=(22, 11), font=typography.BODY_BOLD)
-    style.map("YSH.TNotebook.Tab", expand=[("selected", (0, 3, 0, 0))])
-    style.map("YSH.TNotebook.Tab", background=[("selected", colors.DEEP_NAVY), ("active", colors.DEEP_NAVY)], foreground=[("selected", colors.ON_ACCENT), ("active", colors.ON_ACCENT)])
+    style.map("YSH.TNotebook.Tab", padding=[("selected", (22, 11))], expand=[("selected", (0, 0, 0, 0))],
+              background=[("selected", colors.GOLD), ("active", colors.SEA_DARK)],
+              foreground=[("selected", colors.NAVY), ("active", colors.ON_ACCENT)])
     style.configure("Data.Treeview", background=colors.SURFACE, fieldbackground=colors.SURFACE, foreground=colors.TEXT_PRIMARY, rowheight=28, bordercolor=colors.BORDER, font=typography.BODY)
     style.configure("Data.Treeview.Heading", background=colors.SURFACE_ALT, foreground=colors.TEXT_SECONDARY, font=typography.BODY_BOLD, relief="flat")
     style.map("Data.Treeview", background=[("selected", colors.SECONDARY)], foreground=[("selected", colors.ON_ACCENT)])

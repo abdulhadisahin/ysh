@@ -15,8 +15,8 @@ SUCTION_ACCENT = MODULE_ACCENTS['suction_npsh']
 # Dark tones provide readable text and white-on-color actions.
 MODULES = MappingProxyType({
     'transfer_pump': ('Transfer', TRANSFER_ACCENT, '#1766C4', '#FFF8DC', 'TransferSecondaryMetric'),
-    'discharge_head_loss': ('Discharge', DISCHARGE_ACCENT, '#0B7C8A', '#FFF8DC', 'DischargeLossMetric'),
-    'suction_npsh': ('Suction', SUCTION_ACCENT, '#C2410C', '#FFF8DC', 'SuctionLossMetric'),
+    'discharge_head_loss': ('Discharge', DISCHARGE_ACCENT, '#1766C4', '#FFF8DC', 'DischargeLossMetric'),
+    'suction_npsh': ('Suction', SUCTION_ACCENT, '#1766C4', '#FFF8DC', 'SuctionLossMetric'),
 })
 
 

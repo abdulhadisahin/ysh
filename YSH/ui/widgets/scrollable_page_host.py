@@ -79,16 +79,9 @@ class ScrollablePageHost(ttk.Notebook):
             (key for key, host in self._page_keys.items() if str(host) == selected),
             None,
         )
-        from ui.theme.module_visuals import MODULES
-        selected_foreground = colors.SHELL_CYAN
-        selected_background = colors.DEEP_NAVY
-        if page_key == "pipe_design":
-            from ui.theme.pipe_pilot import PIPE_DARK
-            selected_background = PIPE_DARK
-            selected_foreground = colors.WHITE
-        elif page_key in MODULES:
-            selected_background = MODULES[page_key][2]
-            selected_foreground = colors.WHITE
+        # One selected-tab look for every module (gold on navy), so tabs never change identity.
+        selected_foreground = colors.NAVY
+        selected_background = colors.GOLD
         style = ttk.Style(self)
         style.configure(
             "YSH.TNotebook.Tab",
@@ -97,8 +90,9 @@ class ScrollablePageHost(ttk.Notebook):
         )
         style.map(
             "YSH.TNotebook.Tab",
-            background=[("selected", selected_background), ("active", colors.DEEP_NAVY)],
-            foreground=[("selected", selected_foreground), ("active", colors.SHELL_CYAN)],
+            background=[("selected", selected_background), ("active", colors.SEA_DARK)],
+            foreground=[("selected", selected_foreground), ("active", colors.WHITE)],
+            padding=[("selected", (22, 11))],
         )
 
     def _activate_current_host(self) -> None:

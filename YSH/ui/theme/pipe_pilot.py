@@ -7,19 +7,19 @@ from tkinter import ttk
 from ui.theme import colors, typography
 from ui.theme.spacing import XS, SM, MD
 
-# Future identities are a design plan only. Other module styles are not applied.
+# One shared module identity (sea blue); modules are told apart by tab and page title, never by colour.
 MODULE_ACCENTS = MappingProxyType({
-    'pipe_design': '#F2B705', 'transfer_pump': '#1E7FE0',
-    'discharge_head_loss': '#12B5C8', 'suction_npsh': '#F26B1D',
+    'pipe_design': '#1E7FE0', 'transfer_pump': '#1E7FE0',
+    'discharge_head_loss': '#1E7FE0', 'suction_npsh': '#1E7FE0',
 })
 PIPE_ACCENT = MODULE_ACCENTS['pipe_design']
-PIPE_DARK = '#8A6500'
+PIPE_DARK = '#1766C4'
 PIPE_SOFT = '#FFF8DC'
 PIPE_BORDER = '#F0D77A'
 PIPE_WORKSPACE = '#F1F7FA'
 PIPE_INPUT_BORDER = '#D6E3EA'
 PIPE_LIGHT_BLUE = '#EFF6FF'
-PIPE_HOVER = '#A87800'
+PIPE_HOVER = '#1A6FCB'
 
 
 def configure_pipe_pilot(style: ttk.Style) -> None:

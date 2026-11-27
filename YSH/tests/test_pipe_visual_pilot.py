@@ -36,7 +36,7 @@ def test_pilot_registers_only_pipe_prefixed_styles() -> None:
     assert style.configurations['PipeMetricValue.TLabel']['foreground'] == pilot.PIPE_DARK
     assert style.maps['Pipe.TEntry']['bordercolor'][0] == ('focus', pilot.PIPE_ACCENT)
     assert colors.PIPE == colors.GOLD  # Existing compatibility tokens are not propagated.
-    assert len(set(pilot.MODULE_ACCENTS.values())) == 4
+    assert len(set(pilot.MODULE_ACCENTS.values())) == 1  # one shared module identity
 
 
 @pytest.mark.parametrize('key', ['pipe_design', 'transfer_pump', 'discharge_head_loss', 'suction_npsh'])
@@ -49,8 +49,8 @@ def test_selected_tab_receives_accepted_module_identity(monkeypatch, key: str) -
     owner = SimpleNamespace(select=lambda: str(frame), _page_keys={key: frame})
     ScrollablePageHost._apply_active_tab_color(owner)
     state = style.maps['YSH.TNotebook.Tab']
-    assert state['background'][0] == ('selected', pilot.PIPE_DARK if key == 'pipe_design' else MODULES[key][2])
-    assert state['foreground'][0] == ('selected', colors.WHITE)
+    assert state['background'][0] == ('selected', colors.GOLD)
+    assert state['foreground'][0] == ('selected', colors.NAVY)
 
 
 @pytest.mark.parametrize('page', ['transfer_pump_page', 'discharge_head_loss_page', 'suction_npsh_page'])
