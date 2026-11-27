@@ -60,7 +60,7 @@ def test_application_defaults_are_stable_without_database_writes(library_databas
     before=counts()
     service=SystemContextService(SystemRepository(library_database),CircuitRepository(library_database),FluidRepository(library_database))
     expected=service.systems();expected_fluids=service.fluids()
-    assert len(expected_fluids)==14 and all(f.is_factory for f in expected_fluids)
+    assert len(expected_fluids)==20 and all(f.is_factory for f in expected_fluids)
     for _ in range(3):
         service.reload()
         assert service.systems()==expected

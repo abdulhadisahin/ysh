@@ -377,7 +377,7 @@ def test_transfer_domain_has_no_ui_or_repository_imports():
 
 
 def test_persistence_keeps_existing_schema_versions(project_database,library_database):
-    for db,version in ((project_database,1),(library_database,6)):
+    for db,version in ((project_database,1),(library_database,type(library_database).SCHEMA_VERSION)):
         with db.connection() as connection:
             assert connection.execute('SELECT version FROM schema_version').fetchone()[0]==version
 
