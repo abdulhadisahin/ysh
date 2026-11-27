@@ -116,7 +116,8 @@ class PipeDesignService:
                     from engineering.pipe_design.wall_standards import recommend_wall, verified_nominal_walls
                     result.trace['wall_standard']=recommend_wall(result.wall_thickness.final_wall_thickness_mm,
                         material.designation,wall.outside_diameter_mm,system_family,
-                        verified_nominal_walls(material.designation,wall.outside_diameter_mm,system_family))
+                        verified_nominal_walls(material.designation,wall.outside_diameter_mm,system_family,
+                            wall.design_pressure_bar,design_temperature_c))
                     result.wall_thickness.selected_standard_wall_thickness_mm=result.trace['wall_standard']['nominal_wall_mm']
         except ValidationError:
             raise
