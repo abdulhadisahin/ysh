@@ -97,6 +97,9 @@ def source_rows(source: SourceReference, language: str = 'tr') -> tuple[tuple[st
     return tuple(rows)
 
 
+OPERATOR_SIGNS = {'<=': '≤', '>=': '≥'}
+
+
 def adapt_snapshot(snapshot: CalculationSnapshot, language: str = 'tr') -> EngineeringReport:
     """Transform frozen evidence only; this function has no service/repository dependencies."""
     tr = Translator(language).translate
@@ -133,14 +136,15 @@ def adapt_snapshot(snapshot: CalculationSnapshot, language: str = 'tr') -> Engin
                 if text:
                     selections.append(ReportField(label, value.symbol or '', text))
         if step.selection_reason:
-            selections.append(ReportField('Seçim dayanağı', step.result_symbol,
-                                          tr('formula2.reason.' + step.selection_reason.value)))
+            basis = ReportField('Seçim dayanağı', '', tr('formula2.reason.' + step.selection_reason.value))
+            if basis not in selections:  # several steps can share one basis; print it once
+                selections.append(basis)
         if step.check:
             warning = step.result_symbol + ': ' + tr('formula2.check.' + step.check.status.value)
             if step.check.reason_key:
                 warning += ' · ' + tr(step.check.reason_key)
             if step.check.actual_value is not None and step.check.reference_value is not None:
-                warning += f' ({format_number(step.check.actual_value)} {step.check.operator or ""} {format_number(step.check.reference_value)})'
+                warning += f' ({format_number(step.check.actual_value)} {OPERATOR_SIGNS.get(step.check.operator, step.check.operator) or ""} {format_number(step.check.reference_value)})'
             warnings.append(warning)
         references = list(step.sources) + [v.source for v in step.variables + step.reference_variables if v.source]
         references += [v.source for v in step.used_values]
@@ -158,7 +162,7 @@ def adapt_snapshot(snapshot: CalculationSnapshot, language: str = 'tr') -> Engin
               'mode': ('Boru girdi modu', ''), 'kept_current': ('Mevcut değerler korundu', ''),
               'source_selection_id': ('Kaynak boru seçimi UUID', ''), 'source_revision': ('Kaynak boru revizyonu', ''),
               'observed_revision': ('Gözlenen revizyon', ''), 'selection_id': ('Boru seçimi UUID', ''),
-              'revision': ('Boru seçimi revizyonu', ''), 'status': ('Kayıt durumu', ''),
+              'revision': ('Boru seçimi revizyonu', ''), 'status': ('Hesap durumu', ''),
               'upstream_status': ('Kaynak boru uygunluk durumu', ''), 'material_id': ('Malzeme kimliği', '')}
     def visit(node: object) -> None:
         if isinstance(node, dict):
@@ -195,6 +199,8 @@ def adapt_snapshot(snapshot: CalculationSnapshot, language: str = 'tr') -> Engin
                         if value not in ('MANUAL', 'LINKED'):
                             label = 'Hesap / kapasite modu'
                         value = {'MANUAL': tr('source.state.manual'), 'LINKED': tr('source.state.linked')}.get(value, value)
+                    if key == 'status' and str(value) in ('RULE_NOT_CONFIGURED', 'BLOCKED_APPLICABILITY', 'SOURCE_REQUIRED'):
+                        label = 'Kural kontrol durumu'
                     row = ReportField(label, '', value, unit)
                     if row not in selections:
                         selections.append(row)

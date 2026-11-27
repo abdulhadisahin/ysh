@@ -4,9 +4,9 @@ from i18n.translator import Translator
 from i18n.validation import render_validation_issue
 from engineering.validation import ValidationIssue
 from reporting.context import snapshot_family
-from reporting.models import ReportField, ReportWarning, format_number
+from reporting.models import ReportField, ReportWarning, format_number, OPERATOR_SIGNS
 
-LABEL_KEYS = {'Tarih / saat': 'date', 'Snapshot kimliği': 'snapshot', 'Hesap türü': 'stage', 'Proje kimliği': 'project_id', 'Sistem': 'system', 'Devre': 'circuit', 'Akışkan': 'fluid', 'Bağlı boru seçimi': 'linked_pipe', 'Kaynak / doğrulama': 'source_verification', 'Kullanılan değer': 'used', 'Önerilen değer': 'recommended', 'Seçim gerekçesi': 'selection_reason', 'Override gerekçesi': 'override_reason', 'Seçim dayanağı': 'basis', 'Bükme durumu': 'bend', 'Bükme yarıçapı': 'bend_radius', 'Anma çapı': 'nominal', 'Boru standardı': 'standard', 'Boru dış çapı': 'outside', 'Seçilen et kalınlığı': 'selected_wall', 'Boru girdi modu': 'input_mode', 'Mevcut değerler korundu': 'kept', 'Kaynak boru seçimi UUID': 'source_uuid', 'Kaynak boru revizyonu': 'source_revision', 'Gözlenen revizyon': 'observed_revision', 'Boru seçimi UUID': 'selection_uuid', 'Boru seçimi revizyonu': 'selection_revision', 'Kayıt durumu': 'record_status', 'Kaynak boru uygunluk durumu': 'upstream_status', 'Malzeme kimliği': 'material_id', 'Malzeme': 'material', 'Malzeme standardı': 'material_standard', 'Malzeme kaynağı': 'material_source', 'Snapshot şeması': 'schema', 'Hesap modeli': 'model', 'Bağlam revizyonu': 'context_revision', 'Doküman': 'document', 'Notlar': 'notes', 'Hesap / kapasite modu': 'capacity_mode'}
+LABEL_KEYS = {'Tarih / saat': 'date', 'Snapshot kimliği': 'snapshot', 'Hesap türü': 'stage', 'Proje kimliği': 'project_id', 'Sistem': 'system', 'Devre': 'circuit', 'Akışkan': 'fluid', 'Bağlı boru seçimi': 'linked_pipe', 'Kaynak / doğrulama': 'source_verification', 'Kullanılan değer': 'used', 'Önerilen değer': 'recommended', 'Seçim gerekçesi': 'selection_reason', 'Override gerekçesi': 'override_reason', 'Seçim dayanağı': 'basis', 'Bükme durumu': 'bend', 'Bükme yarıçapı': 'bend_radius', 'Anma çapı': 'nominal', 'Boru standardı': 'standard', 'Boru dış çapı': 'outside', 'Seçilen et kalınlığı': 'selected_wall', 'Boru girdi modu': 'input_mode', 'Mevcut değerler korundu': 'kept', 'Kaynak boru seçimi UUID': 'source_uuid', 'Kaynak boru revizyonu': 'source_revision', 'Gözlenen revizyon': 'observed_revision', 'Boru seçimi UUID': 'selection_uuid', 'Boru seçimi revizyonu': 'selection_revision', 'Hesap durumu': 'record_status', 'Kural kontrol durumu': 'rule_status', 'Kaynak boru uygunluk durumu': 'upstream_status', 'Malzeme kimliği': 'material_id', 'Malzeme': 'material', 'Malzeme standardı': 'material_standard', 'Malzeme kaynağı': 'material_source', 'Snapshot şeması': 'schema', 'Hesap modeli': 'model', 'Bağlam revizyonu': 'context_revision', 'Doküman': 'document', 'Notlar': 'notes', 'Hesap / kapasite modu': 'capacity_mode'}
 
 
 def finalize_report(snapshot, report, language):
@@ -85,7 +85,7 @@ def finalize_report(snapshot, report, language):
                 actual = format_number(check.actual_value)
                 reference = format_number(check.reference_value)
                 if language == 'en': actual, reference = actual.replace(',','.'), reference.replace(',','.')
-                message += f' ({actual} {check.operator or ""} {reference})'
+                message += f' ({actual} {OPERATOR_SIGNS.get(check.operator, check.operator) or ""} {reference})'
             notice(severity, message)
     def origin(variable):
         parts = []

@@ -84,6 +84,20 @@ def _table(document, headers, rows, widths=None):
     return table
 
 
+FORMULA_SUBSCRIPT = re.compile(r"(?<![A-Za-z])([QDV])(m³/s|m³/h|i)(?![A-Za-z])")
+
+
+def _formula_paragraph(document, text):
+    """Plain-text formula with subscripts restored (Qm³/s -> Q with subscript m³/s, Di -> D with subscript i)."""
+    paragraph = document.add_paragraph(); position = 0
+    for match in FORMULA_SUBSCRIPT.finditer(text):
+        paragraph.add_run(text[position:match.start()] + match.group(1))
+        paragraph.add_run(match.group(2)).font.subscript = True
+        position = match.end()
+    paragraph.add_run(text[position:])
+    return paragraph
+
+
 def render_word(report) -> bytes:
     """Create an editable A4 DOCX from frozen report data; performs no engineering work."""
     ui = ReportLanguage(report.language); tr = ui.tr; doc = Document()
@@ -138,7 +152,9 @@ def render_word(report) -> bytes:
         doc.add_heading(tr("report.steps"),1)
         for index,step in enumerate(report.formulas,1):
             doc.add_heading(f"{index}. {ui.text(tr(step.title_key))}",2)
-            if step.formula_text: doc.add_paragraph(ui.text(step.formula_text))
+            if step.formula_text:
+                if re.fullmatch(r'formula2\.[\w.]+',step.formula_text): doc.add_paragraph(ui.text(tr(step.formula_text)))
+                else: _formula_paragraph(doc,ui.text(step.formula_text))
             vars_rows=[(ui.text(tr(item.terminology_key)),_symbol(item.symbol),ui.number(item.value),ui.text(item.unit)) for item in step.variables+step.reference_variables]
             if vars_rows: _table(doc,(tr("report.parameter"),tr("word.symbol"),tr("report.value"),tr("report.unit")),vars_rows)
             if step.substitution: doc.add_paragraph(ui.text(step.substitution))
@@ -165,8 +181,12 @@ def render_word(report) -> bytes:
     warning_rows=[]
     for item in report.warning_items:
         warning_rows.append((ui.severity(item.severity),ui.text(item.message),ui.text(item.context)))
+    notes=[row for item,row in zip(report.warning_items,warning_rows) if item.severity=='INFO']
+    warning_rows=[row for item,row in zip(report.warning_items,warning_rows) if item.severity!='INFO']
     if warning_rows:
         doc.add_heading(tr("report.warnings"),1); _table(doc,(tr("report.status"),tr("report.message"),tr("report.context")),warning_rows)
+    if notes:
+        doc.add_heading(tr("word.checks_notes"),1); _table(doc,(tr("report.status"),tr("report.message"),tr("report.context")),notes)
     if report.sources:
         doc.add_heading(tr("report.provenance"),1)
         rows=[]

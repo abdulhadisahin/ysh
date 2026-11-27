@@ -22,7 +22,7 @@ STATUS_KEYS.update({'MANUAL':'source.state.manual','LINKED':'source.state.linked
  'STALE':'source.state.stale','USER_INPUT':'formula2.source_type.USER_INPUT','USER_SUPPLIED':'source.state.manual','DESIGN':'word.transfer.design',
  'EMPIRICAL':'word.transfer.empirical','VOLUME':'word.volume_mode','MASS':'word.mass_mode',
  'RULE_NOT_CONFIGURED':'formula2.check.NOT_CONFIGURED','BLOCKED_APPLICABILITY':'center.status.BLOCKED',
- 'WARNING':'word.status.warning','ERROR':'word.status.error','BLOCKED':'word.status.blocked',
+ 'INFO':'word.status.info','WARNING':'word.status.warning','ERROR':'word.status.error','BLOCKED':'word.status.blocked',
  'CRITICAL':'word.status.critical','SUCCESS':'word.status.success','OUT_OF_RANGE':'word.status.out_of_range','SOURCE_REQUIRED':'word.source_required',
  'VERIFIED':'formula2.verification_status.VERIFIED','UNVERIFIED':'formula2.verification_status.UNVERIFIED',
  'PARTIALLY_VERIFIED':'formula2.verification_status.PARTIALLY_VERIFIED',

@@ -1195,3 +1195,7 @@ MESSAGES['engineering.section.rules_scope'] = 'Kural kapsamı ve mekanik malzeme
 MESSAGES['engineering.section.values'] = 'Hesaplara uygulanan değerler'
 MESSAGES['engineering.empty'] = 'Boş'
 MESSAGES['engineering.detail_hint'] = 'Ayrıntı için tablodan bir satır seçin.'
+MESSAGES['word.status.info'] = 'Bilgi'
+MESSAGES['word.checks_notes'] = 'Kontroller ve Notlar'
+MESSAGES['report.field.record_status'] = 'Hesap durumu'
+MESSAGES['report.field.rule_status'] = 'Kural kontrol durumu'

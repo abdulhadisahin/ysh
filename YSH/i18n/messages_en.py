@@ -1183,3 +1183,7 @@ MESSAGES['engineering.section.rules_scope'] = 'Rule scope and mechanical materia
 MESSAGES['engineering.section.values'] = 'Values applied to calculations'
 MESSAGES['engineering.empty'] = 'Empty'
 MESSAGES['engineering.detail_hint'] = 'Select a row in the table to see its source and method.'
+MESSAGES['word.status.info'] = 'Info'
+MESSAGES['word.checks_notes'] = 'Checks and Notes'
+MESSAGES['report.field.record_status'] = 'Calculation status'
+MESSAGES['report.field.rule_status'] = 'Rule check status'
