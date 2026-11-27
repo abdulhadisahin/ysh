@@ -86,7 +86,8 @@ def test_word_english_strings_and_symbol_labels():
     text=_all_text(document)
     assert 'Engineering Calculation Report' in text
     assert 'Source Required' not in text or 'SOURCE_REQUIRED' not in text
-    assert 'Vfuel' not in text and 'Qpump' not in text
+    runs=[run.text for table in document.tables for row in table.rows for cell in row.cells for para in cell.paragraphs for run in para.runs]
+    assert 'Vfuel' not in runs and 'Qpump' not in runs  # symbols appear only as base + subscript runs
 
 
 def test_localization_basis_explanation_old_report_and_collision_safe_export(tmp_path,monkeypatch):

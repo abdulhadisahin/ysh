@@ -10,6 +10,38 @@ USER_SOURCE_KEYS=('report.not_recorded','source.state.manual','library2.manual_u
 LABELS={'Vfuel':'field.fuel_capacity','Qpump':'field.pump_capacity','Vtransfer':'transfer.design.volume',
  'tdef':'transfer.design.target_time','Qgerekli':'word.transfer.average','Qtulumba':'transfer.design.pump_capacity',
  'ttransfer':'word.transfer.time'}
+# Internal symbol -> (base letter, subscript word per language). Shown as real subscripts in Word.
+SYMBOL_PARTS={'Vfuel':('V',{'tr':'yakıt','en':'fuel'}),'Qpump':('Q',{'tr':'tulumba','en':'pump'}),
+ 'Vtransfer':('V',{'tr':'transfer','en':'transfer'}),'tdef':('t',{'tr':'hedef','en':'target'}),
+ 'Qgerekli':('Q',{'tr':'gerekli','en':'required'}),'Qtulumba':('Q',{'tr':'tulumba','en':'pump'}),
+ 'ttransfer':('t',{'tr':'transfer','en':'transfer'})}
+SYMBOL_TOKEN=re.compile(r'(?<![A-Za-z])([VQt]\u0304?)(fuel|pump|transfer|def|gerekli|tulumba)(?![A-Za-z])')
+SUBSCRIPT_WORDS={'fuel':{'tr':'yakıt','en':'fuel'},'pump':{'tr':'tulumba','en':'pump'},'transfer':{'tr':'transfer','en':'transfer'},
+ 'def':{'tr':'hedef','en':'target'},'gerekli':{'tr':'gerekli','en':'required'},'tulumba':{'tr':'tulumba','en':'pump'}}
+GENERIC_TOKEN=re.compile(r'(?<![A-Za-z])([QDV])(m³/s|m³/h|i)(?![A-Za-z])')
+UNIT_ONLY=re.compile(r'\((?:m³/h|m³|h)\)')
+UNIT_LEAD=re.compile(r'\((?:m³/h|m³|h),\s*')
+
+def symbol_segments(text,language):
+    """Split text into (string, is_subscript) runs; internal English symbols become localized subscripts."""
+    text=str(text if text is not None else '');out=[];position=0
+    matches=sorted([(m.start(),m.end(),m.group(1),SUBSCRIPT_WORDS[m.group(2)].get(language,m.group(2))) for m in SYMBOL_TOKEN.finditer(text)]+
+                   [(m.start(),m.end(),m.group(1),m.group(2)) for m in GENERIC_TOKEN.finditer(text)])
+    for start,end,base,sub in matches:
+        if start<position:continue
+        if start>position:out.append((text[position:start],False))
+        out.append((base,False));out.append((sub,True));position=end
+    if position<len(text):out.append((text[position:],False))
+    return out
+
+def clean_label(text):
+    """Drop internal symbols and bare unit parentheses that the table already shows in its own columns."""
+    text=str(text)
+    for symbol in SYMBOL_PARTS:text=re.sub(r'(?<!\w)'+symbol+r'(?!\w)','',text)
+    text=UNIT_ONLY.sub('',text);text=UNIT_LEAD.sub('(',text)
+    text=re.sub(r'\(\s*\)','',text);text=re.sub(r'\s+',' ',text).strip()
+    return text
+
 PREFIXES=('engineering.status.','engineering.verification.','engineering.method.','engineering.nature.',
  'formula2.source_type.','formula2.verification_status.','formula2.reason.','formula2.classification.',
  'discharge.pipe.status.','pipe.status.','transfer.design.status.','fire.ui.source.')
@@ -43,8 +75,7 @@ class ReportLanguage:
         for code in sorted(STATUS_KEYS,key=len,reverse=True):
             text=re.sub(r'(?<![\w])'+re.escape(code)+r'(?![\w])',lambda match,code=code:self.status(code),text)
         for symbol,key in LABELS.items():
-            label=self.tr(key)
-            label=re.sub(r'\s*\('+re.escape(symbol)+r'\)','',label)
+            label=clean_label(self.tr(key))
             text=re.sub(r'(?<!\w)'+re.escape(symbol)+r'(?!\w)',lambda match,label=label:label,text)
         text=text.replace('Calculation-only manual override',self.tr('word.manual_override'))
         # SourceReference rows previously printed code + translated text. Keep one human label.
@@ -56,8 +87,10 @@ class ReportLanguage:
             text=separator.join(result)
         return text
     def label(self,label,symbol='',unit=''):
-        label=re.sub(r'\s*\('+'|'.join(re.escape(x) for x in (symbol,unit) if x)+r'\)\s*','',label) if symbol or unit else label
-        return self.text(label)
+        label=re.sub(r'\s*\((?:'+'|'.join(re.escape(x) for x in (symbol,unit) if x)+r')\)\s*',' ',label) if symbol or unit else label
+        return self.text(clean_label(label))
+    def segments(self,text):
+        return symbol_segments(text,self.language)
     def number(self,value):
         if isinstance(value,bool):return self.tr('library2.yes' if value else 'library2.no')
         if isinstance(value,(int,float)):

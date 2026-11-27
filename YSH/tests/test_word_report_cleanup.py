@@ -27,7 +27,10 @@ def test_formula_keys_are_translated_and_info_rows_are_separate():
     assert 'Kayıtlı durumun açıklaması mevcut değil' not in cells and 'Bilgi' in cells
 
 
-def test_subscripts_restored_in_formula():
+def test_pipe_formula_uses_audited_image_and_text_fallback_keeps_subscripts():
     doc = Document(BytesIO(render_word(build('en'))))
-    paragraph = next(p for p in doc.paragraphs if p.text.startswith('D = √'))
+    assert len(doc.inline_shapes) >= 1
+    from reporting.word_renderer import _formula_paragraph
+    paragraph = _formula_paragraph(Document(), 'D = √((4 × Qm³/s) / (π × V))', 'en')
     assert any(run.font.subscript and run.text == 'm³/s' for run in paragraph.runs)
+    assert all(run.font.size.pt >= 14 for run in paragraph.runs)

@@ -40,10 +40,22 @@ def _page_field(paragraph, instruction: str) -> None:
     for item in (begin, text, separate, value, end): run._r.append(item)
 
 
+class Sym(str):
+    """A symbol cell: written with real subscript runs (language set by render_word)."""
+    language = "tr"
+
+
 def _symbol(value: str) -> str:
-    """Render conventional camel-case internals as a secondary subscript symbol."""
-    match = re.fullmatch(r"([A-Za-z]+)([a-z][A-Za-z]+)", value or "")
-    return f"{match.group(1)}_{match.group(2)}" if match else value
+    return Sym(value) if value else value
+
+
+def _write_runs(paragraph, text, language, size=None, bold=False):
+    from reporting.word_presentation import symbol_segments
+    for part, sub in symbol_segments(text, language):
+        run = paragraph.add_run(part)
+        if sub: run.font.subscript = True
+        if size: run.font.size = Pt(size)
+        if bold: run.bold = True
 
 
 WIDTHS = {2: (6.5, 10.5), 3: (3.2, 8.3, 5.5), 4: (6.6, 2.4, 4.2, 3.8), 5: (4.8, 2.0, 2.8, 2.0, 5.4)}
@@ -56,7 +68,7 @@ def _fix_widths(table, widths):
             cell.width = Cm(width)
 
 
-def _table(document, headers, rows, widths=None):
+def _table(document, headers, rows, widths=None, language="tr"):
     table = document.add_table(rows=1, cols=len(headers)); table.style = "Table Grid"
     table.autofit = True; _repeat_header(table.rows[0])
     borders=OxmlElement("w:tblBorders")
@@ -75,7 +87,10 @@ def _table(document, headers, rows, widths=None):
     for row_index,values in enumerate(rows):
         cells = table.add_row().cells; _no_split(table.rows[-1])
         for index, value in enumerate(values):
-            cells[index].text = str(value if value is not None else "—"); cells[index].vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
+            if isinstance(value, Sym):
+                cells[index].text = ""; _write_runs(cells[index].paragraphs[0], str(value), language)
+            else: cells[index].text = str(value if value is not None else "—")
+            cells[index].vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
             pad(cells[index])
             if row_index%2:_cell_shading(cells[index],"F3F7FA")
             for paragraph in cells[index].paragraphs:paragraph.paragraph_format.space_after=Pt(2)
@@ -84,18 +99,95 @@ def _table(document, headers, rows, widths=None):
     return table
 
 
-FORMULA_SUBSCRIPT = re.compile(r"(?<![A-Za-z])([QDV])(m³/s|m³/h|i)(?![A-Za-z])")
+FORMULA_PT = 15
+INTERNAL_FORMULA = re.compile(r"formula2\.[\w.]+")
+# Turkish/English subscript words inside the shared mathtext sources.
+MATH_WORDS = {"fuel": {"tr": "yakıt", "en": "fuel"}, "pump": {"tr": "tulumba", "en": "pump"},
+              "def": {"tr": "hedef", "en": "target"}, "gerekli": {"tr": "gerekli", "en": "required"},
+              "tulumba": {"tr": "tulumba", "en": "pump"}}
+WORD_MATHTEXT = {
+    "Qgerekli = Vtransfer / tdef": r"Q_{\mathrm{gerekli}} = \frac{V_{\mathrm{transfer}}}{t_{\mathrm{def}}}",
+    "ttransfer = Vtransfer / Qtulumba": r"t_{\mathrm{transfer}} = \frac{V_{\mathrm{transfer}}}{Q_{\mathrm{tulumba}}}",
+}
 
 
-def _formula_paragraph(document, text):
-    """Plain-text formula with subscripts restored (Qm³/s -> Q with subscript m³/s, Di -> D with subscript i)."""
-    paragraph = document.add_paragraph(); position = 0
-    for match in FORMULA_SUBSCRIPT.finditer(text):
-        paragraph.add_run(text[position:match.start()] + match.group(1))
-        paragraph.add_run(match.group(2)).font.subscript = True
-        position = match.end()
-    paragraph.add_run(text[position:])
+def _math_png(formula: str, language: str):
+    """Typeset an accepted equation with the application's own mathtext sources (no new engineering)."""
+    from reporting.equations import MATHTEXT_LINES
+    source = WORD_MATHTEXT.get(formula) or MATHTEXT_LINES.get(formula)
+    if not source: return None
+    for word, names in MATH_WORDS.items():
+        source = source.replace(r"\mathrm{%s}" % word, r"\mathrm{%s}" % names[language if language in names else "en"])
+    try:
+        from matplotlib.mathtext import math_to_image
+        buffer = BytesIO(); math_to_image("$" + source + "$", buffer, dpi=300, format="png")
+        return buffer.getvalue()
+    except Exception: return None
+
+
+def _asset_png(step):
+    """Audited formula artwork for this stored step (never quarantined ones), trimmed and on white."""
+    try:
+        from ui.formula_asset_policy import step_asset_names
+        from ui.assets import formula_asset_path
+        from PIL import Image
+        for name in step_asset_names(step):
+            path = formula_asset_path(name)
+            if not path or not path.exists(): continue
+            image = Image.open(path).convert("RGBA"); box = image.getbbox()
+            if box: image = image.crop(box)
+            sheet = Image.new("RGBA", (image.width + 40, image.height + 40), (255, 255, 255, 255))
+            sheet.alpha_composite(image, (20, 20)); output = BytesIO(); sheet.convert("RGB").save(output, "PNG")
+            return output.getvalue()
+    except Exception: return None
+    return None
+
+
+def _formula_block(document, step, text, language):
+    """One formula: audited artwork, else typeset image, else large centered text with real subscripts."""
+    png = _asset_png(step); wide = Cm(11.0)
+    if png is None:
+        png = _math_png(step.formula_text, language); wide = None
+    if png is not None:
+        paragraph = document.add_paragraph(); paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        paragraph.paragraph_format.space_before = Pt(6); paragraph.paragraph_format.space_after = Pt(8)
+        run = paragraph.add_run()
+        if wide is not None: run.add_picture(BytesIO(png), width=wide)
+        else:
+            from PIL import Image
+            with Image.open(BytesIO(png)) as image: width_cm = image.width / 300 * 2.54 * 1.6
+            run.add_picture(BytesIO(png), width=Cm(min(max(width_cm, 3.5), 14.5)))
+        return paragraph
+    return _formula_paragraph(document, text, language)
+
+
+def _formula_paragraph(document, text, language="tr"):
+    """Large, centered, shaded formula line(s); symbols carry real subscripts."""
+    paragraph = document.add_paragraph(); paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    paragraph.paragraph_format.space_before = Pt(6); paragraph.paragraph_format.space_after = Pt(8)
+    shading = OxmlElement("w:shd"); shading.set(qn("w:val"), "clear"); shading.set(qn("w:fill"), "EEF5F8")
+    paragraph._p.get_or_add_pPr().append(shading)
+    for index, line in enumerate(str(text).split("\n")):
+        if index: paragraph.add_run().add_break()
+        _write_runs(paragraph, line, language, size=FORMULA_PT, bold=True)
     return paragraph
+
+
+REF_TR = (("Tables ", "Tablolar "), ("Table ", "Tablo "), (" and ", " ve "), ("distillates", "distilatlar"),
+          ("Standard wall series", "Standart et kalınlığı serisi"), ("Dimension tables", "Boyut tabloları"),
+          ("Typical maximum velocity table", "Tipik azami hız tablosu"), ("Density Eqs.", "Yoğunluk denk."),
+          ("viscosity Eqs.", "viskozite denk."), ("NPSH margin", "ENPY (NPSH) payı"), ("Section", "Bölüm"),
+          ("series", "seri"), ("Part 107 Ch.8 (Jan 2022)", "Kısım 107 Bölüm 8 (Ocak 2022)"),
+          ("Chapter 11 - Fire Fighting Ships (2019)", "Bölüm 11 – Yangın Söndürme Gemileri (2019)"),
+          ("Pipe Frictional Losses", "Boru Sürtünme Kayıpları"), ("Data Tool", "Veri Aracı"),
+          ("Product Guide", "Ürün Kılavuzu"), ("brochure", "broşür"), ("Thermophysical Properties Library", "Termofiziksel Özellikler Kütüphanesi"),
+          ("Seawater system design (cites", "Deniz suyu sistem tasarımı (atıf:"), ("seawater system design (cites", "deniz suyu sistem tasarımı (atıf:"))
+
+
+def _ref_text(value, english):
+    if english: return value
+    for source, target in REF_TR: value = value.replace(source, target)
+    return value
 
 
 def render_word(report) -> bytes:
@@ -126,7 +218,7 @@ def render_word(report) -> bytes:
     if input_rows:
         doc.add_heading(tr("report.inputs"),1)
         _table(doc,(tr("report.parameter"),tr("word.symbol"),tr("report.value"),tr("report.unit"),tr("report.source")),
-            [(ui.label(f.label,f.symbol,f.unit),_symbol(f.symbol),ui.number(f.value),ui.text(f.unit),ui.source(f.source)) for f in input_rows])
+            [(ui.label(f.label,f.symbol,f.unit),_symbol(f.symbol),ui.number(f.value),ui.text(f.unit),ui.source(f.source)) for f in input_rows],language=report.language)
     if report.selections:
         doc.add_heading(tr("report.selections"),1)
         safe_selections=[f for f in report.selections if not any(token in f.label.casefold() for token in ("uuid","kimliği","identity","revision","schema","model"))]
@@ -146,17 +238,17 @@ def render_word(report) -> bytes:
         for field in report.results:
             if field is not report.primary_result and (not report.primary_result or (field.symbol,field.value,field.unit)!=(report.primary_result.symbol,report.primary_result.value,report.primary_result.unit)):
                 result_rows.append((ui.label(field.label,field.symbol,field.unit),_symbol(field.symbol),ui.number(field.value),ui.text(field.unit)))
-        _table(doc,(tr("report.parameter"),tr("word.symbol"),tr("report.value"),tr("report.unit")),result_rows)
+        _table(doc,(tr("report.parameter"),tr("word.symbol"),tr("report.value"),tr("report.unit")),result_rows,language=report.language)
 
     if report.formulas:
         doc.add_heading(tr("report.steps"),1)
         for index,step in enumerate(report.formulas,1):
             doc.add_heading(f"{index}. {ui.text(tr(step.title_key))}",2)
             if step.formula_text:
-                if re.fullmatch(r'formula2\.[\w.]+',step.formula_text): doc.add_paragraph(ui.text(tr(step.formula_text)))
-                else: _formula_paragraph(doc,ui.text(step.formula_text))
-            vars_rows=[(ui.text(tr(item.terminology_key)),_symbol(item.symbol),ui.number(item.value),ui.text(item.unit)) for item in step.variables+step.reference_variables]
-            if vars_rows: _table(doc,(tr("report.parameter"),tr("word.symbol"),tr("report.value"),tr("report.unit")),vars_rows)
+                if INTERNAL_FORMULA.fullmatch(step.formula_text): _formula_paragraph(doc,tr(step.formula_text),report.language)
+                else: _formula_block(doc,step,step.formula_text,report.language)
+            vars_rows=[(ui.label(tr(item.terminology_key),item.symbol,item.unit),_symbol(item.symbol),ui.number(item.value),ui.text(item.unit)) for item in step.variables+step.reference_variables]
+            if vars_rows: _table(doc,(tr("report.parameter"),tr("word.symbol"),tr("report.value"),tr("report.unit")),vars_rows,language=report.language)
             if step.substitution: doc.add_paragraph(ui.text(step.substitution))
             if step.result_value is not None: doc.add_paragraph(f"{tr('report.result')}: {ui.number(step.result_value)} {ui.text(step.result_unit)}")
 
@@ -199,7 +291,7 @@ def render_word(report) -> bytes:
         en=report.language=='en'
         doc.add_heading("References" if en else "Referanslar",1)
         _table(doc,("Document" if en else "Doküman","Table / clause" if en else "Tablo / madde","Used for" if en else "Kullanım","Basis" if en else "Dayanak"),
-            [(r.document+("\n"+r.url if r.url else ""),r.table,r.use_en if en else r.use_tr,
+            [(_ref_text(r.document,en)+("\n"+r.url if r.url else ""),_ref_text(r.table,en),r.use_en if en else r.use_tr,
               ("Primary" if r.basis=="primary" else "Secondary (quoted)") if en else ("Birincil" if r.basis=="primary" else "İkincil (alıntı)")) for r in refs],
             widths=(6.0,3.2,5.8,2.0))
     doc.add_heading(tr("report.approval"),1)
