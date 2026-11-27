@@ -22,8 +22,8 @@ from reporting.models import EngineeringReport, ReportField, format_number, _TR
 from ui.assets import formula_asset_path, d243_small_logo_path
 from ui.formula_asset_policy import step_asset_names
 
-NAVY = colors.HexColor('#163047')
-GOLD = colors.HexColor('#CBB78F')
+NAVY = colors.HexColor('#102B46')
+GOLD = colors.HexColor('#F2B705')
 PALE = colors.HexColor('#F2F5F7')
 WIDTH = A4[0] - 36 * mm
 
@@ -58,7 +58,7 @@ def render_pdf(report: EngineeringReport) -> bytes:
     for name, filename in (('D243', 'DejaVuSans.ttf'), ('D243Bold', 'DejaVuSans-Bold.ttf')):
         if name not in pdfmetrics.getRegisteredFontNames():
             pdfmetrics.registerFont(TTFont(name, str(font_root / filename)))
-    cyan = colors.HexColor('#12AABA')
+    cyan = colors.HexColor('#1766C4')
     normal = ParagraphStyle('Body', fontName='D243', fontSize=8.5, leading=12, textColor=NAVY, spaceAfter=4)
     small = ParagraphStyle('Small', parent=normal, fontSize=7.5, leading=10)
     heading = ParagraphStyle('Section', parent=normal, fontName='D243Bold', fontSize=11,

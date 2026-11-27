@@ -15,7 +15,7 @@ def test_design_system_exposes_the_d243_semantic_palette() -> None:
     assert colors.NAVY == "#102B46"
     assert colors.DEEP_NAVY == "#091B2D"
     assert colors.NAVY_TEXT == "#152B3F"
-    assert colors.GOLD == "#D8BC78"
+    assert colors.GOLD == "#F2B705"
     assert colors.PIPE == colors.GOLD
     assert colors.TRANSFER == colors.GOLD
     assert colors.DISCHARGE == colors.NAVY

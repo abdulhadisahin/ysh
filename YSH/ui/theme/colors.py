@@ -10,10 +10,16 @@ DEEP_NAVY = "#091B2D"
 NAVY_TEXT = "#152B3F"
 WHITE = "#FFFFFF"
 # Gold is an accent and action cue, never a severity signal.
-GOLD = "#D8BC78"
+GOLD = "#F2B705"
 GOLD_DARK = "#7B5A17"
-GOLD_SOFT = "#FBF6E9"
-GOLD_BORDER = "#D8C18D"
+GOLD_SOFT = "#FFF8DC"
+GOLD_BORDER = "#F0D77A"
+
+# Identity accents taken from the D243 patch: sea blue for flow/selection, sunset orange for
+# decorative rules only (never a state colour; WARNING stays amber and always carries a word).
+SEA = "#1E7FE0"
+SEA_DARK = "#1766C4"
+SUNSET = "#F26B1D"
 
 # Pipe is the first D243 master screen, so its visual accent intentionally
 # aligns to the product accent rather than creating a competing neon identity.

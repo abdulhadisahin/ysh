@@ -25,3 +25,13 @@ def test_reference_cells_turkish():
 def test_math_png_for_turkish_formula():
     assert _math_png('Qgerekli = Vtransfer / tdef', 'tr')[:4] == b'\x89PNG'
     assert _math_png('unknown formula', 'tr') is None
+
+
+def test_word_report_carries_identity_accents():
+    from io import BytesIO
+    from zipfile import ZipFile
+    from reporting.word_renderer import GOLD, NAVY, _rule
+    from docx import Document
+    assert (NAVY, GOLD) == ('102B46', 'F2B705')
+    paragraph = Document().add_paragraph('x'); _rule(paragraph)
+    assert 'F2B705' in paragraph._p.xml

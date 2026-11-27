@@ -14,8 +14,10 @@ from docx.oxml.ns import qn
 from reporting.word_presentation import ReportLanguage, basis_explanations, USER_SOURCE_KEYS
 
 SOURCE_LABEL = "Kaynak / doğrulama"
-NAVY = "163047"
-CYAN = "119EAD"
+NAVY = "102B46"
+CYAN = "1766C4"
+GOLD = "F2B705"
+GOLD_SOFT = "FFF8DC"
 
 
 def _cell_shading(cell, fill: str) -> None:
@@ -68,7 +70,7 @@ def _fix_widths(table, widths):
             cell.width = Cm(width)
 
 
-def _table(document, headers, rows, widths=None, language="tr"):
+def _table(document, headers, rows, widths=None, language="tr", highlight_first=False):
     table = document.add_table(rows=1, cols=len(headers)); table.style = "Table Grid"
     table.autofit = True; _repeat_header(table.rows[0])
     borders=OxmlElement("w:tblBorders")
@@ -92,7 +94,10 @@ def _table(document, headers, rows, widths=None, language="tr"):
             else: cells[index].text = str(value if value is not None else "—")
             cells[index].vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
             pad(cells[index])
-            if row_index%2:_cell_shading(cells[index],"F3F7FA")
+            if highlight_first and row_index==0:
+                _cell_shading(cells[index],GOLD_SOFT)
+                for run in cells[index].paragraphs[0].runs: run.bold = True
+            elif row_index%2:_cell_shading(cells[index],"F3F7FA")
             for paragraph in cells[index].paragraphs:paragraph.paragraph_format.space_after=Pt(2)
     widths = widths or WIDTHS.get(len(headers))
     if widths and len(widths) == len(headers): _fix_widths(table, widths)
@@ -190,6 +195,25 @@ def _ref_text(value, english):
     return value
 
 
+def _logo(document):
+    """D243 patch at the top right of the first page; silently skipped if the resource is absent."""
+    try:
+        from ui.assets import branding_asset_path, D243_LOGO_SMALL
+        path = branding_asset_path(D243_LOGO_SMALL)
+        if not path: return
+        paragraph = document.add_paragraph(); paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        paragraph.paragraph_format.space_after = Pt(0)
+        paragraph.add_run().add_picture(str(path), width=Cm(2.6))
+    except Exception: return
+
+
+def _rule(paragraph, color=GOLD, size="18"):
+    """Gold rule under a heading (identity accent)."""
+    border = OxmlElement("w:pBdr"); line = OxmlElement("w:bottom")
+    for key, value in (("val", "single"), ("sz", size), ("space", "4"), ("color", color)): line.set(qn("w:" + key), value)
+    border.append(line); paragraph._p.get_or_add_pPr().append(border)
+
+
 def render_word(report) -> bytes:
     """Create an editable A4 DOCX from frozen report data; performs no engineering work."""
     ui = ReportLanguage(report.language); tr = ui.tr; doc = Document()
@@ -200,7 +224,8 @@ def render_word(report) -> bytes:
         style=doc.styles[style_name]; style.font.name="Aptos Display"; style.font.size=Pt(size); style.font.bold=True; style.font.color.rgb=RGBColor.from_string(NAVY)
     header=section.header.paragraphs[0]; header.text="D243  |  "+tr("report.title"); header.runs[0].bold=True; header.runs[0].font.color.rgb=RGBColor.from_string(CYAN)
     footer=section.footer.paragraphs[0]; footer.alignment=WD_ALIGN_PARAGRAPH.RIGHT; footer.add_run("D243  ·  "+tr("word.page")+" "); _page_field(footer,"PAGE")
-    title=doc.add_paragraph(style="Title"); title.add_run("D243 — "+tr("report.title"))
+    _logo(doc)
+    title=doc.add_paragraph(style="Title"); title.add_run("D243 — "+tr("report.title")); _rule(title)
     doc.add_paragraph(tr("word.intro",module=ui.text(report.module)))
     doc.add_heading(tr("report.project"),1)
     identity=[]
@@ -240,7 +265,7 @@ def render_word(report) -> bytes:
         for field in report.results:
             if field is not report.primary_result and (not report.primary_result or (field.symbol,field.value,field.unit)!=(report.primary_result.symbol,report.primary_result.value,report.primary_result.unit)):
                 result_rows.append((ui.label(field.label,field.symbol,field.unit),_symbol(field.symbol),ui.number(field.value),ui.text(field.unit)))
-        _table(doc,(tr("report.parameter"),tr("word.symbol"),tr("report.value"),tr("report.unit")),result_rows,language=report.language)
+        _table(doc,(tr("report.parameter"),tr("word.symbol"),tr("report.value"),tr("report.unit")),result_rows,language=report.language,highlight_first=True)
 
     if report.formulas:
         doc.add_heading(tr("report.steps"),1)
