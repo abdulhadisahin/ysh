@@ -23,7 +23,7 @@ def test_fresh_library_creates_and_seeds_the_en_10220_standard(
         version = connection.execute("SELECT version FROM schema_version").fetchone()["version"]
     standard = pipe_size_service.get_standard_by_code(EN_10220_STANDARD_CODE)
 
-    assert version == 10
+    assert version == 11
     assert "standard_id" in columns
     assert standard.display_name == "EN 10220"
     assert pipe_size_service.get_pipe_sizes_for_standard(standard.id)
@@ -57,7 +57,7 @@ def test_v2_migration_preserves_unrelated_library_data_and_en_rows(tmp_path: Pat
     with database.connection() as connection:
         counts = tuple(connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] for table in ("materials", "engineering_constants", "pump_references"))
 
-    assert counts == (1, 1, 1)
+    assert counts == (2, 1, 1)  # user material + factory P235TR2 added by the v11 upgrade
     assert any(item.wall_thickness_mm == 3.2 for item in migrated)
     database.initialize()
     assert len(service.get_pipe_sizes_for_standard(en.id)) == 148

@@ -10,7 +10,7 @@ def test_material_serialization_round_trip() -> None:
     assert Material.from_dict(item.to_dict()).to_dict()==item.to_dict()
 def test_materials_seed_only_empty_library(material_service:MaterialService)->None:
     """Initial materials are seeded once and not duplicated."""
-    assert len(material_service.get_all_materials())==4
+    assert len(material_service.get_all_materials())==5
 def test_material_crud(material_service:MaterialService)->None:
     """A user material can be stored, updated, and deleted."""
     item=material_service.create_material(name="Carbon Steel",designation="CS",yield_strength_mpa=250,roughness_mm=.045)

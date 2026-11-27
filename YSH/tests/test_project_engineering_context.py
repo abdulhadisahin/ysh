@@ -154,7 +154,7 @@ def test_v5_migration_preserves_existing_rows_and_is_atomic(tmp_path,monkeypatch
         for name,rows in before.items():assert c.execute('SELECT * FROM '+name).fetchall()==rows
     database=LibraryDatabase(path);database.initialize();database.initialize()
     with database.connection() as c:
-        assert c.execute('SELECT version FROM schema_version').fetchone()[0]==10
+        assert c.execute('SELECT version FROM schema_version').fetchone()[0]==11
         for name,rows in before.items():assert [tuple(row) for row in c.execute('SELECT * FROM '+name)]==rows
         assert c.execute('SELECT name_tr FROM fluids WHERE id=?',(fluid_id,)).fetchone()[0]=='User fluid'
         assert not c.execute('PRAGMA foreign_key_check').fetchall()

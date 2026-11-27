@@ -1,6 +1,7 @@
 """Tkinter page for suction-line loss and ENPY/NPSH calculations."""
 
 from __future__ import annotations
+from ui.material_labels import material_label
 from ui.widgets.module_visuals import apply_module_visuals
 
 import tkinter as tk
@@ -535,7 +536,7 @@ class SuctionNPSHPage(ttk.Frame):
         self._material_ids.clear()
         labels: list[str] = []
         for material in self._materials.get_all_materials():
-            label = f"{material.name} ({material.designation})"
+            label = material_label(material.name, material.designation)
             labels.append(label)
             self._material_ids[label] = material.id
         self._material_box.configure(values=labels)

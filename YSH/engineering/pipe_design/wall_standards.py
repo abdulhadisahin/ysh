@@ -24,7 +24,7 @@ class ScopedWallMaterial:
 
 def cuni_wall_material():
     from uuid import NAMESPACE_URL, uuid5
-    return ScopedWallMaterial('CuNiFe10 / CuNi10Fe', 'CuNi10Fe',
+    return ScopedWallMaterial('CuNi10Fe1Mn', 'CW352H',
         TL_DOCUMENT+' / Tablo 8.8', TL_URL,
         uuid5(NAMESPACE_URL,'d243:wall-reference:tl107:2022:CuNi10Fe'))
 
@@ -34,7 +34,7 @@ def material_code(designation):
 
 
 def is_cuni10(designation):
-    return material_code(designation) in {'CUNIFE10', 'CUNI10FE'}
+    return material_code(designation) in {'CUNIFE10', 'CUNI10FE', 'CUNI10FE1MN', 'CW352H'}
 
 
 def auxiliary_cuni_stress(designation, family, temperature_c):

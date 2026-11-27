@@ -1177,3 +1177,4 @@ MESSAGES['engineering.use_averages'] = 'Fill empty viscosity/density fields with
 MESSAGES['engineering.method.CORRELATION'] = 'Computed from published correlation (Sharqawy et al., 2010)'
 MESSAGES['hydro.salinity_required'] = "Density and viscosity cannot be computed without salinity; enter salinity [g/kg] and press 'Apply fluid'."
 MESSAGES['hydro.temperature_required'] = 'Density and viscosity cannot be computed without temperature.'
+MESSAGES['message.cuni_direct_stress'] = 'CuNi10Fe1Mn: Rp0.2 is not needed; the allowable stress is taken directly as 68 N/mm² (TL Part 107, Table 8.8).'

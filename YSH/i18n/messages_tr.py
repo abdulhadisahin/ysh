@@ -1189,3 +1189,4 @@ MESSAGES['engineering.use_averages'] = 'Boş viskozite/yoğunluk alanlarını ş
 MESSAGES['engineering.method.CORRELATION'] = 'Yayımlanmış korelasyondan hesaplandı (Sharqawy ve ark., 2010)'
 MESSAGES['hydro.salinity_required'] = "Tuzluluk girilmeden yoğunluk ve viskozite hesaplanamaz; tuzluluğu [g/kg] girip 'Akışkanı Uygula'ya basın."
 MESSAGES['hydro.temperature_required'] = 'Sıcaklık girilmeden yoğunluk ve viskozite hesaplanamaz.'
+MESSAGES['message.cuni_direct_stress'] = 'CuNi10Fe1Mn: Rp0,2 gerekmez; izin verilen gerilme doğrudan 68 N/mm² alınır (TL Kısım 107, Tablo 8.8).'

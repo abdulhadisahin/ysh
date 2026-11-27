@@ -52,6 +52,8 @@ class MaterialService:
     def _seed(self) -> None:
         for name, strength, roughness in (("AISI 304L",190.0,0.015),("AISI 316L",195.0,0.015),("ST37",None,0.045),("ST52",None,0.045)):
             self._repository.create(Material(name=name, designation=name, yield_strength_mpa=strength, roughness_mm=roughness, source="YSH Version 1 default", is_system=True))
+        from database.library_v11 import p235tr2_material
+        self._repository.create(p235tr2_material())
     @staticmethod
     def _normalise(item: Material) -> None:
         item.name=item.name.strip(); item.designation=item.designation.strip(); item.standard=item.standard.strip(); item.description=item.description.strip(); item.source=item.source.strip() or "User"

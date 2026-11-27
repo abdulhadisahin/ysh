@@ -1,5 +1,6 @@
 """TTK page for Version 1 pipe design."""
 from __future__ import annotations
+from ui.material_labels import material_label
 import math
 import logging
 import tkinter as tk
@@ -1278,7 +1279,7 @@ class PipeDesignPage(ttk.Frame):
         self._material_ids.clear()
         options={'system_family':family} if family=='seawater' else {}
         for material in self._service.get_all_materials(**options):
-            label=f"{material.name} ({material.designation})"
+            label=material_label(material.name,material.designation)
             labels.append(label);self._material_ids[label]=material.id
         self._material_box.configure(values=labels)
     def _set_source_mode(self, reset_value: bool = True) -> None:
@@ -1297,7 +1298,7 @@ class PipeDesignPage(ttk.Frame):
         if material.yield_strength_mpa is None:
             from engineering.pipe_design.wall_standards import is_cuni10
             if is_cuni10(material.designation) and getattr(self,'_wall_project_family',lambda:None)()=='seawater':
-                self._fields['rp'].set('');self._message.set(self._t('message.ready'));return
+                self._fields['rp'].set('');self._message.set(self._t('message.cuni_direct_stress'));return
             self._fields["rp"].set("");self._message.set(self._translate("validation.material_yield_missing"));return
         self._fields["rp"].set(str(material.yield_strength_mpa));self._message.set(self._translate("message.ready"))
     def _number(self, key: str) -> float:

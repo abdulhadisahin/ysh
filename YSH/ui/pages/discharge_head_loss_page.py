@@ -1,5 +1,6 @@
 """Calculation-first discharge head-loss ttk page."""
 from __future__ import annotations
+from ui.material_labels import material_label
 from ui.widgets.module_visuals import apply_module_visuals
 import tkinter as tk
 from ui.widgets.input_guidance import localize_guidance
@@ -335,7 +336,7 @@ class DischargeHeadLossPage(ttk.LabelFrame):
         family=getattr(self,'_project_family',lambda:None)();materials=self._materials.get_all_materials();values=[]
         for material in materials:
             if not material_relevant(family,material.name,material.designation):continue
-            label=f"{material.name} ({material.designation})";values.append(label);self._material_ids[label]=material.id
+            label=material_label(material.name,material.designation);values.append(label);self._material_ids[label]=material.id
         self._material_box["values"]=values
     def _set_source_mode(self, reset_value: bool = True)->None:
         manual=self._source_mode=="manual";self._material_box.configure(state="disabled" if manual else "readonly");self._roughness_entry.configure(state="normal" if manual else "readonly");(self._fields["k"].set("") if reset_value else None) if manual else self._load_selected_roughness();self._set_semantic_messages([])
