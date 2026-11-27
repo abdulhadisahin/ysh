@@ -150,7 +150,7 @@ def _asset_png(step):
 
 def _formula_block(document, step, text, language):
     """One formula: audited artwork, else typeset image, else large centered text with real subscripts."""
-    png = _asset_png(step); wide = Cm(11.0)
+    png = _asset_png(step); wide = Cm(9.0)
     if png is None:
         png = _math_png(step.formula_text, language); wide = None
     if png is not None:
@@ -160,8 +160,8 @@ def _formula_block(document, step, text, language):
         if wide is not None: run.add_picture(BytesIO(png), width=wide)
         else:
             from PIL import Image
-            with Image.open(BytesIO(png)) as image: width_cm = image.width / 300 * 2.54 * 1.6
-            run.add_picture(BytesIO(png), width=Cm(min(max(width_cm, 3.5), 14.5)))
+            with Image.open(BytesIO(png)) as image: width_cm = image.width / 300 * 2.54 * 2.4
+            run.add_picture(BytesIO(png), width=Cm(min(max(width_cm, 4.5), 12.0)))
         return paragraph
     return _formula_paragraph(document, text, language)
 
