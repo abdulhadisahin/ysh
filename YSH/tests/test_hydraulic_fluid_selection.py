@@ -21,7 +21,11 @@ def test_exact_mapping_and_units(catalog,code,temp,salinity,rho,nu):
     assert refs['density']['default_value']==rho and refs['density']['unit']=='kg/m³'
     assert refs['kinematic_viscosity']['default_value']==nu and refs['kinematic_viscosity']['unit']=='cSt'
     assert refs['density']['source_evidence']['revision_date']=='2023-12-09'
-    for change in ({'fluid_temperature_c':21},{'fluid_reference_pressure_mpa':None},{'fluid_reference_pressure_mpa':8}):
+    between=catalog.hydraulic_references(context.changed(fluid_temperature_c=temp+1))  # computed from the published correlation
+    assert between['density']['default_method']=='CORRELATION' and between['density']['source_evidence']['document_number'].startswith('Desalination')
+    assert abs(between['density']['default_value']-rho)<1.5 and abs(between['kinematic_viscosity']['default_value']-nu)<.06
+    assert all(catalog.hydraulic_references(context.changed(fluid_temperature_c=200))[n]['default_value'] is None for n in ('density','kinematic_viscosity'))
+    for change in ({'fluid_reference_pressure_mpa':None},{'fluid_reference_pressure_mpa':8}):
         assert all(catalog.hydraulic_references(context.changed(**change))[n]['default_value'] is None for n in ('density','kinematic_viscosity'))
     if code=='SEAWATER':
         assert catalog.hydraulic_references(context.changed(fluid_salinity_g_kg=None))['density']['default_value'] is None

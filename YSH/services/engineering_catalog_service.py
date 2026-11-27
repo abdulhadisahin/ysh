@@ -109,6 +109,18 @@ class EngineeringCatalogService:
         points=self.completion.operating_references(context.fluid_id,temperature_c=context.fluid_temperature_c,
             salinity_g_kg=salinity,pressure_mpa=context.fluid_reference_pressure_mpa) if context.fluid_id else {}
         if profile and profile.classification=='FRESH_WATER' and context.fluid_salinity_g_kg not in (None,0):points={}
+        if profile and profile.classification in ('SEA_WATER','FRESH_WATER') and context.fluid_id:
+            from engineering import seawater_properties as sw
+            from engineering.source_verification import BY_KEY
+            t,p=context.fluid_temperature_c,context.fluid_reference_pressure_mpa
+            if profile.classification=='FRESH_WATER':
+                s=0 if context.fluid_salinity_g_kg in (None,0) else None
+            else:s=salinity
+            if s is not None and sw.in_range(t,s,p):
+                for name,fn in (('density',sw.density_kg_m3),('kinematic_viscosity',sw.kinematic_viscosity_cst)):
+                    if name in points:continue
+                    points[name]={'id':str(uuid.uuid5(uuid.NAMESPACE_URL,f'd243:sharqawy2010:{context.fluid_id}:{name}:{t}:{s}')),
+                        'value':round(fn(t,s),4 if name=='kinematic_viscosity' else 3),'source_evidence':BY_KEY['SHARQAWY_2010'].payload(),'computed':True}
         for name,unit in (('density','kg/m³'),('kinematic_viscosity','cSt')):
             point=points.get(name);proof=point.get('source_evidence',{}) if point else {}
             average=specification.get(name) if use_averages and not point else None
@@ -117,7 +129,7 @@ class EngineeringCatalogService:
             condition=f'{context.fluid_id}:{name}:{context.fluid_temperature_c}:{salinity}:{context.fluid_reference_pressure_mpa}'
             values[name]={'id':point['id'] if point else str(uuid.uuid5(uuid.NAMESPACE_URL,'d243:manual-fluid:'+condition)),
                 'property_name':name,'name':context.fluid.name_tr if context.fluid else '', 'unit':unit,
-                'default_value':point['value'] if point else None,'default_method':'PUBLISHED_POINT' if point else 'SOURCE_REQUIRED',
+                'default_value':point['value'] if point else None,'default_method':('CORRELATION' if point.get('computed') else 'PUBLISHED_POINT') if point else 'SOURCE_REQUIRED',
                 'source_min':None,'source_max':None,'source_nominal':None,'record_kind':'OPERATING_POINT' if point else 'MANUAL_REQUIRED',
                 'reference_temperature_c':context.fluid_temperature_c,'reference_salinity_g_kg':salinity,
                 'reference_pressure_mpa':context.fluid_reference_pressure_mpa,

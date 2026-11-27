@@ -150,6 +150,11 @@ class EngineeringPageContext(ttk.Frame):
                 temperature=density.get('reference_temperature_c')
                 if temperature is not None:shown+=' @ '+str(temperature)+' °C'
                 text=tr('engineering.density_reference')+': '+shown+'\n'+text
+        fluid_profile=c.catalog.completion.profiles.get(context.fluid_id) if hasattr(self,'operating') and context.fluid_id else None
+        if fluid_profile is not None:
+            klass=fluid_profile.classification
+            if klass=='SEA_WATER' and context.fluid_salinity_g_kg is None:text=tr('hydro.salinity_required')+'\n'+text
+            elif klass in ('SEA_WATER','FRESH_WATER') and context.fluid_temperature_c is None:text=tr('hydro.temperature_required')+'\n'+text
         self.summary.configure(text=text)
         line={'discharge_head_loss':'DELIVERY','suction_npsh':'SUCTION'}.get(self.module)
         if line or c.family()=='seawater':

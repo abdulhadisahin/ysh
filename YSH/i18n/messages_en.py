@@ -1174,3 +1174,6 @@ MESSAGES.update({'library2.show_all':'Show everything','library2.show_all_hint':
 from i18n.catalog_text import english_messages as _catalog_text_messages
 MESSAGES.update(_catalog_text_messages())
 MESSAGES['engineering.use_averages'] = 'Fill empty viscosity/density fields with the specification average (never overwrites entered values)'
+MESSAGES['engineering.method.CORRELATION'] = 'Computed from published correlation (Sharqawy et al., 2010)'
+MESSAGES['hydro.salinity_required'] = "Density and viscosity cannot be computed without salinity; enter salinity [g/kg] and press 'Apply fluid'."
+MESSAGES['hydro.temperature_required'] = 'Density and viscosity cannot be computed without temperature.'
