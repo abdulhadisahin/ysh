@@ -114,9 +114,34 @@ def rule_seeds():
         result.append(EngineeringRule(code=code,name='TL <500 GT / '+material,profile_id=identity('profile:TL_LT500'),fluid_group='SEA_WATER',material=material,
             rule_nature='HARD_LIMIT',hard_max=limit,source_authority='Türk Loydu',source_document='User-approved ships less than 500 GT profile',applicability='TL_LT500',
             verification='LIMITED_APPLICABILITY',notes='Only explicit <500 GT scope. Exact document edition/clause requires confirmation; never universal TL.',is_factory=True,id=identity('rule:'+code)))
-    for code,name in (('BALLAST','Ballast'),('BILGE','Bilge'),('CUNI_9010','90/10 Cu-Ni source-specific maximum'),('CUNI_7030','70/30 Cu-Ni source-specific maximum'),('WARTSILA','Wärtsilä applicable profile')):
-        result.append(EngineeringRule(code=code,name=name,profile_id=identity('profile:WARTSILA' if code=='WARTSILA' else 'profile:CUNI_REFERENCE' if code.startswith('CUNI') else 'profile:D243'),
-            service=code if code in ('BALLAST','BILGE') else '',source_authority='Wärtsilä' if code=='WARTSILA' else '',notes='Exact applicable source/profile required; no invented numeric rule.',is_factory=True,id=identity('rule:'+code)))
+    result.extend(cuni_wartsila_rules())
     return tuple(result)
 
 def d243_rule(): return rule_seeds()[0]
+
+
+CDA_DOCUMENT = 'Copper Development Association - Copper-Nickel Seawater System Design (copper.org)'
+CDA_CLAUSE = 'Typical maximum flow velocity table; cites BS MA 18 and DIN 85004-2'
+CDA_NOTE = ('Typical maximum; depends on alloy, pipe diameter and specification. Reduce by 0.25-0.5 m/s with rolled-over flanges '
+            'and by 1-1.5 m/s with entrained sand. Guidance, not a hard limit.')
+WARTSILA_DOCUMENT = 'Wärtsilä 31 Product Guide'
+WARTSILA_CLAUSE = 'Table 5-1, recommended maximum velocities on pump delivery side, for guidance'
+WARTSILA_NOTE = 'Engine product-guide recommendation for sea water piping on the pump delivery side; not a classification rule.'
+
+
+def cuni_wartsila_rules():
+    """Cu-Ni and Wärtsilä seawater maxima that replace the old unfilled placeholder rows."""
+    rows = []
+    for code, name, material, limit in (('CUNI_9010', '90/10 Cu-Ni / typical maximum velocity', 'Cu-Ni 90/10', 3.5),
+                                        ('CUNI_7030', '70/30 Cu-Ni / typical maximum velocity', 'Cu-Ni 70/30', 4.0)):
+        rows.append(EngineeringRule(code=code, name=name, profile_id=identity('profile:CUNI_REFERENCE'), fluid_group='SEA_WATER', material=material,
+            rule_nature='RECOMMENDED_MAX', recommended_max=limit, source_authority='Copper Development Association', source_document=CDA_DOCUMENT,
+            source_edition='Web publication, read 2026-11-27', source_clause=CDA_CLAUSE, verification='RECOMMENDATION', notes=CDA_NOTE,
+            is_factory=True, id=identity('rule:' + code)))
+    for code, material, limit in (('WARTSILA_GALVANIZED', 'Galvanized Steel', 2.5), ('WARTSILA_ALBRASS', 'Aluminium Brass', 2.5),
+                                  ('WARTSILA_CUNI9010', 'Cu-Ni 90/10', 3.0), ('WARTSILA_CUNI7030', 'Cu-Ni 70/30', 4.5)):
+        rows.append(EngineeringRule(code=code, name='Wärtsilä / ' + material + ' / sea water delivery', profile_id=identity('profile:WARTSILA'),
+            fluid_group='SEA_WATER', line_type='DELIVERY', material=material, rule_nature='RECOMMENDED_MAX', recommended_max=limit,
+            source_authority='Wärtsilä', source_document=WARTSILA_DOCUMENT, source_edition='a1 - 18 October 2016', source_clause=WARTSILA_CLAUSE,
+            verification='RECOMMENDATION', notes=WARTSILA_NOTE, is_factory=True, id=identity('rule:' + code)))
+    return rows

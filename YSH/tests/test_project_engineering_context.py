@@ -88,9 +88,11 @@ def test_hard_limit_has_no_yellow_grace_and_scope_is_explicit(catalog):
     assert rule in applicable_rules(catalog.rule_records,scope='TL_FFS',**kwargs)
     assert rule not in applicable_rules(catalog.rule_records,scope='TL_FFS',**{**kwargs,'family':'fuel'})
     assert next(r for r in catalog.rule_records if r.code=='TL_FFS_NPSH').hard_min==1
-    for code in ('BALLAST','BILGE'):
-        unresolved=next(r for r in catalog.rule_records if r.code==code)
-        assert unresolved.hard_max is None and unresolved.recommended_max is None
+    codes={r.code:r for r in catalog.rule_records}
+    assert 'BALLAST' not in codes and 'BILGE' not in codes and 'WARTSILA' not in codes  # unfillable placeholders removed
+    assert (codes['CUNI_9010'].recommended_max,codes['CUNI_7030'].recommended_max)==(3.5,4.0)
+    assert (codes['WARTSILA_CUNI9010'].recommended_max,codes['WARTSILA_CUNI7030'].recommended_max,codes['WARTSILA_GALVANIZED'].recommended_max)==(3.0,4.5,2.5)
+    assert all(codes[c].source_document and codes[c].source_clause and codes[c].verification=='RECOMMENDATION' for c in codes if c.startswith(('CUNI_','WARTSILA_')))
 
 
 def test_factory_d243_and_manufacturer_rules_coexist(catalog):
@@ -152,7 +154,7 @@ def test_v5_migration_preserves_existing_rows_and_is_atomic(tmp_path,monkeypatch
         for name,rows in before.items():assert c.execute('SELECT * FROM '+name).fetchall()==rows
     database=LibraryDatabase(path);database.initialize();database.initialize()
     with database.connection() as c:
-        assert c.execute('SELECT version FROM schema_version').fetchone()[0]==9
+        assert c.execute('SELECT version FROM schema_version').fetchone()[0]==10
         for name,rows in before.items():assert [tuple(row) for row in c.execute('SELECT * FROM '+name)]==rows
         assert c.execute('SELECT name_tr FROM fluids WHERE id=?',(fluid_id,)).fetchone()[0]=='User fluid'
         assert not c.execute('PRAGMA foreign_key_check').fetchall()

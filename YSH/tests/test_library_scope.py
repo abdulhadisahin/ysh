@@ -66,7 +66,22 @@ def test_v9_fills_blank_factory_rows_but_keeps_user_edits(tmp_path):
     raw.commit(); raw.close()
     LibraryDatabase(path).initialize()
     raw = sqlite3.connect(path)
-    assert raw.execute("SELECT version FROM schema_version").fetchone()[0] == 9
+    assert raw.execute("SELECT version FROM schema_version").fetchone()[0] == 10
     assert raw.execute("SELECT default_value,source_min,source_max FROM fluid_specifications WHERE code='DMB_KINEMATIC_VISCOSITY'").fetchone() == (6.5, 2.0, 11.0)
     assert raw.execute("SELECT roughness_mm FROM material_surfaces WHERE code='PVC_NEW'").fetchone()[0] == 0.5
     assert raw.execute("SELECT roughness_mm FROM material_surfaces WHERE code='CAST_IRON_UNCOATED'").fetchone()[0] == 0.26
+
+
+def test_v10_completes_cuni_and_wartsila_rules_and_drops_placeholders(tmp_path):
+    from database.library_database import LibraryDatabase
+    database = LibraryDatabase(tmp_path / 'lib.db')
+    database.initialize()
+    with database.connection() as c:  # recreate the pre-v10 state
+        c.execute("UPDATE engineering_rules SET recommended_max=NULL, verification='SOURCE_REQUIRED', rule_nature='SOURCE_REQUIRED' WHERE code='CUNI_9010'")
+        c.execute("DELETE FROM engineering_rules WHERE code LIKE 'WARTSILA_%'")
+        c.execute("INSERT INTO engineering_rules(id,code,name,profile_id,is_factory,verification) SELECT 'x-1','BALLAST','Ballast',profile_id,1,'SOURCE_REQUIRED' FROM engineering_rules WHERE code='CUNI_7030'")
+        c.execute('UPDATE schema_version SET version=9')
+    LibraryDatabase(tmp_path / 'lib.db').initialize()
+    with database.connection() as c:
+        rows = {r[0]: r[1] for r in c.execute('SELECT code, recommended_max FROM engineering_rules')}
+    assert rows['CUNI_9010'] == 3.5 and rows['WARTSILA_CUNI7030'] == 4.5 and 'BALLAST' not in rows

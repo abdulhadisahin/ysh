@@ -51,14 +51,14 @@ def test_visible_catalog_navigation_fluid_details_and_distinct_rules(shell,langu
         window._navigation.selection_set('group:engineering_rules');window._choose_navigation();root.update()
         assert window._controller.category=='engineering_rules'
         rules={r.code:r for r in window._controller.records}
-        assert len(rules)==23
-        for code in ('D243_FUEL_MAX','EVERLLENCE_DIESEL_FUEL_DELIVERY','TL_FFS_DELIVERY','BALLAST','BILGE'):
+        assert len(rules)==24
+        for code in ('D243_FUEL_MAX','EVERLLENCE_DIESEL_FUEL_DELIVERY','TL_FFS_DELIVERY','CUNI_9010','WARTSILA_CUNI9010'):
             row=window._tree.item(str(rules[code].id),'values')
             assert row[0]==rules[code].name
         d243=window._tree.item(str(rules['D243_FUEL_MAX'].id),'values')
         assert '7' in d243[1] and d243[3]=='D243'
         assert window._tree.item(str(rules['TL_FFS_DELIVERY'].id),'values')[3]=='Türk Loydu'
-        assert window._tree.item(str(rules['BALLAST'].id),'values')[1]==w._translate('engineering.status.SOURCE_REQUIRED')
+        assert '3' in window._tree.item(str(rules['CUNI_9010'].id),'values')[1]
         window.show_category('material_surfaces');root.update()
         assert len(window._controller.records)==11
         surface=next(r for r in window._controller.records if r.code=='CARBON_NEW')
